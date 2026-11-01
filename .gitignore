@@ -1,0 +1,15 @@
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Ambientes e caches locais
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Configurações locais do editor
+.vscode/
+
+# Saídas temporárias
+*.log
