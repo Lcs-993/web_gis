@@ -87,7 +87,7 @@ function styleXml(hex, { outline, themed }) {
 
     /* Balão: só a descrição HTML de cada feição (sem os links "Rotas" do Google Earth). */
     return `<Style id="${styleId(hex)}">` +
-        "<BalloonStyle><text><![CDATA[$[description]]]></text></BalloonStyle>" +
+        "<BalloonStyle><bgColor>ffffffff</bgColor><text><![CDATA[$[description]]]></text></BalloonStyle>" +
         `<LineStyle><color>${kmlColor(hex, 1)}</color><width>${outline ? 2 : 1.5}</width></LineStyle>` +
         `<PolyStyle><color>${kmlColor(hex, fillAlpha)}</color><fill>${outline ? 0 : 1}</fill><outline>1</outline></PolyStyle>` +
         `<IconStyle><color>${kmlColor(hex, 1)}</color><scale>1</scale>` +
@@ -99,29 +99,42 @@ function styleXml(hex, { outline, themed }) {
 /* ---------------- balão (popup) ---------------- */
 
 /*
-   HTML do balão do Google Earth: cabeçalho com faixa na cor da
-   feição, nome e camada; depois os atributos numa tabela leve,
-   com linhas alternadas. Só estilos inline (o Earth ignora <style>).
+   HTML do balão, no visual do popup do app: cabeçalho escuro com
+   faixa na cor da feição, título em branco e camada em verde-claro;
+   atributos em "cartão" (nome do campo pequeno em verde, valor
+   embaixo), linhas alternadas e rodapé discreto.
+
+   Feito para o navegador antigo do Google Earth Pro (e o Earth Web):
+   só tabelas, atributos cellpadding/cellspacing/bgcolor e estilos
+   inline; nada de <style>, flex, border-radius ou border-collapse,
+   que ele ignora ou desenha errado. Fundo sempre nas <td>.
 */
-function balloonHtml({ title, subtitle, color, rows }) {
+const FONT = "font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const BALLOON_WIDTH = 320;
+
+function balloonHtml({ title, subtitle, color, rows, exportedAt }) {
     const accent = /^#[0-9a-f]{6}$/i.test(color || "") ? color : "#50ab46";
-    const font = "font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif";
 
-    const body = rows.map(([label, value], index) =>
-        `<tr style="background:${index % 2 ? "#f6f7f9" : "#ffffff"}">` +
-        `<td style="padding:6px 12px 6px 0;color:#6e6e73;font-size:12px;white-space:nowrap;vertical-align:top">${escapeXml(label)}</td>` +
-        `<td style="padding:6px 0;color:#1d1d1f;font-size:13px;font-weight:600">${escapeXml(value)}</td>` +
-        "</tr>"
-    ).join("");
+    const body = rows.map(([label, value], index) => {
+        const bg = index % 2 ? "#f4f6f3" : "#ffffff";
 
-    return `<div style="${font};width:300px">` +
-        `<div style="border-left:5px solid ${accent};padding:2px 0 2px 10px;margin-bottom:10px">` +
-        `<div style="color:#1d1d1f;font-size:16px;font-weight:700">${escapeXml(title)}</div>` +
-        (subtitle ? `<div style="color:#8e8e93;font-size:12px">${escapeXml(subtitle)}</div>` : "") +
-        "</div>" +
-        `<table style="width:100%;border-collapse:collapse;border-top:1px solid #e5e5ea">${body}</table>` +
-        `<div style="margin-top:8px;color:#aeaeb2;font-size:10px">Exportado do WebGIS</div>` +
-        "</div>";
+        return `<tr><td bgcolor="${bg}" style="padding:7px 14px;border-bottom:1px solid #e6e9e4">` +
+            `<div style="${FONT};color:#4e8a3c;font-size:10px;font-weight:bold;letter-spacing:0.5px;text-transform:uppercase">${escapeXml(label)}</div>` +
+            `<div style="${FONT};color:#1d1d1f;font-size:13px;font-weight:600;padding-top:1px">${escapeXml(value)}</div>` +
+            "</td></tr>";
+    }).join("");
+
+    return `<table width="${BALLOON_WIDTH}" cellpadding="0" cellspacing="0" border="0" style="${FONT};width:${BALLOON_WIDTH}px">` +
+        /* Faixa na cor da feição (mesma cor do polígono/legenda). */
+        `<tr><td bgcolor="${accent}" height="5" style="height:5px;font-size:0;line-height:0">&nbsp;</td></tr>` +
+        `<tr><td bgcolor="#2a2d29" style="padding:11px 14px 10px">` +
+        (subtitle ? `<div style="${FONT};color:#9acd83;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase">${escapeXml(subtitle)}</div>` : "") +
+        `<div style="${FONT};color:#ffffff;font-size:16px;font-weight:bold;padding-top:2px">${escapeXml(title)}</div>` +
+        "</td></tr>" +
+        (body || `<tr><td style="padding:10px 14px;${FONT};color:#8e8e93;font-size:12px">Sem atributos.</td></tr>`) +
+        `<tr><td bgcolor="#ffffff" style="padding:8px 14px 2px;${FONT};color:#a1a6a0;font-size:10px">` +
+        `Exportado do WebGIS${exportedAt ? ` · ${escapeXml(exportedAt)}` : ""}</td></tr>` +
+        "</table>";
 }
 
 
@@ -134,7 +147,12 @@ function balloonHtml({ title, subtitle, color, rows }) {
    nameFields: atributos do rótulo do mapa; viram o nome do
    Placemark, unidos por " · " (o nome do KML é de uma linha só).
 */
-export function toKml({ documentName, groups, attributes, nameFields = [], outline = false, themed = false }) {
+export function toKml({
+    documentName, groups, attributes, nameFields = [], outline = false, themed = false,
+    /* Formata o valor para o balão (o ExtendedData leva o valor bruto). */
+    formatValue = (value) => String(value),
+    exportedAt = ""
+}) {
     const colors = new Set();
 
     groups.forEach((group) => group.items.forEach((item) => colors.add(item.color)));
@@ -155,13 +173,15 @@ export function toKml({ documentName, groups, attributes, nameFields = [], outli
             .join("");
 
         const rows = attributes
-            .map((attribute) => [attribute.name, getAttribute(feature, attribute.name)])
-            .filter(([, value]) => !isEmpty(value));
+            .map((attribute) => [attribute, getAttribute(feature, attribute.name)])
+            .filter(([, value]) => !isEmpty(value))
+            .map(([attribute, value]) => [attribute.name, formatValue(value, attribute)]);
         const description = balloonHtml({
             title: isEmpty(nameValue) ? documentName : nameValue,
             subtitle: isEmpty(nameValue) ? "" : documentName,
             color,
-            rows
+            rows,
+            exportedAt
         });
 
         return "<Placemark>" +

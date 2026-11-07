@@ -113,7 +113,8 @@ export const LAYERS = [
         url: "geojson/pol_talhoes.geojson",
         attribution:
             'Dados: <a href="https://github.com/Lcs-993/meus_layers">meus_layers</a>',
-        color: "#f4c95d",
+        /* Verde-cana (tom das lavouras na imagem de satélite). */
+        color: "#4fae3c",
         visible: true,
         /* Camada ativa na abertura (busca, filtros e dashboard). */
         active: true,

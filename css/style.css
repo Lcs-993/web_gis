@@ -37,6 +37,8 @@
     --color-text-label: #3a3a3c;
 
     --color-brand: #50ab46;
+    /* Nomes dos campos nos popups: mesmo verde-claro nos dois temas. */
+    --color-field-label: #9acd83;
     --color-brand-soft: rgba(80, 171, 70, 0.14);
     --color-accent: #ff3b30;
     --color-accent-soft: rgba(255, 59, 48, 0.08);
@@ -98,6 +100,7 @@
     --color-text-label: #d1d1d6;
 
     --color-brand: #5bbd51;
+    --color-field-label: #9acd83;
     --color-brand-soft: rgba(91, 189, 81, 0.18);
     --color-accent: #ff453a;
     --color-accent-soft: rgba(255, 69, 58, 0.14);
@@ -707,7 +710,7 @@ ol {
 }
 
 .feature-info dt {
-    color: var(--color-brand);
+    color: var(--color-field-label);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -1171,7 +1174,8 @@ ol {
     left: 0;
     width: var(--sidebar-w);
     max-width: 100%;
-    height: 100%;
+    /* Termina acima do rodapé, que fica sempre visível na largura toda. */
+    height: calc(100% - var(--footer-h));
     display: flex;
     flex-direction: column;
     background: var(--color-surface);
@@ -2797,11 +2801,6 @@ th[aria-sort="descending"] .table-sort::after {
     transition: left var(--duration) ease;
 }
 
-/* Com a aba Camadas aberta, o rodapé começa depois dela. */
-.layers-open .map-footer {
-    left: var(--sidebar-w);
-}
-
 .map-footer-item {
     display: inline-flex;
     align-items: center;
@@ -2973,7 +2972,6 @@ th[aria-sort="descending"] .table-sort::after {
         gap: 8px;
     }
 
-    .layers-open .map-footer,
     .layers-open .dashboard {
         left: 0;
     }

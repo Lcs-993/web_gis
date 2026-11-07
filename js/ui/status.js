@@ -46,7 +46,7 @@ export function createStatusBar(store) {
 
             const point = cursor || map.getCenter();
 
-            coordsLabel.textContent = cursor ? "Cursor" : "Centro";
+            coordsLabel.textContent = cursor ? "Lat/Long:" : "Centro";
             coords.textContent = `${formatCoordinate(point.lat)}, ${formatCoordinate(point.lng)}`;
             zoom.textContent = formatZoom(map.getZoom());
         };

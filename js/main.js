@@ -151,9 +151,15 @@ const panels = createPanels([
                 if (store.state.selection) {
                     presentSelection(store.state.selection);
                 }
+            }
 
-                /* O dashboard cobre a parte de baixo: reenquadra no que está em foco. */
-                fitToFocus();
+            /*
+               Abrir ou fechar o dashboard muda a área útil do mapa:
+               reenquadra no que está em foco (seleção ou resultados da
+               busca); sem foco, volta à extensão total, como o botão Home.
+            */
+            if (!fitToFocus()) {
+                mapView.fitExtent();
             }
         }
 

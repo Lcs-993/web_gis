@@ -54,6 +54,8 @@ export function downloadText(text, fileName, type = "text/csv;charset=utf-8") {
 export const safeFileName = (name) =>
     String(name || "camada")
         .normalize("NFD")
+        /* Tira os acentos (marcas separadas pelo NFD) antes de trocar o resto por "_". */
+        .replace(/[̀-ͯ]/g, "")
         .replace(/[^\w.-]+/g, "_")
         .replace(/^_+|_+$/g, "")
         .toLowerCase() || "camada";
