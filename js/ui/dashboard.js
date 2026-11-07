@@ -550,7 +550,51 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     [groupField, groupMeasure, groupOperator, chartType].forEach((select) => select.addEventListener("change", () => render()));
 
     /* Filtro ou busca ativos: o arquivo leva "filtrado" no nome. */
-    const exportSuffix = (layer) => (layer.filters.length || layer.search.term ? "filtrado" : "completo");
+    /*
+       Nome do arquivo exportado: camada + valores filtrados, ex.
+       "talhoes_40002-alto_rb867515.kml". Cada filtro contribui com
+       seus valores ("é um de" até 3, depois "+N"; "entre" vira
+       "a_b"); filtros sem valor (vazio, preenchido, sim/não) entram
+       pelo nome do campo. A busca entra pelo termo. Sem filtro nem
+       busca: "completo". Limitado para não estourar o nome do arquivo.
+    */
+    const MAX_NAME_PARTS_LENGTH = 80;
+
+    const filterNamePart = (filter) => {
+        if (filter.operator === "in") {
+            const values = (filter.values || []).map((value) => (value === null ? "vazio" : value));
+            const shown = values.slice(0, 3).join("-");
+
+            return values.length > 3 ? `${shown}-mais${values.length - 3}` : shown;
+        }
+
+        if (filter.operator === "between") {
+            return `${filter.value}_a_${filter.valueTo}`;
+        }
+
+        const prefix = { gt: "acima_", gte: "min_", lt: "abaixo_", lte: "max_", notEquals: "exceto_", notContains: "sem_" }[filter.operator] || "";
+
+        const noValue = { empty: "vazio", notEmpty: "preenchido", isTrue: "sim", isFalse: "nao" }[filter.operator] || filter.operator;
+
+        return filter.value ? `${prefix}${filter.value}` : `${filter.field}_${noValue}`;
+    };
+
+    const exportSuffix = (layer) => {
+        const parts = [
+            ...layer.filters.map(filterNamePart),
+            ...(layer.search.term ? [layer.search.term] : [])
+        ].map(safeFileName).filter((part) => part && part !== "camada");
+
+        if (!parts.length) {
+            return layer.filters.length || layer.search.term ? "filtrado" : "completo";
+        }
+
+        const joined = parts.join("_");
+
+        return joined.length > MAX_NAME_PARTS_LENGTH
+            ? joined.slice(0, MAX_NAME_PARTS_LENGTH).replace(/[_-]+$/, "")
+            : joined;
+    };
 
     /*
        CSV = a tabela como está: só o conjunto considerado (filtros e
@@ -616,7 +660,9 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
             attributes: columnsOf(layer),
             nameFields: layer.labels.visible ? layer.labels.fields : [],
             outline: layer.style === "outline",
-            themed: Boolean(theme)
+            themed: Boolean(theme),
+            formatValue,
+            exportedAt: new Date().toLocaleDateString("pt-BR")
         });
 
         downloadText(kml, `${safeFileName(layer.name)}_${exportSuffix(layer)}.kml`, "application/vnd.google-earth.kml+xml");
