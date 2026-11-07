@@ -120,6 +120,7 @@ export function createStore() {
             features: [],
             schema: { attributes: [] },
             geometryTypes: {},
+            metadata: { description: "", crs: "", bbox: null },
             filters: [],
             /* minZoom: rótulos só a partir desse zoom (null = sempre). */
             /* fields: um atributo por linha do rótulo (aceita "field" único, legado). */
@@ -158,7 +159,7 @@ export function createStore() {
         return layer;
     };
 
-    const setLayerData = (id, { name, features, geometryTypes }) => {
+    const setLayerData = (id, { name, features, geometryTypes, metadata }) => {
         const layer = getLayer(id);
 
         if (!layer) {
@@ -171,6 +172,8 @@ export function createStore() {
 
         layer.features = features;
         layer.geometryTypes = geometryTypes;
+        /* Do próprio arquivo: descrição, sistema de coordenadas e extensão. */
+        layer.metadata = metadata || { description: "", crs: "", bbox: null };
         layer.schema = inferSchema(features);
         layer.index = buildSearchIndex(features, layer.schema);
 
