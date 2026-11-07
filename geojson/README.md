@@ -29,7 +29,7 @@ Cada arquivo deve:
 
 | Arquivo | Origem | Feições | Tamanho |
 | --- | --- | --- | --- |
-| `pol_talhoes.geojson` | `Lcs-993/meus_layers`, commit `225cf99` | 3.343 | 9,3 MB (2,3 MB comprimido) |
+| `pol_talhoes.geojson` | exportação do QGIS em 07/11/2026 (geodatabase em `Geodatabase/`, fora do Git) | 3.388 | 9,5 MB (2,1 MB comprimido) |
 | `usina.geojson` | coordenada informada (lat −20,0868, lon −46,0424) | 1 | < 1 KB |
 | `pol_fazendas.geojson` | exportação do QGIS (origem em `dados_origem/`, fora do Git) | 175 | 1,0 MB (0,27 MB comprimido) |
 
