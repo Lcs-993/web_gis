@@ -29,10 +29,18 @@ jobs:
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
+      # Publica só o que o site usa; relatórios, rascunhos e
+      # arquivos de trabalho do repositório ficam de fora.
+      - name: Montar o site
+        run: |
+          mkdir _site
+          cp -r index.html README.md .nojekyll css js assets _site/
+          if [ -d geojson ]; then cp -r geojson _site/; fi
+
       - name: Preparar arquivos do site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Publicar no GitHub Pages
         id: deployment

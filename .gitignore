@@ -11,5 +11,15 @@ __pycache__/
 # Configurações locais do editor
 .vscode/
 
+# Referência local da migração — não faz parte da aplicação publicada
+web_gis-main/
+
+# Dados de origem brutos (grandes demais para o Git; o site usa as versões de geojson/)
+dados_origem/
+
 # Saídas temporárias
 *.log
+
+# Saídas de build e testes locais
+_site/
+.tmp-test/

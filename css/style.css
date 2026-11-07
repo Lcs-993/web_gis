@@ -1,10 +1,17 @@
 /* ============================================================
-   WEBGIS
-   Estrutura base / layout principal
+   WEBGIS — estilos
 
-   Os valores visuais originais foram preservados integralmente.
-   As custom properties abaixo apenas centralizam cores e
-   medidas que antes apareciam hardcoded em todo o arquivo.
+   0. Tokens (claro / escuro)
+   1. Reset e base
+   2. App, topbar, navegação, tema
+   3. Mapa, Leaflet, popup
+   4. Ferramentas sobre o mapa (busca, filtros)
+   5. Componentes (botões, campos, badge, painéis)
+   6. Sidebar de camadas
+   7. Painel de filtros
+   8. Dashboard (resumo e tabela)
+   9. Controles do mapa e mapa base
+   10. Responsivo e movimento reduzido
    ============================================================ */
 
 
@@ -13,138 +20,118 @@
    ============================================================ */
 
 :root {
-
-    /* Faz o navegador desenhar widgets nativos (scrollbar,
-       checkbox) na variante correta. */
     color-scheme: light;
 
-    /* Cores de fundo */
     --color-bg: #f5f5f7;
-    --color-surface: rgba(250, 250, 252, 0.96);
-    --color-surface-strong: rgba(250, 250, 252, 0.92);
-    --color-surface-solid: #ffffff;
+    --color-surface: rgba(250, 250, 252, 0.74);
+    --color-surface-strong: rgba(250, 250, 252, 0.64);
+    --color-surface-solid: rgba(255, 255, 255, 0.86);
+    --color-surface-bright: rgba(255, 255, 255, 0.88);
+    --color-surface-opaque: #f7f7f9;
     --color-map-bg: #d9ddd9;
+    --color-popup: rgba(252, 252, 253, 0.95);
 
-    /* Cores de texto */
     --color-text: #1d1d1f;
     --color-text-muted: #6e6e73;
     --color-text-subtle: #8e8e93;
     --color-text-label: #3a3a3c;
-    --color-text-avatar: #4a4a4f;
 
-    /* Cores de destaque */
     --color-brand: #50ab46;
+    --color-brand-soft: rgba(80, 171, 70, 0.14);
     --color-accent: #ff3b30;
+    --color-accent-soft: rgba(255, 59, 48, 0.08);
+    --color-on-accent: #ffffff;
+    --color-highlight: #2f80ed;
 
-    /* Bordas */
     --border-hairline: rgba(0, 0, 0, 0.08);
-    --border-avatar: rgba(0, 0, 0, 0.14);
     --border-hover: rgba(0, 0, 0, 0.04);
 
-    /* Estados */
     --hover-bg: rgba(0, 0, 0, 0.045);
     --active-bg: rgba(0, 0, 0, 0.06);
     --pressed-bg: rgba(0, 0, 0, 0.075);
     --focus-ring: rgba(0, 122, 255, 0.55);
 
-    /* Efeitos */
-    --blur-glass: blur(20px) saturate(180%);
-    --shadow-topbar: 0 1px 3px rgba(0, 0, 0, 0.04);
-    --shadow-dropdown:
-        0 8px 24px rgba(0, 0, 0, 0.10),
-        0 2px 6px rgba(0, 0, 0, 0.05);
-    --shadow-sidebar: 4px 0 16px rgba(0, 0, 0, 0.08);
-    --shadow-toggle: 0 2px 8px rgba(0, 0, 0, 0.08);
-    --shadow-toggle-hover: 0 3px 10px rgba(0, 0, 0, 0.12);
-    --shadow-toggle-accent: 0 3px 10px rgba(0, 0, 0, 0.14);
-    --shadow-avatar: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --blur-glass: blur(24px) saturate(170%);
+    --shadow-dropdown: 0 12px 32px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-panel: 0 8px 28px rgba(0, 0, 0, 0.12);
+    --shadow-toggle: 0 4px 14px rgba(0, 0, 0, 0.10);
+    --shadow-toggle-hover: 0 6px 18px rgba(0, 0, 0, 0.14);
 
-    /* Superfícies claras usadas no hover */
-    --color-surface-bright: rgba(255, 255, 255, 0.98);
-    --color-on-accent: #ffffff;
+    /* Barra superior e controle segmentado (materiais do iOS) */
+    --color-bar: rgba(249, 249, 249, 0.78);
+    --border-bar: rgba(0, 0, 0, 0.18);
+    --blur-bar: blur(20px) saturate(180%);
+    --fill-segment: rgba(118, 118, 128, 0.12);
+    --fill-segment-hover: rgba(118, 118, 128, 0.20);
+    --segment-selected: #ffffff;
+    --shadow-segment: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
 
-    /* Medidas */
-    --topbar-h: 64px;
-    --footer-h: 32px;
+    --topbar-h: 56px;
+    /* Rodapé translúcido sobre o mapa (coordenadas e zoom). */
+    --footer-h: 26px;
     --sidebar-w: 320px;
-    --sidebar-gutter: 16px;
-    --dropdown-w: 220px;
+    --gutter: 16px;
+    --dashboard-h: 46%;
 
-    /* Raios */
     --radius-sm: 9px;
     --radius-md: 10px;
     --radius-lg: 12px;
 
-    /* Transições */
-    --ease: 220ms ease;
     --duration: 220ms;
 }
 
-
-/* ============================================================
-   0b. TEMA ESCURO
-
-   Apenas os tokens são redefinidos — nenhuma regra de layout
-   é tocada, então a alternância não causa reflow. O atributo
-   data-theme é aplicado no <head> por um script inline, antes
-   da primeira pintura, para não haver flash branco.
-   ============================================================ */
-
 [data-theme="dark"] {
-
     color-scheme: dark;
 
-    /* Cores de fundo */
     --color-bg: #1c1c1e;
-    --color-surface: rgba(44, 44, 46, 0.96);
-    --color-surface-strong: rgba(44, 44, 46, 0.92);
-    --color-surface-solid: #2c2c2e;
+    --color-surface: rgba(34, 34, 36, 0.72);
+    --color-surface-strong: rgba(34, 34, 36, 0.62);
+    --color-surface-solid: rgba(48, 48, 50, 0.86);
+    --color-surface-bright: rgba(70, 70, 74, 0.90);
+    --color-surface-opaque: #2c2c2e;
     --color-map-bg: #232326;
+    --color-popup: rgba(40, 40, 42, 0.95);
 
-    /* Cores de texto */
     --color-text: #f5f5f7;
     --color-text-muted: #a1a1a6;
     --color-text-subtle: #8e8e93;
     --color-text-label: #d1d1d6;
-    --color-text-avatar: #a1a1a6;
 
-    /* Cores de destaque */
     --color-brand: #5bbd51;
+    --color-brand-soft: rgba(91, 189, 81, 0.18);
     --color-accent: #ff453a;
+    --color-accent-soft: rgba(255, 69, 58, 0.14);
+    --color-highlight: #5aa9ff;
 
-    /* Bordas */
     --border-hairline: rgba(255, 255, 255, 0.12);
-    --border-avatar: rgba(255, 255, 255, 0.16);
     --border-hover: rgba(255, 255, 255, 0.06);
 
-    /* Estados */
     --hover-bg: rgba(255, 255, 255, 0.06);
     --active-bg: rgba(255, 255, 255, 0.10);
     --pressed-bg: rgba(255, 255, 255, 0.13);
     --focus-ring: rgba(10, 132, 255, 0.75);
 
-    /* Sombras mais profundas, já que o preto puro some no fundo */
-    --shadow-topbar: 0 1px 3px rgba(0, 0, 0, 0.30);
-    --shadow-dropdown:
-        0 8px 24px rgba(0, 0, 0, 0.50),
-        0 2px 6px rgba(0, 0, 0, 0.30);
-    --shadow-sidebar: 4px 0 16px rgba(0, 0, 0, 0.40);
-    --shadow-toggle: 0 2px 8px rgba(0, 0, 0, 0.40);
-    --shadow-toggle-hover: 0 3px 10px rgba(0, 0, 0, 0.50);
-    --shadow-toggle-accent: 0 3px 10px rgba(0, 0, 0, 0.50);
-    --shadow-avatar: 0 1px 2px rgba(0, 0, 0, 0.30);
+    --color-bar: rgba(29, 29, 31, 0.80);
+    --border-bar: rgba(255, 255, 255, 0.14);
+    --fill-segment: rgba(118, 118, 128, 0.24);
+    --fill-segment-hover: rgba(118, 118, 128, 0.34);
+    --segment-selected: #636366;
+    --shadow-segment: 0 3px 8px rgba(0, 0, 0, 0.24), 0 3px 1px rgba(0, 0, 0, 0.08);
 
-    /* Superfícies claras usadas no hover */
-    --color-surface-bright: rgba(64, 64, 68, 0.98);
-    --color-on-accent: #ffffff;
+    --shadow-dropdown: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-panel: 0 8px 28px rgba(0, 0, 0, 0.50);
+    --shadow-toggle: 0 4px 14px rgba(0, 0, 0, 0.46);
+    --shadow-toggle-hover: 0 6px 18px rgba(0, 0, 0, 0.56);
 }
 
 
 /* ============================================================
-   1. RESET
+   1. RESET E BASE
    ============================================================ */
 
-* {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -157,21 +144,11 @@ body {
 }
 
 body {
-    font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "SF Pro Display",
-        "SF Pro Text",
-        "Helvetica Neue",
-        Arial,
-        sans-serif;
-
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     background: var(--color-bg);
     color: var(--color-text);
-
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
     overflow: hidden;
 }
 
@@ -185,342 +162,704 @@ select {
 button {
     background: none;
     border: 0;
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: default;
 }
 
 a {
     color: inherit;
 }
 
+ul,
+ol {
+    list-style: none;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
 
 /* ============================================================
-   2. APP
+   2. APP, TOPBAR, NAVEGAÇÃO, TEMA
    ============================================================ */
 
 .app {
     width: 100%;
-
     height: 100vh;
     height: 100dvh;
-
     display: flex;
     flex-direction: column;
-
     overflow: hidden;
-
     background: var(--color-bg);
 }
 
-
-/* ============================================================
-   3. TOPBAR
-   ============================================================ */
-
+/*
+   Barra no estilo da navigation bar do iOS: material translúcido
+   com desfoque, linha fina inferior e sem sombra. Três colunas:
+   marca | centro (reservado aos menus dos módulos) | ações.
+*/
 .topbar {
     position: relative;
-
-    width: 100%;
     height: var(--topbar-h);
     min-height: var(--topbar-h);
-
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-
-    padding: 0 24px;
-
-    background: var(--color-surface-strong);
-
-    border-bottom: 1px solid var(--border-hairline);
-
-    box-shadow: var(--shadow-topbar);
-
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-
+    gap: 16px;
+    padding: 0 16px 0 20px;
+    background: var(--color-bar);
+    border-bottom: 0.5px solid var(--border-bar);
+    backdrop-filter: var(--blur-bar);
+    -webkit-backdrop-filter: var(--blur-bar);
     z-index: 100;
 }
 
-
-/* ============================================================
-   4. BRAND
-   ============================================================ */
-
 .brand {
-    height: 100%;
-
     display: flex;
     align-items: center;
-
-    gap: 10px;
-
-    flex-shrink: 0;
-
-    order: 1;
+    gap: 9px;
+    min-width: 0;
 }
 
 .brand-logo {
-    width: 31px;
-    height: 31px;
-
+    width: 28px;
+    height: 28px;
     display: block;
-
     object-fit: contain;
-
-    flex-shrink: 0;
 }
 
 .brand-name {
-    color: var(--color-brand);
-
-    font-size: 21px;
-    font-weight: 700;
-
-    letter-spacing: -0.35px;
-}
-
-
-/* ============================================================
-   5. MAIN NAVIGATION
-   ============================================================ */
-
-.main-navigation {
-    height: 100%;
-
-    display: flex;
-    align-items: center;
-
-    margin-left: 24px;
-
-    gap: 3px;
-
-    order: 3;
-}
-
-.nav-group {
-    position: relative;
-
-    height: 100%;
-
-    display: flex;
-    align-items: center;
-}
-
-.nav-item {
-    position: relative;
-
-    height: 36px;
-
-    display: flex;
-    align-items: center;
-
-    padding: 0 14px;
-
-    border-radius: var(--radius-sm);
-
-    color: var(--color-text-muted);
-
-    font-size: 15px;
-    font-weight: 400;
-
-    letter-spacing: -0.1px;
-
-    text-decoration: none;
-
-    cursor: pointer;
-
-    transition:
-        color var(--duration) ease,
-        background-color var(--duration) ease;
-}
-
-.nav-item:hover {
     color: var(--color-text);
-    background: var(--hover-bg);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
 }
 
-.nav-item.active,
-.nav-item.menu-open {
-    color: var(--color-text);
-    background: var(--active-bg);
-}
+/* ---------- Menus de módulos (centro da barra) ----------
+   Inspirados nos menus do iOS/macOS: botões em texto, painel com
+   cantos generosos, linhas de 52px, ícone em quadrado colorido
+   (como nos Ajustes do iOS), separadores finos recuados e
+   entrada com leve escala.
+*/
 
-
-/* ============================================================
-   6. NAVIGATION DROPDOWNS
-   ============================================================ */
-
-.nav-dropdown {
-    position: absolute;
-
-    top: calc(100% + 8px);
-    left: 0;
-
-    width: var(--dropdown-w);
-    min-height: 80px;
-
-    display: none;
-
-    padding: 8px;
-
-    background: var(--color-surface);
-
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
-
-    box-shadow: var(--shadow-dropdown);
-
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-
-    z-index: 200;
-}
-
-.nav-dropdown.is-open {
-    display: block;
-}
-
-.nav-dropdown[hidden] {
-    display: none;
-}
-
-.dropdown-item {
+.module-menu {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+}
 
-    padding: 7px 8px;
+.module-menu-group {
+    position: relative;
+}
 
-    border-radius: 7px;
-
+.module-menu-trigger {
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 13px;
+    border-radius: 10px;
     color: var(--color-text-label);
-
-    font-size: 13px;
-    letter-spacing: -0.05px;
-
-    text-decoration: none;
-
-    cursor: pointer;
-
-    transition:
-        color var(--duration) ease,
-        background-color var(--duration) ease;
-}
-
-.dropdown-item:hover {
-    color: var(--color-text);
-    background: var(--hover-bg);
-}
-
-.dropdown-item-muted {
-    color: var(--color-text-subtle);
-    cursor: default;
-}
-
-.dropdown-item-muted:hover {
-    color: var(--color-text-subtle);
-    background: transparent;
-}
-
-.dropdown-item:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: -2px;
-}
-
-.dropdown-item-label {
-    flex: 1 1 auto;
-    overflow: hidden;
-
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.24px;
     white-space: nowrap;
-    text-overflow: ellipsis;
+    transition: background-color var(--duration) ease, color var(--duration) ease;
 }
 
-.dropdown-item-hint {
-    flex: 0 0 auto;
+.module-menu-trigger:hover,
+.module-menu-trigger[aria-expanded="true"] {
+    background: var(--hover-bg);
+    color: var(--color-text);
+}
 
+.module-menu-trigger[aria-expanded="true"] {
+    background: var(--fill-segment);
+}
+
+.module-menu-chevron {
+    width: 12px;
+    height: 12px;
+    opacity: 0.6;
+    transition: transform var(--duration) ease;
+}
+
+.module-menu-trigger[aria-expanded="true"] .module-menu-chevron {
+    transform: rotate(180deg);
+}
+
+.module-menu-list {
+    --tone: var(--color-text-muted);
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: 14px;
+    background: var(--color-surface-opaque);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.14);
+    transform: translateX(-50%);
+    transform-origin: top center;
+    z-index: 1200;
+    animation: module-menu-in 180ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.module-menu-list[hidden] {
+    display: none;
+}
+
+@keyframes module-menu-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-6px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%);
+    }
+}
+
+.module-menu-list.tone-orange { --tone: #ff9500; }
+.module-menu-list.tone-green  { --tone: #34c759; }
+.module-menu-list.tone-blue   { --tone: #0a84ff; }
+.module-menu-list.tone-gray   { --tone: #8e8e93; }
+
+.module-menu-title {
+    margin: 6px 12px 8px;
     color: var(--color-text-subtle);
-
-    font-size: 11px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.08px;
 }
 
-.dropdown-divider {
-    height: 1px;
+.module-menu-item {
+    position: relative;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    text-align: left;
+}
 
-    margin: 6px 8px;
-
+/* Separador fino, recuado até o texto (como nas listas do iOS). */
+.module-menu-item + .module-menu-item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 10px;
+    left: 54px;
+    height: 0.5px;
     background: var(--border-hairline);
 }
 
+.module-menu-item:hover::before,
+.module-menu-item:hover + .module-menu-item::before,
+.module-menu-item:focus-visible::before,
+.module-menu-item:focus-visible + .module-menu-item::before {
+    opacity: 0;
+}
+
+.module-menu-item:hover,
+.module-menu-item:focus-visible {
+    background: var(--hover-bg);
+    outline: none;
+}
+
+.module-menu-item:not(.is-soon):active {
+    background: var(--fill-segment);
+}
+
+.module-menu-icon {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--tone);
+    color: #ffffff;
+}
+
+.module-menu-icon-svg {
+    width: 19px;
+    height: 19px;
+}
+
+.module-menu-item-text {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.module-menu-item-label {
+    color: var(--color-text);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.24px;
+}
+
+.module-menu-item-description {
+    color: var(--color-text-subtle);
+    font-size: 13px;
+    line-height: 1.3;
+    letter-spacing: -0.08px;
+}
+
+.module-menu-item.is-soon {
+    cursor: default;
+}
+
+.module-menu-item.is-soon .module-menu-icon {
+    opacity: 0.55;
+}
+
+.module-menu-item.is-soon .module-menu-item-label {
+    color: var(--color-text-muted);
+}
+
+.module-menu-soon {
+    flex: none;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--fill-segment);
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.topbar-actions {
+    /* Coluna fixa: as ações ficam sempre à direita, mesmo com o centro vazio. */
+    grid-column: 3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Âncora de cartões que abrem sob um botão da barra (ex.: aviso "Em breve" da IA). */
+.topbar-popover-anchor {
+    position: relative;
+}
+
+.ai-button[aria-expanded="true"] {
+    background: var(--fill-segment-hover);
+}
+
+/* Cartão "Em breve": mesmo visual dos itens dos menus de módulos. */
+.coming-soon-card {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 320px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: 14px;
+    background: var(--color-surface-opaque);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.14);
+    z-index: 1200;
+    animation: module-menu-pop 180ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.coming-soon-card[hidden] {
+    display: none;
+}
+
+@keyframes module-menu-pop {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.coming-soon-icon {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: #af52de;
+    color: #ffffff;
+}
+
+.coming-soon-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+.coming-soon-text {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.coming-soon-title {
+    color: var(--color-text);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.24px;
+}
+
+.coming-soon-description {
+    color: var(--color-text-subtle);
+    font-size: 13px;
+    line-height: 1.3;
+    letter-spacing: -0.08px;
+}
+
+/* Botões redondos com preenchimento sutil, como os da barra do iOS. */
+.topbar-icon-button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--fill-segment);
+    color: var(--color-text);
+    transition: background-color var(--duration) ease, transform var(--duration) ease;
+}
+
+.topbar-icon-button:hover {
+    background: var(--fill-segment-hover);
+}
+
+.topbar-icon-button:active {
+    transform: scale(0.94);
+}
+
+.topbar-icon-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.theme-icon {
+    width: 17px;
+    height: 17px;
+}
+
+.theme-icon-sun,
+[data-theme="dark"] .theme-icon-moon {
+    display: none;
+}
+
+[data-theme="dark"] .theme-icon-sun {
+    display: block;
+}
+
 
 /* ============================================================
-   6b. SEARCH
+   3. MAPA, LEAFLET, POPUP
    ============================================================ */
 
-.search {
+.map-container {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--color-map-bg);
+    z-index: 1;
+}
+
+/*
+   z-index 0 confina os painéis internos do Leaflet (200–700) ao
+   próprio mapa; sem isso eles cobririam sidebar e painéis.
+*/
+.map-background {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    inset: 0;
+    background: var(--color-map-bg);
+    z-index: 0;
+}
 
-    width: min(430px, calc(100% - 32px));
+.map-background:focus-visible {
+    outline-offset: -2px;
+}
 
+/* Tela cheia: classe aplicada pelo JS (map-controls.js) nos dois motores. */
+.map-container.is-fullscreen {
+    width: 100vw;
+    height: 100vh;
+}
+
+.leaflet-container {
+    background: var(--color-map-bg);
+    font-family: inherit;
+    font-size: 12px;
+}
+
+.leaflet-control-attribution {
+    font-size: 10px;
+}
+
+[data-theme="dark"] .leaflet-control-attribution {
+    background: var(--color-surface-strong);
+    color: var(--color-text-subtle);
+}
+
+[data-theme="dark"] .leaflet-control-attribution a {
+    color: var(--color-text-muted);
+}
+
+.feature-popup .leaflet-popup-content-wrapper,
+.feature-popup .leaflet-popup-tip {
+    background: var(--color-popup);
+    color: var(--color-text);
+    box-shadow: var(--shadow-dropdown);
+}
+
+.feature-popup .leaflet-popup-content {
+    min-width: 200px;
+    max-height: 50vh;
+    overflow-y: auto;
+    margin: 14px 16px;
+}
+
+.feature-popup a.leaflet-popup-close-button {
+    color: var(--color-text-muted);
+}
+
+.feature-popup-layer {
+    margin-bottom: 8px;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.feature-info {
+    display: grid;
+    gap: 2px;
+}
+
+.feature-info dt {
+    color: var(--color-brand);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.feature-info dd {
+    margin: 0 0 8px;
+    color: var(--color-text);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.feature-info dd:last-child {
+    margin-bottom: 0;
+}
+
+/* ---------- Pontos com ícone de imagem (ex.: usina) ---------- */
+
+.feature-marker {
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+    transition: filter var(--duration) ease;
+}
+
+/* Seleção ou busca ativa: os pontos que não estão em foco esmaecem. */
+.feature-marker.is-dimmed {
+    opacity: 0.3;
+}
+
+/* ---------- Carregamento de camadas (cartão central) ---------- */
+
+/* Camada sobre o mapa que só centraliza o cartão; cliques passam para o mapa. */
+.loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    pointer-events: none;
+    z-index: 260;
+}
+
+.loading-card {
+    width: min(320px, 100%);
+    display: grid;
+    gap: 10px;
+    padding: 16px 18px;
+    border: 1px solid var(--border-hairline);
+    border-radius: 14px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-dropdown);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+}
+
+.loading-title {
+    overflow: hidden;
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.loading-bar {
+    position: relative;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--fill-segment);
+}
+
+.loading-bar-fill {
+    width: 0;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--color-brand);
+    transition: width 200ms ease;
+}
+
+/* Sem tamanho conhecido (ou processando): faixa que percorre a barra. */
+.loading-bar.is-indeterminate .loading-bar-fill {
+    position: absolute;
+    width: 35%;
+    animation: loading-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+    from {
+        left: -35%;
+    }
+
+    to {
+        left: 100%;
+    }
+}
+
+.loading-detail {
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.map-status {
+    position: absolute;
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 11px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-toggle);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    color: var(--color-text-muted);
+    font-size: 12px;
+    white-space: nowrap;
     z-index: 400;
 }
 
-.search-bar {
+
+/* ============================================================
+   4. FERRAMENTAS SOBRE O MAPA
+   ============================================================ */
+
+/*
+   Barra única de busca + filtros, na mesma altura (40px) do botão
+   Camadas e dos controles: o filtro fica dentro da barra, à
+   direita, separado por um traço fino.
+*/
+.map-tools {
+    position: absolute;
+    top: var(--gutter);
+    right: var(--gutter);
+    width: min(420px, calc(100% - 88px));
+    height: 40px;
     display: flex;
     align-items: center;
-    gap: 7px;
-
-    width: 100%;
-    max-width: 100%;
-
-    height: 34px;
-
-    padding: 0 8px 0 10px;
-
-    background: var(--color-surface-strong);
-
-    border: 1px solid transparent;
-
+    padding: 0 4px 0 0;
+    border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-
+    background: var(--color-surface-strong);
     box-shadow: var(--shadow-toggle);
-
     backdrop-filter: var(--blur-glass);
     -webkit-backdrop-filter: var(--blur-glass);
-
-    transition:
-        background-color var(--duration) ease,
-        border-color var(--duration) ease;
+    z-index: 300;
+    transition: background-color var(--duration) ease, border-color var(--duration) ease;
 }
 
-.search-bar:focus-within {
+.map-tools:has(.search-input:focus) {
     background: var(--color-surface-solid);
     border-color: var(--focus-ring);
+}
 
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.10);
+.search-bar {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px 0 12px;
+}
+
+.map-tools-divider {
+    width: 1px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-right: 4px;
+    background: var(--border-hairline);
 }
 
 .search-icon {
-    width: 15px;
-    height: 15px;
-
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
-
     color: var(--color-text-subtle);
 }
 
 .search-input {
     flex: 1 1 auto;
     min-width: 0;
-
-    padding: 0;
-
     background: none;
     border: 0;
-
     color: var(--color-text-label);
-
-    font-size: 13px;
-    letter-spacing: -0.05px;
+    font-size: 14px;
 }
 
 .search-input::placeholder {
@@ -531,7 +870,6 @@ a {
     outline: none;
 }
 
-/* O WebKit desenha um "x" próprio que conflita com o nosso. */
 .search-input::-webkit-search-cancel-button {
     display: none;
 }
@@ -539,22 +877,11 @@ a {
 .search-clear {
     width: 20px;
     height: 20px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
-    padding: 0;
-
     border-radius: 50%;
-
     color: var(--color-text-muted);
-
-    cursor: pointer;
-
-    transition:
-        color var(--duration) ease,
-        background-color var(--duration) ease;
 }
 
 .search-clear svg {
@@ -567,462 +894,339 @@ a {
     background: var(--hover-bg);
 }
 
-.search-clear:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 1px;
-}
-
-.search-clear[hidden] {
-    display: none;
-}
-
 .search-feedback {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-
-    margin: 0;
-
-    padding: 6px 10px;
-
     max-width: 320px;
-
+    padding: 6px 10px;
     background: var(--color-surface);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-sm);
-
     box-shadow: var(--shadow-dropdown);
-
     backdrop-filter: var(--blur-glass);
     -webkit-backdrop-filter: var(--blur-glass);
-
     color: var(--color-text-muted);
     font-size: 12px;
-    line-height: 1.4;
-
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-
-    z-index: 200;
 }
 
-.search-feedback[hidden] {
-    display: none;
+/* Filtro: botão interno da barra de busca. */
+.tool-button {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--color-text-muted);
+    transition: background-color var(--duration) ease, color var(--duration) ease;
 }
 
-.search-feedback strong {
+.tool-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.tool-button:hover {
+    background: var(--hover-bg);
+    color: var(--color-text);
+}
+
+.tool-button[aria-expanded="true"] {
+    background: var(--fill-segment);
+    color: var(--color-text);
+}
+
+.tool-button .badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+}
+
+
+/* ============================================================
+   5. COMPONENTES
+   ============================================================ */
+
+.badge {
+    min-width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--color-brand);
+    color: var(--color-on-accent);
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.button {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
     color: var(--color-text-label);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color var(--duration) ease, border-color var(--duration) ease;
+}
+
+.button:hover:not(:disabled) {
+    background: var(--hover-bg);
+    color: var(--color-text);
+}
+
+.button:disabled {
+    opacity: 0.45;
+}
+
+.button-primary {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: var(--color-on-accent);
+    font-weight: 600;
+}
+
+.button-primary:hover:not(:disabled) {
+    background: var(--color-brand);
+    color: var(--color-on-accent);
+    filter: brightness(1.06);
+}
+
+.button-ghost {
+    background: transparent;
+}
+
+.icon-button {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    color: var(--color-text-subtle);
+    font-size: 18px;
+    line-height: 1;
+}
+
+.icon-button:hover {
+    background: var(--hover-bg);
+    color: var(--color-text);
+}
+
+.field {
+    display: grid;
+    gap: 4px;
+}
+
+.field-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.field-label {
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.field select,
+.field-row input {
+    width: 100%;
+    min-width: 0;
+    min-height: 32px;
+    padding: 5px 8px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+    color: var(--color-text);
+    font-size: 13px;
+}
+
+/* Campo sem efeito no momento (ex.: Métrica com operador Contagem). */
+.field.is-disabled {
+    opacity: 0.45;
+}
+
+.field-inline select {
+    width: auto;
+    max-width: 220px;
+}
+
+.field-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.field-separator {
+    color: var(--color-text-subtle);
+    font-size: 12px;
+}
+
+.field-error {
+    color: var(--color-accent);
+    font-size: 12px;
+}
+
+.floating-panel,
+.dashboard {
+    background: var(--color-surface);
+    border: 1px solid var(--border-hairline);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    font-size: 13px;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.panel-title {
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+}
+
+.panel-summary {
+    color: var(--color-text-muted);
+    font-size: 12px;
     font-variant-numeric: tabular-nums;
 }
 
 
 /* ============================================================
-   7. THEME TOGGLE
-   ============================================================ */
-
-.theme-switch {
-    height: 100%;
-
-    display: flex;
-    align-items: center;
-
-    /* Empurra o par tema + usuário para a direita. */
-    margin-left: auto;
-    margin-right: 8px;
-
-    order: 4;
-}
-
-.theme-toggle {
-    width: 38px;
-    height: 38px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 0;
-
-    border: 1px solid transparent;
-    border-radius: var(--radius-md);
-
-    background: transparent;
-
-    color: var(--color-text-muted);
-
-    cursor: pointer;
-
-    transition:
-        color var(--duration) ease,
-        background-color var(--duration) ease,
-        border-color var(--duration) ease;
-}
-
-.theme-toggle:hover {
-    color: var(--color-text);
-    background: var(--hover-bg);
-    border-color: var(--border-hover);
-}
-
-.theme-toggle:active {
-    background: var(--pressed-bg);
-}
-
-.theme-toggle:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
-}
-
-.theme-icon {
-    width: 18px;
-    height: 18px;
-}
-
-/*
-   O ícone exibido depende do tema ATUAL:
-   no claro mostra a lua (o que será ativado);
-   no escuro mostra o sol.
-*/
-.theme-icon-sun {
-    display: none;
-}
-
-[data-theme="dark"] .theme-icon-moon {
-    display: none;
-}
-
-[data-theme="dark"] .theme-icon-sun {
-    display: block;
-}
-
-
-/* ============================================================
-   8. USER AREA
-   ============================================================ */
-
-.user-menu {
-
-    height: 100%;
-
-    display: flex;
-    align-items: center;
-
-    order: 5;
-}
-
-.user-button {
-    height: 38px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 9px;
-
-    padding: 0 8px 0 5px;
-
-    border: 1px solid transparent;
-    border-radius: var(--radius-md);
-
-    background: transparent;
-
-    color: var(--color-text);
-
-    cursor: pointer;
-
-    transition:
-        background-color var(--duration) ease,
-        border-color var(--duration) ease;
-}
-
-.user-button:hover {
-    background: var(--hover-bg);
-    border-color: var(--border-hover);
-}
-
-.user-button:active {
-    background: var(--pressed-bg);
-}
-
-.user-avatar {
-    width: 31px;
-    height: 31px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border: 1px solid var(--border-avatar);
-    border-radius: 50%;
-
-    background: var(--color-surface-solid);
-
-    color: var(--color-text-avatar);
-
-    box-shadow: var(--shadow-avatar);
-}
-
-.user-avatar svg {
-    width: 19px;
-    height: 19px;
-}
-
-.user-name {
-    color: var(--color-text-label);
-
-    font-size: 14px;
-    font-weight: 400;
-
-    letter-spacing: -0.05px;
-}
-
-.chevron {
-    width: 16px;
-    height: 16px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: var(--color-text-subtle);
-}
-
-.chevron svg {
-    width: 13px;
-    height: 13px;
-}
-
-
-/* ============================================================
-   9. MAIN CONTENT
-   ============================================================
-
-   O z-index abaixo cria um contexto de empilhamento próprio.
-   Sem ele, a sidebar (250) e o toggle (300) competiam no nível
-   do root e cobriam os dropdowns do topbar (200).
-   ============================================================ */
-
-.map-container {
-    position: relative;
-
-    width: 100%;
-    flex: 1;
-
-    min-height: 0;
-
-    overflow: hidden;
-
-    background: var(--color-map-bg);
-
-    z-index: 1;
-}
-
-
-/* ============================================================
-  10. MAP AREA
-   ============================================================ */
-
-.map-background {
-    position: absolute;
-    inset: 0;
-
-    background: var(--color-map-bg);
-
-    /*
-       Fecha os painéis do Leaflet dentro do próprio mapa.
-
-       O Leaflet distribui as camadas internas com z-index de
-       200 a 700 (.leaflet-pane = 400). Como o .map-container já
-       é um contexto de empilhamento, esses valores competiam
-       direto com a sidebar (250) e com o botão que a abre (300)
-       — e o mapa cobria os dois, deixando o painel impossível
-       de clicar. Com z-index 0 aqui, os painéis do Leaflet
-       ficam confinados e a ordem pretendida no .map-container
-       volta a valer: mapa (0) < sidebar (250) < botão (300).
-    */
-    z-index: 0;
-}
-
-.map-background:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: -2px;
-}
-
-/* Mantém a cor de carregamento igual à original do projeto */
-.leaflet-container {
-    background: var(--color-map-bg);
-
-    font-family: inherit;
-    font-size: 12px;
-}
-
-.leaflet-control-attribution {
-    font-size: 10px;
-}
-
-/*
-   O Leaflet desenha a atribuição com fundo branco fixo. Sem
-   estas regras o texto claro fica ilegível no tema escuro.
-*/
-[data-theme="dark"] .leaflet-control-attribution {
-    background: var(--color-surface-strong);
-
-    color: var(--color-text-subtle);
-}
-
-[data-theme="dark"] .leaflet-control-attribution a {
-    color: var(--color-text-muted);
-}
-
-/* Popups e tooltips do Leaflet, para quando passarem a existir */
-[data-theme="dark"] .leaflet-popup-content-wrapper,
-[data-theme="dark"] .leaflet-popup-tip {
-    background: var(--color-surface-solid);
-
-    color: var(--color-text);
-
-    box-shadow: var(--shadow-dropdown);
-}
-
-[data-theme="dark"] .leaflet-container a.leaflet-popup-close-button {
-    color: var(--color-text-subtle);
-}
-
-.talhao-popup .leaflet-popup-content-wrapper,
-.talhao-popup .leaflet-popup-tip {
-    background: var(--color-surface-solid);
-    color: var(--color-text);
-    box-shadow: var(--shadow-dropdown);
-}
-
-.talhao-popup .leaflet-popup-content {
-    min-width: 190px;
-    margin: 14px 16px;
-}
-
-.talhao-popup .feature-info {
-    gap: 3px 10px;
-}
-
-.talhao-popup .feature-info dt {
-    color: var(--color-brand);
-    font-weight: 700;
-}
-
-.talhao-popup .feature-info dd {
-    color: var(--color-text);
-}
-
-.talhao-popup .leaflet-popup-close-button {
-    color: var(--color-text-muted);
-}
-
-.map-status {
-    position: absolute;
-    top: 64px;
-    right: 16px;
-
-    padding: 6px 11px;
-
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-md);
-
-    background: var(--color-surface);
-
-    box-shadow: var(--shadow-toggle);
-
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-
-    color: var(--color-text-muted);
-
-    font-size: 12px;
-
-    white-space: nowrap;
-
-    z-index: 400;
-}
-
-.map-status[hidden] {
-    display: none;
-}
-
-
-/* ============================================================
-   11. SIDEBAR
+   6. SIDEBAR DE CAMADAS
    ============================================================ */
 
 .sidebar {
     position: absolute;
-
     top: 0;
     left: 0;
-
     width: var(--sidebar-w);
+    max-width: 100%;
     height: 100%;
-
     display: flex;
     flex-direction: column;
-
     background: var(--color-surface);
-
     border-right: 1px solid var(--border-hairline);
-
-    box-shadow: var(--shadow-sidebar);
-
+    box-shadow: var(--shadow-panel);
     backdrop-filter: var(--blur-glass);
     -webkit-backdrop-filter: var(--blur-glass);
-
     transform: translateX(-100%);
-
-    transition: transform var(--duration) ease;
-
+    visibility: hidden;
+    transition: transform var(--duration) ease, visibility 0s linear var(--duration);
     z-index: 250;
 }
 
 .sidebar.is-open {
     transform: translateX(0);
+    visibility: visible;
+    transition: transform var(--duration) ease;
+}
+
+/* Marca no topo da aba Camadas: só em tela cheia (a barra superior fica de fora). */
+.sidebar-brand {
+    display: none;
+    align-items: center;
+    gap: 9px;
+    flex-shrink: 0;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border-hairline);
+}
+
+.map-container.is-fullscreen .sidebar-brand {
+    display: flex;
 }
 
 .sidebar-header {
+    min-height: 56px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-
-    gap: 10px;
-
-    padding: 16px 18px 12px;
-
-    /*
-       O botão de fechar que existia aqui media 26px e era o que
-       dava altura à linha. Sem isto o título sobe 5px quando o
-       painel abre.
-
-       54px = 16 de padding + 26 da linha + 12 de padding. Com
-       box-sizing: border-box o min-height conta o padding.
-    */
-    min-height: 54px;
-
+    padding: 12px 18px 8px;
     flex-shrink: 0;
+}
+
+/*
+   Fechar: botão de vidro preso à borda direita da aba, por fora e
+   no alto — na mesma altura do botão de camadas do mapa. Some junto
+   com a aba (a aba fechada fica com visibility: hidden).
+*/
+.sidebar-close {
+    position: absolute;
+    top: var(--gutter);
+    left: calc(100% + 8px);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+    color: var(--color-text);
+    box-shadow: var(--shadow-toggle);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    transition: background-color var(--duration) ease, box-shadow var(--duration) ease;
+}
+
+.sidebar-close svg {
+    width: 18px;
+    height: 18px;
+}
+
+.sidebar-close:hover {
+    background: var(--color-surface-bright);
+    box-shadow: var(--shadow-toggle-hover);
+}
+
+.sidebar-close:active {
+    transform: scale(0.96);
+}
+
+/* Em telas estreitas a aba ocupa quase tudo: o botão entra no canto da própria aba. */
+@media (max-width: 400px) {
+    .sidebar-close {
+        left: auto;
+        right: 10px;
+    }
 }
 
 .sidebar-title {
     color: var(--color-text);
-
     font-size: 15px;
     font-weight: 600;
-
-    letter-spacing: -0.2px;
 }
 
 .sidebar-body {
     flex: 1;
-
     min-height: 0;
-
     overflow-y: auto;
     overscroll-behavior: contain;
-
     padding: 0 10px 16px;
 }
 
@@ -1030,772 +1234,1717 @@ a {
     margin-bottom: 18px;
 }
 
-.sidebar-section-title {
-    padding: 6px 8px;
-
+.sidebar-empty {
+    padding: 8px;
     color: var(--color-text-subtle);
-
-    font-size: 11px;
-    font-weight: 600;
-
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
+    font-size: 12px;
+    line-height: 1.5;
 }
 
-.sidebar-item {
+.layer-item {
+    border-radius: 8px;
+}
+
+.layer-item.is-active {
+    background: var(--active-bg);
+}
+
+.layer-row {
     display: flex;
     align-items: center;
     gap: 9px;
-
     padding: 6px 8px;
-
-    border-radius: 7px;
-
     color: var(--color-text-label);
-
-    font-size: 13px;
-
-    letter-spacing: -0.05px;
-
-    cursor: pointer;
-
-    transition: background-color var(--duration) ease;
 }
 
-.sidebar-item:hover {
-    background: var(--hover-bg);
-}
-
-.sidebar-item input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
-
+/* Botões de ícone da linha da camada: olho (visibilidade) e T (rótulos). */
+.layer-toggle {
+    width: 26px;
+    height: 26px;
     flex-shrink: 0;
-
-    margin: 0;
-
-    accent-color: var(--color-brand);
-
-    cursor: pointer;
-}
-
-.sidebar-item input[type="checkbox"]:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
-}
-
-.sidebar-swatch {
-    width: 12px;
-    height: 12px;
-
-    flex-shrink: 0;
-
-    border: 1px solid var(--border-hairline);
-
-    border-radius: 3px;
-}
-
-.sidebar-item-label {
-    flex: 1 1 auto;
-    overflow: hidden;
-
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.sidebar-count {
-    flex: 0 0 auto;
-
-    color: var(--color-text-subtle);
-
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
-}
-
-.sidebar-empty {
-    padding: 18px 8px;
-
-    color: var(--color-text-subtle);
-
-    font-size: 12px;
-
-    line-height: 1.5;
-    text-align: center;
-}
-
-.feature-info {
-    display: grid;
-
-    /* Rótulo em cima, valor embaixo — o proprietário é longo e
-       não caberia numa coluna estreita. */
-    grid-template-columns: 1fr;
-
-    gap: 2px 10px;
-
-    margin: 0;
-
-    padding: 2px 0;
-}
-
-.feature-info dt {
-    color: var(--color-text-subtle);
-
-    font-size: 10px;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-}
-
-.feature-info dd {
-    margin: 0 0 8px;
-
-    color: var(--color-text-label);
-
-    font-size: 12px;
-
-    line-height: 1.4;
-
-    overflow-wrap: anywhere;
-}
-
-.feature-info dd:last-child {
-    margin-bottom: 0;
-}
-
-
-/* ============================================================
-   11b. MÓDULOS DE ANÁLISE
-
-   Painéis de previsão e de queimadas, montados por js/clima.js e
-   js/queimadas.js dentro da sidebar.
-
-   Tudo em tokens existentes e sem cor fixa, para os dois temas
-   saírem certos sem regra própria.
-   ============================================================ */
-
-/*
-   O atributo hidden precisa vencer o display da seção.
-
-   O agente do usuário esconde [hidden], mas qualquer display
-   explícito na regra da seção tem precedência sobre ele — sem
-   isto os dois módulos apareceriam sobrepostos na sidebar.
-*/
-.modulo[hidden] {
-    display: none;
-}
-
-/* Marca o item de menu do módulo que está aberto. */
-.dropdown-item[aria-current="true"] {
-    background: var(--hover-bg);
-
-    color: var(--color-text-label);
-}
-
-.modulo-meta {
-    margin: 0 0 2px;
-    padding: 0 8px;
-
-    color: var(--color-text-label);
-
-    font-size: 13px;
-
-    letter-spacing: -0.05px;
-}
-
-.modulo-meta-detalhe {
-    margin: 0 0 2px;
-    padding: 0 8px;
-
-    color: var(--color-text-subtle);
-
-    font-size: 11px;
-    line-height: 1.45;
-}
-
-/*
-   O sufixo que completa a linha de identificação ("Bambuí, MG ·
-   IPMet Radar A565") é texto dentro do bloco, não uma linha nova.
-   Precisa de classe própria: com .modulo-meta-detalhe herdava o
-   padding lateral e abria um vão entre a cidade e a estação.
-*/
-.modulo-meta-sufixo {
-    color: var(--color-text-subtle);
-
-    font-weight: 400;
-}
-
-.modulo-subtitulo {
-    margin: 12px 0 4px;
-    padding: 0 8px;
-
-    color: var(--color-text-subtle);
-
-    font-size: 11px;
-    font-weight: 600;
-
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-}
-
-/* Janela expirada, fonte fora do ar. */
-.modulo-aviso {
-    margin: 8px 0 0;
-    padding: 8px 10px;
-
-    border: 1px solid var(--border-hairline);
-    border-left: 2px solid var(--color-accent);
-    border-radius: 7px;
-
-    background: var(--hover-bg);
-
-    color: var(--color-text-muted);
-
-    font-size: 11.5px;
-    line-height: 1.45;
-}
-
-/* ---------- PREVISÃO ---------- */
-
-.previsao-grade {
-    display: flex;
-    flex-direction: column;
-}
-
-/*
-   Duas colunas e duas linhas: a hora ocupa a altura toda, o
-   número fica alinhado à direita na primeira linha e as medidas
-   ocupam a segunda. Evita uma linha só para a hora, que wastejaria
-   metade dos 320px da sidebar.
-*/
-.previsao-periodo {
-    display: grid;
-
-    grid-template-columns: 52px 1fr;
-    grid-template-areas:
-        "quando    temp"
-        "quando    medidas";
-
-    align-items: center;
-    column-gap: 8px;
-
-    padding: 7px 8px;
-
-    border-radius: 7px;
-
-    transition: background-color var(--duration) ease;
-}
-
-.previsao-periodo:hover {
-    background: var(--hover-bg);
-}
-
-.previsao-quando {
-    grid-area: quando;
-
-    display: flex;
-    flex-direction: column;
-}
-
-.previsao-hora {
-    color: var(--color-text-label);
-
-    font-size: 13px;
-    font-weight: 600;
-
-    letter-spacing: -0.05px;
-}
-
-.previsao-dia {
-    color: var(--color-text-subtle);
-
-    font-size: 10.5px;
-}
-
-.previsao-temp {
-    grid-area: temp;
-
-    color: var(--color-text);
-
-    font-size: 17px;
-    font-weight: 600;
-
-    letter-spacing: -0.4px;
-    text-align: right;
-}
-
-.previsao-medidas {
-    grid-area: medidas;
-
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1px 10px;
-
-    color: var(--color-text-subtle);
-
-    font-size: 10.5px;
-}
-
-/* ---------- RESUMO (ambos os módulos) ---------- */
-
-/*
-   O fundo do container é a própria cor da linha, e o gap de 1px
-   deixa a hairline aparecer entre as células — mais barato que
-   borda em cada uma.
-*/
-.modulo-resumo {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-
-    margin: 10px 8px 0;
-
-    overflow: hidden;
-
-    border: 1px solid var(--border-hairline);
-    border-radius: 7px;
-
-    background: var(--border-hairline);
-}
-
-.modulo-celula {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-
-    padding: 8px 10px;
-
-    background: var(--color-surface);
-}
-
-.modulo-celula-valor {
-    color: var(--color-text);
-
-    font-size: 14px;
-    font-weight: 600;
-
-    letter-spacing: -0.2px;
-}
-
-.modulo-celula-rotulo {
-    color: var(--color-text-subtle);
-
-    font-size: 10.5px;
-}
-
-/* ---------- QUEIMADAS ---------- */
-
-.queimadas-destaque {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-
-    margin: 8px 8px 0;
-    padding: 10px 12px;
-
-    border: 1px solid var(--border-hairline);
-    border-radius: 9px;
-
-    background: var(--hover-bg);
-}
-
-.queimadas-numero {
-    color: var(--color-text);
-
-    font-size: 26px;
-    font-weight: 600;
-
-    letter-spacing: -0.8px;
-    line-height: 1;
-}
-
-.queimadas-numero-rotulo {
-    color: var(--color-text-muted);
-
-    font-size: 12px;
-}
-
-.queimadas-vazio {
-    margin: 8px 8px 0;
-    padding: 10px 12px;
-
-    border: 1px dashed var(--border-hairline);
-    border-radius: 7px;
-
-    color: var(--color-text-muted);
-
-    font-size: 11.5px;
-    line-height: 1.45;
-}
-
-/* O raio do filtro. Fica visível porque sem ele o "0" não diz nada. */
-.modulo-escopo {
-    margin: 8px 8px 0;
-    padding: 7px 10px;
-
-    border-radius: 7px;
-
-    background: var(--hover-bg);
-
-    color: var(--color-text-subtle);
-
-    font-size: 10.5px;
-    line-height: 1.45;
-}
-
-.queimadas-lista {
-    margin: 8px 0 0;
-    padding: 0 8px;
-
-    list-style: none;
-}
-
-.queimadas-foco {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-
-    padding: 7px 8px;
-
-    border-radius: 7px;
-
-    transition: background-color var(--duration) ease;
-}
-
-.queimadas-foco:hover {
-    background: var(--hover-bg);
-}
-
-.queimadas-foco-quando {
-    color: var(--color-text-label);
-
-    font-size: 12px;
-    font-weight: 600;
-
-    letter-spacing: -0.05px;
-}
-
-.queimadas-foco-onde {
-    color: var(--color-text-subtle);
-
-    font-size: 10.5px;
-    font-variant-numeric: tabular-nums;
-}
-
-/* ---------- AÇÕES ---------- */
-
-.modulo-acoes {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-
-    margin: 12px 8px 0;
-}
-
-.modulo-botao {
-    padding: 5px 12px;
-
-    border: 1px solid var(--border-hairline);
-    border-radius: 6px;
-
-    background: var(--color-surface-solid);
-    color: var(--color-text-label);
-
-    font-family: inherit;
-    font-size: 11.5px;
-
-    cursor: pointer;
-
-    transition: background-color var(--duration) ease;
-}
-
-.modulo-botao:hover:not(:disabled) {
-    background: var(--hover-bg);
-}
-
-.modulo-botao:disabled {
-    color: var(--color-text-subtle);
-
-    cursor: default;
-    opacity: 0.6;
-}
-
-.modulo-botao:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 1px;
-}
-
-
-/* ============================================================
-   12. SIDEBAR TOGGLE
-   ============================================================ */
-
-.sidebar-toggle {
-    position: absolute;
-
-    top: var(--sidebar-gutter);
-    left: var(--sidebar-gutter);
-
-    width: 40px;
-    height: 40px;
-
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 7px;
+    color: var(--color-text-subtle);
+    transition: color var(--duration) ease, background-color var(--duration) ease;
+}
 
-    padding: 0;
+.layer-toggle svg {
+    width: 18px;
+    height: 18px;
+}
 
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-md);
-
-    background: var(--color-surface-strong);
+.layer-toggle:hover:not(:disabled) {
+    background: var(--hover-bg);
     color: var(--color-text);
+}
 
-    box-shadow: var(--shadow-toggle);
+.layer-toggle[aria-pressed="true"] {
+    color: var(--color-brand);
+}
 
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
+.layer-toggle:disabled {
+    opacity: 0.4;
+}
 
-    cursor: pointer;
+/* Camada oculta: nome e quantidade esmaecidos. */
+.layer-row.is-hidden .layer-title {
+    opacity: 0.5;
+}
 
-    z-index: 300;
+/* Nome e quantidade ocupam o espaço livre; o nome encurta com "…" se preciso. */
+.layer-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
 
-    transition:
-        left var(--duration) ease,
-        background-color var(--duration) ease,
-        border-color var(--duration) ease,
-        box-shadow var(--duration) ease;
+.layer-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Rótulo com várias linhas: título, uma linha por atributo, "+ Adicionar linha". */
+.layer-label-fields {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 8px;
+    padding: 0 8px 8px 8px;
+}
+
+.layer-label-fields > .field-label {
+    grid-row: 1;
+    align-self: center;
+}
+
+.layer-label-lines {
+    grid-column: 2;
+    display: grid;
+    gap: 6px;
+}
+
+.layer-label-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.layer-label-remove {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    color: var(--color-text-subtle);
+    font-size: 15px;
+    line-height: 1;
+}
+
+.layer-label-remove:hover {
+    background: var(--hover-bg);
+    color: var(--color-text);
+}
+
+.layer-label-add {
+    justify-self: start;
+}
+
+.layer-label-field select {
+    flex: 1;
+    min-width: 0;
+    min-height: 28px;
+    padding: 3px 6px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+    color: var(--color-text);
+    font-size: 12px;
+}
+
+/* Legenda do tema por categoria: cor · valor · quantidade. */
+.legend {
+    display: grid;
+    gap: 2px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 0 8px 10px 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    color: var(--color-text-label);
+    font-size: 12px;
+}
+
+.legend-item.is-muted {
+    color: var(--color-text-subtle);
+}
+
+.legend-swatch {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    border-radius: 3px;
+}
+
+.legend-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.legend-count {
+    flex-shrink: 0;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
 }
 
 
-/* --- ÍCONES DO SIDEBAR --- */
+/* ---------- Rótulos no mapa ---------- */
+
+/* O divIcon do Leaflet não tem tamanho; o texto se centraliza no ponto. */
+.feature-label {
+    width: 0;
+    height: 0;
+    background: none;
+    border: 0;
+}
+
+.feature-label-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    /* Uma linha por atributo do rótulo ("\n"), centralizadas. */
+    line-height: 1.2;
+    text-align: center;
+    white-space: pre;
+    /* Halo escuro: legível sobre satélite e sobre o mapa de ruas. */
+    text-shadow:
+        0 0 2px rgba(0, 0, 0, 0.95),
+        0 0 4px rgba(0, 0, 0, 0.8),
+        0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+
+.layer-name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: inherit;
+    font-size: 13px;
+}
+
+.layer-name[aria-pressed="true"] {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.layer-meta {
+    flex: 0 0 auto;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.layer-meta.is-error,
+.layer-error {
+    color: var(--color-accent);
+}
+
+.layer-error {
+    padding: 0 8px 8px 8px;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.layer-remove {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    color: var(--color-text-subtle);
+    font-size: 15px;
+    line-height: 1;
+}
+
+.layer-remove:hover {
+    background: var(--hover-bg);
+    color: var(--color-accent);
+}
+
+/* Etiqueta de papel do atributo (usada na janela Identificar). */
+.attribute-role {
+    display: inline-block;
+    flex-shrink: 0;
+    padding: 1px 7px;
+    border-radius: 9px;
+    background: var(--hover-bg);
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.attribute-role.role-measure,
+.attribute-role.role-integer {
+    background: var(--color-brand-soft);
+    color: var(--color-brand);
+}
+
+.attribute-role.role-empty {
+    opacity: 0.6;
+}
+
+
+/* ---------- Janela Identificar (dados da camada) ---------- */
+
+.layer-info {
+    width: min(680px, calc(100vw - 32px));
+    max-height: min(80vh, 720px);
+    margin: auto;
+    padding: 16px;
+    border: 1px solid var(--border-hairline);
+    border-radius: 14px;
+    background: var(--color-surface-opaque);
+    color: var(--color-text);
+    box-shadow: var(--shadow-dropdown);
+    font-size: 13px;
+}
+
+.layer-info[open] {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.layer-info::backdrop {
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.layer-info-header {
+    align-items: flex-start;
+}
+
+.layer-info-kicker {
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.layer-info .panel-title {
+    font-size: 17px;
+}
+
+.layer-info-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+}
+
+.layer-info-item {
+    padding: 8px 10px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--hover-bg);
+}
+
+.layer-info-item dt {
+    color: var(--color-text-subtle);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.layer-info-item dd {
+    margin-top: 2px;
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.layer-info-table-scroll {
+    min-height: 0;
+    overflow: auto;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+}
+
+.layer-info-table th {
+    padding: 7px 10px;
+    color: var(--color-text-subtle);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.layer-info-table tbody tr {
+    cursor: default;
+}
+
+.layer-info-table td {
+    font-variant-numeric: tabular-nums;
+}
+
+.layer-info-name {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.layer-info-table tr.is-empty td {
+    color: var(--color-text-subtle);
+}
+
+.sidebar-toggle {
+    position: absolute;
+    top: var(--gutter);
+    left: var(--gutter);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+    color: var(--color-text);
+    box-shadow: var(--shadow-toggle);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    z-index: 300;
+    transition: background-color var(--duration) ease, box-shadow var(--duration) ease;
+}
 
 .sidebar-toggle svg {
     width: 20px;
     height: 20px;
 }
 
-.sidebar-toggle .sidebar-icon-close {
-    width: 18px;
-    height: 18px;
-}
-
-.sidebar-icon-close {
-    display: none;
-}
-
-
-/* --- HOVER / ACTIVE --- */
-
 .sidebar-toggle:hover {
     background: var(--color-surface-bright);
-
-    box-shadow: var(--shadow-toggle-hover);
 }
 
-.sidebar-toggle:active {
-    transform: scale(0.96);
-}
-
-
-/* --- SIDEBAR TOGGLE — ABERTO --- */
-
-.sidebar-toggle.is-open {
-    left: calc(var(--sidebar-w) - 16px);
-
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: var(--color-on-accent);
-
-    box-shadow: var(--shadow-toggle-accent);
-}
-
-.sidebar-toggle.is-open:hover {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-}
-
-.sidebar-toggle.is-open .sidebar-icon-menu {
-    display: none;
-}
-
-.sidebar-toggle.is-open .sidebar-icon-close {
-    display: block;
+/* Com a aba aberta o botão ficaria atrás dela: sai de cena; quem fecha é o "×" do cabeçalho. */
+.sidebar-toggle[aria-expanded="true"] {
+    visibility: hidden;
 }
 
 
 /* ============================================================
-   13. FOOTER
-
-   Duas zonas agora: o estado do mapa à esquerda, as coordenadas
-   à direita. A barra de escala era a occupant da zona central e
-   o que exigia a grade de 1fr auto 1fr — com ela fora, essa
-   grade pagaria duas colunas vazias sem motivo. Trocada por
-   flex com space-between, que resolve o mesmo alinhamento com
-   menos estrutura.
-
-   Como a régua saiu daqui, a escala não é exibida em lugar
-   nenhum. Se ela voltar, o lugar natural é o canto inferior do
-   mapa (L.control.scale, sem injeção em _controlCorners), e não
-   o rodapé.
+   7. PAINEL DE FILTROS
    ============================================================ */
 
-.app-footer {
-    position: relative;
+.filter-panel {
+    position: absolute;
+    top: calc(var(--gutter) + 48px);
+    right: var(--gutter);
+    width: 320px;
+    max-height: calc(100% - 140px);
+    overflow-y: auto;
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    z-index: 320;
+}
 
-    width: 100%;
-    height: var(--footer-h);
-    min-height: var(--footer-h);
+.filter-form {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+}
 
+.filter-chips {
+    display: grid;
+    gap: 6px;
+}
+
+.filter-chips:empty {
+    display: none;
+}
+
+.filter-chip {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    padding: 0 14px;
-
-    background: var(--color-surface-strong);
-
-    border-top: 1px solid var(--border-hairline);
-
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-
-    overflow: hidden;
-
-    z-index: 100;
+    gap: 8px;
+    padding: 5px 6px 5px 10px;
+    border-radius: 8px;
+    background: var(--color-brand-soft);
+    color: var(--color-text);
+    font-size: 12px;
 }
 
-.footer-zone {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-
+.filter-chip-text {
     min-width: 0;
+    overflow-wrap: anywhere;
 }
 
-.footer-left {
-    justify-content: flex-start;
-}
-
-.footer-right {
-    justify-content: flex-end;
-}
-
-.footer-item {
-    color: var(--color-text-subtle);
-
-    font-size: 11px;
-
-    white-space: nowrap;
-}
-
-.footer-item strong {
+.filter-chip-remove {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: 50%;
     color: var(--color-text-muted);
+    font-size: 15px;
+    line-height: 1;
+}
 
-    font-weight: 500;
+.filter-chip-remove:hover {
+    background: var(--hover-bg);
+    color: var(--color-accent);
+}
+
+#filter-clear {
+    color: var(--color-accent);
+}
+
+
+/* ---------- Intervalo numérico (dois marcadores) ---------- */
+
+.range-filter {
+    display: grid;
+    gap: 6px;
+}
+
+.range-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.range-input {
+    display: grid;
+    gap: 4px;
+}
+
+.range-input input {
+    width: 100%;
+    min-height: 32px;
+    padding: 5px 8px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
 
 /*
-   O status continua no rodapé porque ainda é o único lugar que
-   avisa sobre falha de carga dos talhões — "Talhões
-   indisponíveis" não tem outra superfície na tela. Perdeu o
-   flex e o gap que só serviam ao ponto, que saiu.
+   Dois <input type="range"> sobrepostos ao mesmo trilho. Os
+   inputs não recebem clique; só os marcadores (thumbs) recebem.
+   A faixa entre eles usa --from e --to (0–100 %), definidos no JS.
 */
-.footer-status {
-    color: var(--color-text-muted);
+.range-slider {
+    --from: 0%;
+    --to: 100%;
+    position: relative;
+    height: 32px;
 }
 
-/*
-   Saíram daqui junto com o conteúdo: .footer-dot (o ponto) e as
-   duas regras da barra de escala do Leaflet, que existiam
-   apenas para adaptar o controle injetado no rodapé.
-*/
-
-
-/* ============================================================
-   14. FOCUS / ACCESSIBILITY
-   ============================================================ */
-
-.nav-item:focus-visible,
-.user-button:focus-visible,
-.sidebar-toggle:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
+.range-track {
+    position: absolute;
+    top: 50%;
+    left: 11px;
+    right: 11px;
+    height: 6px;
+    transform: translateY(-50%);
+    border-radius: 3px;
+    background: var(--fill-segment);
 }
 
-.nav-item:focus:not(:focus-visible) {
+.range-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--from);
+    right: calc(100% - var(--to));
+    border-radius: 3px;
+    background: var(--color-brand);
+}
+
+.range-slider input[type="range"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background: none;
+    pointer-events: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.range-slider input[type="range"]::-webkit-slider-runnable-track {
+    height: 100%;
+    background: none;
+}
+
+.range-slider input[type="range"]::-moz-range-track {
+    background: none;
+}
+
+.range-slider input[type="range"]::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    margin-top: 5px;
+    border: 0.5px solid rgba(0, 0, 0, 0.06);
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18), 0 1px 1px rgba(0, 0, 0, 0.16);
+    cursor: grab;
+    pointer-events: auto;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.range-slider input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border: 0.5px solid rgba(0, 0, 0, 0.06);
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18), 0 1px 1px rgba(0, 0, 0, 0.16);
+    cursor: grab;
+    pointer-events: auto;
+}
+
+.range-slider input[type="range"]:active::-webkit-slider-thumb {
+    cursor: grabbing;
+}
+
+.range-slider input[type="range"]:focus-visible {
     outline: none;
 }
 
+.range-slider input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.range-slider input[type="range"]:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.range-slider input[type="range"]:disabled::-webkit-slider-thumb {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.range-limits {
+    display: flex;
+    justify-content: space-between;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.range-summary {
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
 
 /* ============================================================
-   15. RESPONSIVO
+   8. DASHBOARD
+   ============================================================ */
+
+.dashboard {
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* Acima do rodapé, que continua visível com o dashboard aberto. */
+    bottom: var(--footer-h);
+    height: var(--dashboard-h);
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    border-width: 1px 0 0;
+    z-index: 240;
+}
+
+/* Alça de altura: faixa invisível na borda superior, com um "grip" central (estilo iOS). */
+.dashboard-resizer {
+    position: absolute;
+    top: -5px;
+    left: 0;
+    right: 0;
+    height: 14px;
+    display: flex;
+    justify-content: center;
+    padding-top: 7px;
+    cursor: ns-resize;
+    touch-action: none;
+    z-index: 2;
+}
+
+.dashboard-resizer-grip {
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-text-subtle);
+    opacity: 0.45;
+    transition: opacity var(--duration) ease, width var(--duration) ease;
+}
+
+.dashboard-resizer:hover .dashboard-resizer-grip,
+.dashboard-resizer:focus-visible .dashboard-resizer-grip,
+.is-resizing-dashboard .dashboard-resizer-grip {
+    width: 56px;
+    opacity: 0.9;
+}
+
+.dashboard-resizer:focus-visible {
+    outline: none;
+}
+
+/* Durante o arraste: sem seleção de texto nem transições atrasando os controles. */
+.is-resizing-dashboard,
+.is-resizing-dashboard * {
+    cursor: ns-resize !important;
+    user-select: none;
+}
+
+.is-resizing-dashboard .map-controls {
+    transition: none;
+}
+
+.dashboard-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-hairline);
+}
+
+.dashboard-heading {
+    flex: 1 1 260px;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Ícone do dashboard, antes do título e das quantidades. */
+.dashboard-icon {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+}
+
+.dashboard-heading-text {
+    min-width: 0;
+}
+
+.dashboard-context {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Barra flutuante (busca + Filtros) some com o dashboard aberto; a busca vai para o cabeçalho dele. */
+.dashboard-open .map-tools {
+    display: none;
+}
+
+.dashboard-search {
+    flex: 0 1 280px;
+    min-width: 180px;
+}
+
+/*
+   Telas largas (≥ 1400 px): busca centralizada no cabeçalho (fora
+   do fluxo, no meio exato), título à esquerda e abas + botões à
+   direita. Em telas menores ela volta ao fluxo normal para não
+   colidir com o título, as abas e os botões.
+*/
+@media (min-width: 1400px) {
+    .dashboard-header {
+        position: relative;
+    }
+
+    /* Abas e botões encostados à direita (o título não ocupa mais a linha toda). */
+    .dashboard-header .tabs {
+        margin-left: auto;
+    }
+
+    .dashboard-search {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: min(320px, 28%);
+        transform: translate(-50%, -50%);
+    }
+
+    /* Título e contexto (filtros/busca) param antes da busca, sem passar por baixo dela. */
+    .dashboard-heading {
+        max-width: calc(50% - min(160px, 14%) - 24px);
+    }
+}
+
+.dashboard-search:empty {
+    display: none;
+}
+
+.dashboard-search .search-bar {
+    height: 32px;
+    padding: 0 8px 0 10px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+    transition: border-color var(--duration) ease;
+}
+
+.dashboard-search .search-bar:focus-within {
+    border-color: var(--focus-ring);
+}
+
+.dashboard-search .search-input {
+    font-size: 13px;
+}
+
+.dashboard-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tabs {
+    display: inline-flex;
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    background: var(--hover-bg);
+}
+
+.tab {
+    padding: 5px 14px;
+    border-radius: 7px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tab[aria-selected="true"] {
+    background: var(--color-surface-solid);
+    color: var(--color-text);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px 14px;
+}
+
+/* Resumo: agrupamento (controles + lista) à esquerda, gráfico à direita. */
+#dashboard-summary:not([hidden]) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-content: start;
+}
+
+/* Posições explícitas: agrupamento sempre à esquerda, gráfico à direita. */
+#dashboard-summary .group-card {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+#dashboard-summary .chart-card {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+
+/* ---------- Gráficos ---------- */
+
+/*
+   Paleta categórica (participação) em ordem fixa, validada para
+   daltonismo nos dois temas; cinza para "Outros" e "(vazio)".
+   Barras e colunas usam uma cor só (--chart-single).
+*/
+:root {
+    --chart-single: #2a78d6;
+    --chart-1: #2a78d6;
+    --chart-2: #eb6834;
+    --chart-3: #1baf7a;
+    --chart-4: #eda100;
+    --chart-5: #e87ba4;
+    --chart-muted: #a3a3a8;
+}
+
+[data-theme="dark"] {
+    --chart-single: #3987e5;
+    --chart-1: #3987e5;
+    --chart-2: #d95926;
+    --chart-3: #199e70;
+    --chart-4: #c98500;
+    --chart-5: #d55181;
+    --chart-muted: #636366;
+}
+
+.chart-card {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-note {
+    color: var(--color-text-subtle);
+    font-size: 11px;
+}
+
+.chart-area {
+    min-width: 0;
+}
+
+.chart-label {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-text-label);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-value {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Barras horizontais */
+.chart-bars {
+    display: grid;
+    gap: 6px;
+}
+
+.chart-bar-row {
+    display: grid;
+    grid-template-columns: minmax(70px, 1fr) minmax(60px, 2fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 1px 0;
+}
+
+.chart-bar-track {
+    height: 12px;
+}
+
+.chart-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 0 4px 4px 0;
+    background: var(--chart-single);
+}
+
+.chart-bar-row.is-muted .chart-bar-fill,
+.chart-column.is-muted .chart-column-fill {
+    background: var(--chart-muted);
+}
+
+.chart-bar-row:hover .chart-bar-fill,
+.chart-column:hover .chart-column-fill {
+    filter: brightness(1.15);
+}
+
+/* Colunas */
+.chart-columns {
+    height: 200px;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding-top: 4px;
+    border-bottom: 1px solid var(--border-hairline);
+}
+
+.chart-column {
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 4px;
+    text-align: center;
+}
+
+.chart-column-track {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.chart-column-fill {
+    display: block;
+    width: min(100%, 36px);
+    border-radius: 4px 4px 0 0;
+    background: var(--chart-single);
+}
+
+.chart-column .chart-label {
+    padding-bottom: 4px;
+    font-size: 11px;
+}
+
+/* Participação: segmentada e rosca + legenda */
+.chart-part {
+    display: grid;
+    gap: 12px;
+}
+
+.chart-part-donut {
+    grid-template-columns: 150px minmax(0, 1fr);
+    align-items: center;
+}
+
+.chart-segmented {
+    height: 32px;
+    display: flex;
+    gap: 2px;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.chart-segment {
+    min-width: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.chart-donut {
+    width: 150px;
+    height: 150px;
+}
+
+.chart-donut-total {
+    fill: var(--color-text);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.chart-legend {
+    display: grid;
+    gap: 4px;
+}
+
+.chart-legend-item {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.group-card {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    padding: 10px 12px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+}
+
+/* Controles em linha: Agrupar por, Operador, Métrica. */
+.group-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
+.group-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.group-row {
+    display: grid;
+    grid-template-columns: minmax(70px, 1fr) minmax(60px, 2fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.group-label {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-text-label);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.group-bar {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--fill-segment);
+}
+
+.group-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--color-brand);
+}
+
+.group-row.is-muted .group-label {
+    color: var(--color-text-subtle);
+}
+
+.group-row.is-muted .group-bar-fill {
+    background: var(--chart-muted);
+}
+
+.group-value {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.group-empty,
+.table-empty {
+    padding: 16px;
+    color: var(--color-text-subtle);
+    font-size: 12px;
+    font-style: italic;
+    text-align: center;
+}
+
+#dashboard-table:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 8px;
+}
+
+.table-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+/* Cabeçalho fixo com fundo opaco: com o fundo translúcido, as linhas
+   apareciam por baixo dele ao rolar e os textos se sobrepunham. */
+.data-table th {
+    position: sticky;
+    top: 0;
+    padding: 0;
+    background: var(--color-surface-opaque);
+    box-shadow: inset 0 -1px 0 var(--border-hairline);
+    text-align: left;
+    z-index: 1;
+}
+
+/* Cabeçalho: nome (ordena) + funil (filtra a coluna). */
+.table-head-cell {
+    display: flex;
+    align-items: center;
+    padding-right: 4px;
+}
+
+.table-filter {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    color: var(--color-text-subtle);
+    opacity: 0.55;
+    transition: opacity var(--duration) ease, background-color var(--duration) ease;
+}
+
+.table-filter svg {
+    width: 13px;
+    height: 13px;
+}
+
+.data-table th:hover .table-filter,
+.table-filter:focus-visible {
+    opacity: 1;
+}
+
+.table-filter:hover {
+    background: var(--hover-bg);
+    color: var(--color-text);
+}
+
+/* Filtro ativo na coluna: ícone na cor da marca, com fundo suave, sempre visível. */
+.table-filter.is-active {
+    opacity: 1;
+    background: var(--color-brand-soft);
+    color: var(--color-brand);
+}
+
+.table-sort {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 10px;
+    color: var(--color-text-subtle);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.table-sort:hover {
+    color: var(--color-text);
+}
+
+th[aria-sort="ascending"] .table-sort::after {
+    content: " ▲";
+}
+
+th[aria-sort="descending"] .table-sort::after {
+    content: " ▼";
+}
+
+.data-table td {
+    max-width: 260px;
+    padding: 6px 10px;
+    border-top: 1px solid var(--border-hairline);
+    color: var(--color-text-label);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Rodapé de totais: fixo embaixo, fundo opaco como o cabeçalho. */
+.data-table tfoot td {
+    position: sticky;
+    bottom: 0;
+    max-width: none;
+    padding: 4px 6px;
+    border-top: 0;
+    background: var(--color-surface-opaque);
+    box-shadow: inset 0 1px 0 var(--border-hairline);
+    z-index: 1;
+}
+
+.table-total {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.table-total-operator {
+    max-width: 100%;
+    padding: 1px 2px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--color-text-subtle);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.table-total-operator:hover {
+    background: var(--hover-bg);
+    color: var(--color-text);
+}
+
+.table-total-operator option {
+    background: var(--color-surface-opaque);
+    color: var(--color-text);
+    text-transform: none;
+}
+
+.data-table tfoot td.is-unset .table-total-operator {
+    opacity: 0.6;
+}
+
+.table-total-value {
+    padding: 0 4px 2px;
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* ---------- Filtro de coluna (painel suspenso) ---------- */
+
+.column-filter {
+    position: fixed;
+    max-height: min(420px, calc(100vh - 16px));
+    overflow-y: auto;
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: 14px;
+    background: var(--color-surface-opaque);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.14);
+    z-index: 1300;
+    animation: module-menu-pop 160ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.column-filter-title {
+    color: var(--color-text);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.24px;
+}
+
+.column-filter-values {
+    display: grid;
+    gap: 8px;
+}
+
+.column-filter-search,
+.column-filter-text,
+.column-filter input[type="date"] {
+    width: 100%;
+    min-height: 32px;
+    padding: 5px 8px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+    color: var(--color-text);
+    font-size: 13px;
+}
+
+.column-filter-bulk {
+    display: flex;
+    justify-content: space-between;
+}
+
+.link-button {
+    padding: 2px 0;
+    color: var(--color-brand);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.link-button:hover {
+    text-decoration: underline;
+}
+
+.column-filter-list {
+    max-height: 220px;
+    overflow-y: auto;
+    display: grid;
+    gap: 1px;
+    margin: 0 -4px;
+}
+
+.column-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: 7px;
+    color: var(--color-text-label);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.column-filter-option[hidden] {
+    display: none;
+}
+
+.column-filter-option:hover {
+    background: var(--hover-bg);
+}
+
+.column-filter-option input {
+    flex: none;
+    accent-color: var(--color-brand);
+}
+
+.column-filter-option-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.column-filter-option.is-empty .column-filter-option-label {
+    color: var(--color-text-subtle);
+    font-style: italic;
+}
+
+.column-filter-option-count {
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.column-filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.data-table tbody tr {
+    cursor: pointer;
+    /* Ao rolar até a linha selecionada, ela não fica sob o cabeçalho fixo. */
+    scroll-margin-top: 32px;
+}
+
+.data-table tbody tr:hover {
+    background: var(--hover-bg);
+}
+
+.data-table tbody tr.is-selected {
+    background: var(--color-brand-soft);
+}
+
+.data-table tbody tr:focus-visible {
+    outline-offset: -2px;
+}
+
+.table-pager {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* ============================================================
+   9. CONTROLES DO MAPA E MAPA BASE
+   ============================================================ */
+
+.map-controls {
+    position: absolute;
+    right: var(--gutter);
+    bottom: calc(var(--gutter) + 8px + var(--footer-h));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 300;
+    transition: bottom var(--duration) ease;
+}
+
+/*
+   Bloco de controles: um cartão de vidro com os botões empilhados
+   e traços finos entre eles (estilo Apple Maps). Os botões não têm
+   borda nem sombra próprias.
+*/
+.control-stack {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+    box-shadow: var(--shadow-toggle);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+}
+
+.control-stack > button + button {
+    border-top: 1px solid var(--border-hairline);
+}
+
+/* Com o dashboard aberto, os controles sobem junto. */
+.dashboard-open .map-controls {
+    bottom: calc(var(--dashboard-h) + var(--footer-h) + 16px);
+}
+
+/* ---------- Rodapé (coordenadas e zoom) ---------- */
+
+.map-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--footer-h);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+    padding: 0 14px;
+    border-top: 0.5px solid var(--border-bar);
+    background: var(--color-bar);
+    backdrop-filter: var(--blur-bar);
+    -webkit-backdrop-filter: var(--blur-bar);
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 245;
+    transition: left var(--duration) ease;
+}
+
+/* Com a aba Camadas aberta, o rodapé começa depois dela. */
+.layers-open .map-footer {
+    left: var(--sidebar-w);
+}
+
+.map-footer-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.map-footer strong {
+    color: var(--color-text-muted);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.map-controls button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-text);
+    transition: background-color var(--duration) ease, color var(--duration) ease;
+}
+
+/* Cantos só nas pontas do bloco (o cartão já é arredondado). */
+.control-stack > button:first-child {
+    border-top-left-radius: calc(var(--radius-md) - 1px);
+    border-top-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.control-stack > button:last-of-type {
+    border-bottom-left-radius: calc(var(--radius-md) - 1px);
+    border-bottom-right-radius: calc(var(--radius-md) - 1px);
+}
+
+.map-controls button svg {
+    width: 19px;
+    height: 19px;
+}
+
+.map-controls button:hover:not(:disabled) {
+    background: var(--hover-bg);
+}
+
+.map-controls button:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.map-controls button:disabled {
+    color: var(--color-text-subtle);
+    opacity: 0.6;
+}
+
+.map-controls button[aria-pressed="true"],
+.map-controls .map-control-dashboard[aria-expanded="true"] {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+}
+
+.map-controls #basemap-button[aria-expanded="true"] {
+    background: var(--fill-segment);
+}
+
+/* Dashboard: um pouco afastado dos controles de navegação. */
+.control-stack:has(.map-control-dashboard) {
+    margin-bottom: 4px;
+}
+
+.map-control-group {
+    position: relative;
+}
+
+.basemap-menu {
+    position: absolute;
+    right: calc(100% + 8px);
+    bottom: 0;
+    width: 168px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-dropdown);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+}
+
+.basemap-menu-title {
+    margin: 2px 6px 6px;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.basemap-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-label);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.basemap-option:hover,
+.basemap-option:focus-within {
+    background: var(--hover-bg);
+}
+
+.basemap-option input {
+    accent-color: var(--color-brand);
+}
+
+.basemap-option input:checked + .basemap-option-label {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+
+/* ============================================================
+   10. RESPONSIVO E MOVIMENTO REDUZIDO
    ============================================================ */
 
 @media (max-width: 900px) {
-    .main-navigation {
-        margin-left: 18px;
-        overflow-x: auto;
+    #dashboard-summary:not([hidden]) {
+        grid-template-columns: 1fr;
+    }
+
+    /* Empilhado: agrupamento em cima, gráfico embaixo. */
+    #dashboard-summary .group-card,
+    #dashboard-summary .chart-card {
+        grid-column: 1;
+        grid-row: auto;
     }
 }
-
-
-/*
-   A barra de busca é o único item que pode encolher, então ela
-   paga a conta primeiro. Em 1024px ainda sobra largura para os
-   200px da barra sem espremer o texto de um jeito que atrapalhe
-   a leitura; abaixo disso o campo já é curto por definição.
-*/
-@media (max-width: 1024px) {
-    .search-bar {
-        width: 100%;
-    }
-}
-
-/*
-   O rodapé não precisa mais de ajuste em tela estreita: sobrou
-   só a zona de coordenadas, que já cabe. As regras que cortavam
-   a barra de escala e escondiam o zoom saíram junto com elas.
-*/
 
 @media (max-width: 720px) {
+    :root {
+        --gutter: 12px;
+        --dashboard-h: 60%;
+    }
 
     .topbar {
         padding: 0 14px;
     }
 
-    .brand-name {
+    /* Sem espaço para os quatro menus; a versão para celular vem com os módulos. */
+    .module-menu {
         display: none;
     }
 
-    .main-navigation {
-        margin-left: 12px;
-        flex: 0 1 112px;
-        min-width: 0;
+    .filter-panel {
+        left: var(--gutter);
+        width: auto;
     }
 
-    .nav-item {
-        padding: 0 10px;
-    }
-
-    .user-name {
+    .dashboard-actions .button-ghost {
         display: none;
     }
+
+    .map-controls {
+        bottom: calc(var(--gutter) + var(--footer-h));
+        gap: 8px;
+    }
+
+    .layers-open .map-footer {
+        left: 0;
+    }
+
+    .map-controls button {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Sem altura para a pilha de controles acima do dashboard; ele tem seu próprio "×". */
+    .dashboard-open .map-controls {
+        display: none;
+    }
+
 }
 
-
-/* ============================================================
-   16. MOVIMENTO REDUZIDO
-   ============================================================ */
-
 @media (prefers-reduced-motion: reduce) {
-
     *,
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }

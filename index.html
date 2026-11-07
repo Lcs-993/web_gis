@@ -7,651 +7,459 @@
 
     <title>WebGIS</title>
 
-    <!--
-       Cor da barra de endereço no mobile. O valor é trocado
-       por js/theme.js a cada mudança de tema.
-    -->
     <meta
-        name="theme-color"
-        id="meta-theme-color"
-        content="#f5f5f7"
+        name="description"
+        content="Visualizador WebGIS: mapas, busca, filtros, dashboard e tabela de atributos para qualquer camada GeoJSON."
     >
 
-    <!-- FAVICON (local) -->
+    <meta name="theme-color" id="meta-theme-color" content="#1c1c1e">
+
+    <!--
+        CSP: scripts só do próprio site e do unpkg (Leaflet, com SRI).
+        connect-src https: permite carregar GeoJSON de qualquer origem HTTPS.
+    -->
+    <meta
+        http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' https://unpkg.com 'sha256-5VChX8X2tOFSpdbvpNxURqT/QXo24LC3D2YyUNdts7Y='; style-src 'self' https://unpkg.com 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'none'"
+    >
 
     <link rel="icon" href="assets/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" href="assets/favcon_red_green.png">
     <link rel="apple-touch-icon" href="assets/favcon_red_green.png">
 
-    <!-- LEAFLET -->
-
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
     >
 
-    <link rel="stylesheet" href="css/style.css?v=20261031">
+    <link rel="stylesheet" href="css/style.css?v=20261107x">
 
-    <!--
-       TEMA — precisa rodar ANTES da primeira pintura da página,
-       senão um usuário no modo escuro vê um flash branco. Por isso
-       fica inline no head, em vez de esperar o theme.js.
-    -->
-    <script>
-        (function () {
-            var theme;
-
-            try {
-                var stored = localStorage.getItem("webgis-theme");
-
-                if (stored === "dark" || stored === "light") {
-                    theme = stored;
-                } else if (window.matchMedia &&
-                    window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                    theme = "dark";
-                } else {
-                    theme = "light";
-                }
-            } catch (error) {
-                /* localStorage bloqueado (aba anônima, etc.) */
-                theme = "light";
-            }
-
-            document.documentElement.setAttribute("data-theme", theme);
-        })();
-    </script>
+    <!-- Tema escuro por padrão; o claro só vale se o usuário o escolheu. Aplicado antes da primeira pintura. O hash na CSP corresponde a este bloco. -->
+    <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
 </head>
 
 <body>
 
     <div class="app">
 
-        <!-- =========================================================
-             HEADER
-        ========================================================== -->
-
+        <!-- ========================================================= TOPBAR -->
         <header class="topbar">
 
-            <!-- BRAND -->
-
             <div class="brand">
-
-                <img
-                    class="brand-logo"
-                    src="assets/favcon_red_green.png"
-                    alt=""
-                    width="31"
-                    height="31"
-                >
-
-                <span class="brand-name">
-                    WebGIS
-                </span>
-
+                <img class="brand-logo" src="assets/favcon_red_green.png" alt="" width="28" height="28">
+                <span class="brand-name">WebGIS</span>
             </div>
 
+            <!--
+                Menus suspensos dos módulos, gerados por js/ui/module-menu.js
+                a partir de MODULE_MENUS (js/config.js). Camadas, Filtros e
+                Dashboard ficam só nos botões do mapa.
+            -->
+            <nav class="module-menu" id="module-menu" aria-label="Módulos"></nav>
 
-            <!-- MAIN NAVIGATION -->
-
-            <nav
-                class="main-navigation"
-                aria-label="Navegação principal"
-            >
-
-                <div class="nav-group">
-
-                    <button
-                        type="button"
-                        class="nav-item"
-                        aria-expanded="false"
-                        aria-controls="dropdown-camadas"
-                    >
-                        Camadas
-                    </button>
-
-                    <div
-                        class="nav-dropdown"
-                        id="dropdown-camadas"
-                    >
-                        <button
-                            class="dropdown-item"
-                            id="menu-item-talhoes"
-                            type="button"
-                            aria-pressed="false"
-                        >
-                            <span class="dropdown-item-label">Talhões</span>
-                            <span
-                                class="dropdown-item-hint"
-                                id="menu-talhoes-hint"
-                            >…</span>
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div class="nav-group">
-
-                    <button
-                        type="button"
-                        class="nav-item"
-                        aria-expanded="false"
-                        aria-controls="dropdown-consultar"
-                    >
-                        Análises
-                    </button>
-
-                    <div
-                        class="nav-dropdown"
-                        id="dropdown-consultar"
-                    >
-                        <a
-                            class="dropdown-item"
-                            id="menu-previsao"
-                            href="#secao-previsao"
-                        >
-                            <span class="dropdown-item-label">Previsão climática</span>
-                        </a>
-
-                        <a class="dropdown-item" href="#">
-                            <span class="dropdown-item-label">Resultados da busca</span>
-                            <span
-                                class="dropdown-item-hint"
-                                id="menu-consulta-contagem"
-                            >0</span>
-                        </a>
-                    </div>
-
-                </div>
-
-
-                <div class="nav-group">
-
-                    <button
-                        type="button"
-                        class="nav-item"
-                        aria-expanded="false"
-                        aria-controls="dropdown-ferramentas"
-                    >
-                        Ferramentas
-                    </button>
-
-                    <div
-                        class="nav-dropdown"
-                        id="dropdown-ferramentas"
-                    >
-                        <div class="dropdown-item dropdown-item-muted">
-                            <span class="dropdown-item-label">Medição e edição</span>
-                            <span class="dropdown-item-hint">Em breve</span>
-                        </div>
-
-                        <div class="dropdown-divider"></div>
-
-                        <a
-                            class="dropdown-item"
-                            id="menu-queimadas"
-                            href="#secao-queimadas"
-                        >
-                            <span class="dropdown-item-label">Focos de incêndio</span>
-                        </a>
-
-                        <div class="dropdown-divider"></div>
-
-                        <div class="dropdown-item dropdown-item-muted">
-                            <span class="dropdown-item-label">Exportações</span>
-                            <span class="dropdown-item-hint">Em breve</span>
-                        </div>
-                    </div>
-
-                </div>
-
-
-                <div class="nav-group">
-
-                    <button
-                        type="button"
-                        class="nav-item"
-                        aria-expanded="false"
-                        aria-controls="dropdown-ajuda"
-                    >
-                        Ajuda
-                    </button>
-
-                    <div
-                        class="nav-dropdown"
-                        id="dropdown-ajuda"
-                    >
-                        <div class="dropdown-item dropdown-item-muted">
-                            <span class="dropdown-item-label">Documentação</span>
-                            <span class="dropdown-item-hint">Em breve</span>
-                        </div>
-                    </div>
-
-                </div>
-
-            </nav>
-
-            <!-- TEMA -->
-
-            <div class="theme-switch">
-
-                <button
-                    class="theme-toggle"
-                    id="theme-toggle"
-                    type="button"
-                    aria-label="Ativar modo escuro"
-                    title="Alternar tema"
-                >
-
-                    <svg
-                        class="theme-icon theme-icon-moon"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        aria-hidden="true"
-                    >
-                        <path
-                            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
-                            stroke="currentColor"
-                            stroke-width="1.7"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                    </svg>
-
-
-                    <svg
-                        class="theme-icon theme-icon-sun"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        aria-hidden="true"
-                    >
-                        <circle
-                            cx="12"
-                            cy="12"
-                            r="4.2"
-                            stroke="currentColor"
-                            stroke-width="1.7"
-                        />
-
-                        <path
-                            d="M12 2.5V5M12 19V21.5M4.6 4.6L6.4 6.4M17.6 17.6L19.4 19.4M2.5 12H5M19 12H21.5M4.6 19.4L6.4 17.6M17.6 6.4L19.4 4.6"
-                            stroke="currentColor"
-                            stroke-width="1.7"
-                            stroke-linecap="round"
-                        />
-                    </svg>
-
-                </button>
-
-            </div>
-
-
-            <!-- USER -->
-
-            <div class="user-menu">
-
-                <button
-                    class="user-button"
-                    type="button"
-                >
-
-                    <span
-                        class="user-avatar"
-                        aria-hidden="true"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                        >
-                            <circle
-                                cx="12"
-                                cy="8"
-                                r="3.2"
-                                stroke="currentColor"
-                                stroke-width="1.7"
-                            />
-
-                            <path
-                                d="M5.5 20C6.2 16.4 8.3 14.5 12 14.5C15.7 14.5 17.8 16.4 18.5 20"
-                                stroke="currentColor"
-                                stroke-width="1.7"
-                                stroke-linecap="round"
-                            />
+            <div class="topbar-actions">
+                <!-- Assistente de IA: ainda não implementado; o botão mostra o aviso "Em breve". -->
+                <div class="topbar-popover-anchor">
+                    <button class="topbar-icon-button ai-button" id="ai-button" type="button" aria-label="Assistente de IA" title="Assistente de IA" aria-expanded="false" aria-controls="ai-coming-soon">
+                        <!-- Brilhos preenchidos (mesmo estilo sólido do ícone de mapa base). -->
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M10 3.5c.4 0 .7.3.8.7l.6 2.7a5 5 0 0 0 3.7 3.7l2.7.6a.8.8 0 0 1 0 1.6l-2.7.6a5 5 0 0 0-3.7 3.7l-.6 2.7a.8.8 0 0 1-1.6 0l-.6-2.7a5 5 0 0 0-3.7-3.7l-2.7-.6a.8.8 0 0 1 0-1.6l2.7-.6a5 5 0 0 0 3.7-3.7l.6-2.7c.1-.4.4-.7.8-.7Z"/>
+                            <path d="M18.5 2.5c.3 0 .5.2.6.5l.2.9a1.8 1.8 0 0 0 1.3 1.3l.9.2a.6.6 0 0 1 0 1.2l-.9.2a1.8 1.8 0 0 0-1.3 1.3l-.2.9a.6.6 0 0 1-1.2 0l-.2-.9a1.8 1.8 0 0 0-1.3-1.3l-.9-.2a.6.6 0 0 1 0-1.2l.9-.2a1.8 1.8 0 0 0 1.3-1.3l.2-.9c.1-.3.3-.5.6-.5Z"/>
                         </svg>
-                    </span>
+                    </button>
 
+                    <div class="coming-soon-card" id="ai-coming-soon" role="status" hidden>
+                        <span class="coming-soon-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M10 3.5c.4 0 .7.3.8.7l.6 2.7a5 5 0 0 0 3.7 3.7l2.7.6a.8.8 0 0 1 0 1.6l-2.7.6a5 5 0 0 0-3.7 3.7l-.6 2.7a.8.8 0 0 1-1.6 0l-.6-2.7a5 5 0 0 0-3.7-3.7l-2.7-.6a.8.8 0 0 1 0-1.6l2.7-.6a5 5 0 0 0 3.7-3.7l.6-2.7c.1-.4.4-.7.8-.7Z"/>
+                            </svg>
+                        </span>
+                        <span class="coming-soon-text">
+                            <span class="coming-soon-title">Assistente de IA</span>
+                            <span class="coming-soon-description">Converse com um modelo de IA sobre os dados do mapa. Em implementação.</span>
+                        </span>
+                        <span class="module-menu-soon">Em breve</span>
+                    </div>
+                </div>
 
-                    <span class="user-name">
-                        Usuário
-                    </span>
+                <a class="topbar-icon-button" href="README.md" target="_blank" rel="noopener" aria-label="Ajuda" title="Ajuda">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
+                        <path d="M9.6 9.3a2.5 2.5 0 0 1 4.9.7c0 1.7-2.5 2.2-2.5 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="16.9" r="1" fill="currentColor"/>
+                    </svg>
+                </a>
 
-
-                    <span
-                        class="chevron"
-                        aria-hidden="true"
-                    >
-                        <svg
-                            viewBox="0 0 16 16"
-                            fill="none"
-                        >
-                            <path
-                                d="M4 6L8 10L12 6"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
-                    </span>
-
+                <button class="topbar-icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Ativar modo claro" aria-pressed="true" title="Alternar tema">
+                    <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.7"/>
+                        <path d="M12 2.5V5M12 19V21.5M4.6 4.6L6.4 6.4M17.6 17.6L19.4 19.4M2.5 12H5M19 12H21.5M4.6 19.4L6.4 17.6M17.6 6.4L19.4 4.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </button>
-
             </div>
 
         </header>
 
 
-        <!-- =========================================================
-             MAIN / MAP
-        ========================================================== -->
+        <!-- ========================================================= MAPA -->
+        <main class="map-container" id="map-container">
 
-        <main class="map-container">
-
-            <!-- BUSCA PRINCIPAL -->
-
-            <div class="search">
-
-                <form
-                    class="search-bar"
-                    id="forma-busca"
-                    role="search"
-                >
-                    <svg
-                        class="search-icon"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        aria-hidden="true"
-                    >
-                        <circle
-                            cx="11"
-                            cy="11"
-                            r="7"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        ></circle>
-                        <path
-                            d="M16.5 16.5L21 21"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                        ></path>
-                    </svg>
-
-                    <input
-                        type="search"
-                        class="search-input"
-                        id="campo-busca"
-                        placeholder="Buscar fazenda, talhão ou proprietário"
-                        aria-label="Buscar talhão nos talhões carregados"
-                        title="Use fazenda,talhão para selecionar um talhão específico"
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
-
-                    <button
-                        class="search-clear"
-                        id="busca-limpar"
-                        type="button"
-                        aria-label="Limpar busca"
-                        hidden
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M6 6L18 18M18 6L6 18"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                            ></path>
-                        </svg>
-                    </button>
-
-                </form>
-
-                <p
-                    class="search-feedback"
-                    id="busca-feedback"
-                    role="status"
-                    aria-live="polite"
-                    hidden
-                ></p>
-
-            </div>
-
-            <!-- SIDEBAR TOGGLE -->
-
-            <button
-                class="sidebar-toggle"
-                type="button"
-                aria-label="Abrir menu lateral"
-                aria-expanded="false"
-                aria-controls="sidebar"
-            >
-
-                <svg
-                    class="sidebar-icon-menu"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden="true"
-                >
-                    <path
-                        d="M4 7H20M4 12H20M4 17H20"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                    />
+            <!-- Os botões sobre o mapa repetem os da topbar para funcionarem em tela cheia. -->
+            <button class="sidebar-toggle" type="button" data-panel-toggle="layers" aria-controls="sidebar" aria-expanded="false" aria-label="Camadas" title="Camadas">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="m12 3 9 5-9 5-9-5 9-5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="m3 12 9 5 9-5M3 16.5l9 5 9-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-
-
-                <svg
-                    class="sidebar-icon-close"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden="true"
-                >
-                    <path
-                        d="M6 6L18 18M18 6L6 18"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                    />
-                </svg>
-
             </button>
 
 
-            <!-- SIDEBAR -->
+            <!-- SIDEBAR — CAMADAS -->
+            <aside id="sidebar" class="sidebar" aria-label="Camadas">
+                <!-- Fechar: preso à borda direita da aba, por fora, no alto (estilo dos botões do mapa). -->
+                <button type="button" class="sidebar-close" data-panel-close="layers" aria-label="Fechar camadas" title="Fechar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
 
-            <aside
-                id="sidebar"
-                class="sidebar"
-                aria-label="Painel de camadas"
-                aria-hidden="true"
-                inert
-            >
+                <!-- Marca: só em tela cheia, quando a barra superior (com a marca) fica fora da tela. -->
+                <div class="sidebar-brand" aria-hidden="true">
+                    <img class="brand-logo" src="assets/favcon_red_green.png" alt="" width="28" height="28">
+                    <span class="brand-name">WebGIS</span>
+                </div>
 
                 <div class="sidebar-header">
-
-                    <span class="sidebar-title">
-                        Camadas
-                    </span>
-
+                    <h2 class="sidebar-title" id="layer-list-title">Camadas</h2>
                 </div>
-
 
                 <div class="sidebar-body">
-
-                    <section class="sidebar-section">
-
-                        <h2 class="sidebar-section-title">
-                            Temas dos talhões
-                        </h2>
-
-                        <p class="sidebar-empty">
-                            Nenhuma tematização disponível.
-                        </p>
-
+                    <section class="sidebar-section" aria-labelledby="layer-list-title">
+                        <ul class="layer-list" id="layer-list"></ul>
                     </section>
-
-
-                    <section class="sidebar-section">
-
-                        <h2 class="sidebar-section-title">
-                            Vector
-                        </h2>
-
-                        <label class="sidebar-item">
-                            <input
-                                type="checkbox"
-                                id="layer-talhoes"
-                                checked
-                            >
-                            <span
-                                class="sidebar-swatch"
-                                style="background:#ffd60a"
-                            ></span>
-                            <span class="sidebar-item-label">
-                                Talhões
-                            </span>
-                        </label>
-
-                    </section>
-
-
-                    <!-- MÓDULO: PREVISÃO (conteúdo vem de js/clima.js) -->
-
-                    <section
-                        class="sidebar-section modulo"
-                        id="secao-previsao"
-                        hidden
-                    >
-
-                        <h2 class="sidebar-section-title">
-                            Previsão
-                        </h2>
-
-                        <div id="previsao-conteudo"></div>
-
-                    </section>
-
-
-                    <!-- MÓDULO: QUEIMADAS (conteúdo vem de js/queimadas.js) -->
-
-                    <section
-                        class="sidebar-section modulo"
-                        id="secao-queimadas"
-                        hidden
-                    >
-
-                        <h2 class="sidebar-section-title">
-                            Queimadas
-                        </h2>
-
-                        <div id="queimadas-conteudo"></div>
-
-                    </section>
-
                 </div>
-
             </aside>
 
-
-            <!-- MAP -->
-
-            <div
-                class="map-background"
-                id="map"
-                role="application"
-                aria-label="Mapa interativo"
-                tabindex="0"
-            ></div>
+            <!-- Seletor de arquivo oculto: aberto por Ferramentas › Adicionar dados (menu de módulos). -->
+            <input type="file" id="layer-file-input" accept=".geojson,.json,.kml,.kmz,application/geo+json,application/json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" multiple hidden>
 
 
-            <!-- MAP STATUS -->
+            <!-- IDENTIFICAR CAMADA: resumo e atributos descobertos (aberto pelo botão "i" da camada). -->
+            <dialog class="layer-info" id="layer-info" aria-labelledby="layer-info-title">
+                <header class="panel-header layer-info-header">
+                    <div>
+                        <p class="layer-info-kicker">Dados da camada</p>
+                        <h2 class="panel-title" id="layer-info-title"></h2>
+                    </div>
+                    <button type="button" class="icon-button" id="layer-info-close" aria-label="Fechar">×</button>
+                </header>
 
-            <div
-                class="map-status"
-                id="map-status"
-                role="status"
-                hidden
-            ></div>
+                <dl class="layer-info-summary" id="layer-info-summary"></dl>
+
+                <div class="layer-info-table-scroll">
+                    <table class="data-table layer-info-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Atributo</th>
+                                <th scope="col">Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="layer-info-attributes"></tbody>
+                    </table>
+                </div>
+            </dialog>
+
+
+            <!-- MAPA -->
+            <div class="map-background" id="map" role="application" aria-label="Mapa interativo" tabindex="0"></div>
+
+
+            <!-- BUSCA + FILTROS (canto superior direito) -->
+            <!-- Busca e filtros numa barra única (o filtro fica dentro da barra). -->
+            <div class="map-tools">
+                <form class="search-bar" id="search-form" role="search">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
+                        <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                    </svg>
+
+                    <input type="search" class="search-input" id="search-input" placeholder="Buscar" aria-label="Buscar" title="Um ou mais termos; todos precisam aparecer na feature" autocomplete="off" spellcheck="false">
+
+                    <button class="search-clear" id="search-clear" type="button" aria-label="Limpar busca" hidden>
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                </form>
+
+                <span class="map-tools-divider" aria-hidden="true"></span>
+
+                <button type="button" class="tool-button" data-panel-toggle="filters" aria-controls="filter-panel" aria-expanded="false" title="Filtros">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 5h16l-6 7.5V19l-4 1.5v-8L4 5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="visually-hidden">Filtros</span>
+                    <span class="badge" data-filter-count hidden></span>
+                </button>
+
+                <p class="search-feedback" id="search-feedback" role="status" aria-live="polite" hidden></p>
+            </div>
+
+
+            <!-- PAINEL DE FILTROS -->
+            <section class="floating-panel filter-panel" id="filter-panel" aria-labelledby="filter-title">
+                <header class="panel-header">
+                    <h2 class="panel-title" id="filter-title">Filtros</h2>
+                    <button type="button" class="icon-button" data-panel-close="filters" aria-label="Fechar filtros">×</button>
+                </header>
+
+                <p class="panel-summary" id="filter-summary"></p>
+
+                <form class="filter-form" id="filter-form" novalidate>
+                    <label class="field">
+                        <span class="field-label">Atributo</span>
+                        <select id="filter-field"></select>
+                    </label>
+
+                    <label class="field" id="filter-operator-field">
+                        <span class="field-label">Condição</span>
+                        <select id="filter-operator"></select>
+                    </label>
+
+                    <div class="field-row" id="filter-value-row">
+                        <input id="filter-value" type="text" list="filter-suggestions" aria-label="Valor" autocomplete="off">
+                        <span class="field-separator" id="filter-range-separator" hidden>e</span>
+                        <input id="filter-value-to" type="text" aria-label="Valor final" hidden>
+                    </div>
+                    <datalist id="filter-suggestions"></datalist>
+
+                    <!-- Atributos numéricos: intervalo por arraste ou digitação. Marcadores juntos = valor exato. -->
+                    <div class="range-filter" id="filter-range" hidden>
+                        <div class="range-inputs">
+                            <label class="range-input">
+                                <span class="field-label">De</span>
+                                <input type="number" id="range-min-input" inputmode="decimal" aria-label="Valor mínimo">
+                            </label>
+                            <label class="range-input">
+                                <span class="field-label">Até</span>
+                                <input type="number" id="range-max-input" inputmode="decimal" aria-label="Valor máximo">
+                            </label>
+                        </div>
+
+                        <div class="range-slider" id="range-slider">
+                            <div class="range-track"><div class="range-fill"></div></div>
+                            <input type="range" id="range-min" aria-label="Arrastar valor mínimo">
+                            <input type="range" id="range-max" aria-label="Arrastar valor máximo">
+                        </div>
+
+                        <div class="range-limits">
+                            <span id="range-limit-min"></span>
+                            <span id="range-limit-max"></span>
+                        </div>
+
+                        <p class="range-summary" id="range-summary" aria-live="polite"></p>
+                    </div>
+
+                    <p class="field-error" id="filter-error" role="alert" hidden></p>
+
+                    <button type="submit" class="button button-primary">Adicionar filtro</button>
+                </form>
+
+                <ul class="filter-chips" id="filter-list" aria-label="Filtros ativos"></ul>
+
+                <button type="button" class="button button-ghost" id="filter-clear" hidden>Limpar filtros</button>
+            </section>
+
+
+            <!-- DASHBOARD -->
+            <section class="dashboard" id="dashboard" aria-labelledby="dashboard-title">
+                <header class="dashboard-header">
+                    <div class="dashboard-heading">
+                        <img class="dashboard-icon" src="assets/Analytics.png" alt="" width="34" height="34">
+                        <div class="dashboard-heading-text">
+                            <h2 class="panel-title" id="dashboard-title">Dashboard</h2>
+                            <p class="dashboard-context" id="dashboard-context" aria-live="polite"></p>
+                        </div>
+                    </div>
+
+                    <!-- Com o dashboard aberto, o campo de busca do mapa é movido para cá (js/main.js). -->
+                    <div class="dashboard-search" id="dashboard-search-slot"></div>
+
+                    <div class="tabs" role="tablist" aria-label="Visões do dashboard">
+                        <button type="button" role="tab" class="tab" id="tab-table" data-tab="table" aria-controls="dashboard-table" aria-selected="true">Tabela</button>
+                        <button type="button" role="tab" class="tab" id="tab-summary" data-tab="summary" aria-controls="dashboard-summary" aria-selected="false" tabindex="-1">Resumo</button>
+                    </div>
+
+                    <div class="dashboard-actions">
+                        <button type="button" class="button" id="export-csv" title="Exporta a tabela como está: filtrada e ordenada; sem filtro, todos os dados">Exportar CSV</button>
+                        <button type="button" class="button button-ghost" id="export-kml" title="Exporta o que está no mapa: filtrado e com as cores do tema">Exportar KML</button>
+                        <button type="button" class="icon-button" data-panel-close="dashboard" aria-label="Fechar dashboard">×</button>
+                    </div>
+                </header>
+
+                <div class="dashboard-body" id="dashboard-summary" role="tabpanel" aria-labelledby="tab-summary" hidden>
+                    <!-- Esquerda: agrupamento (controles + lista). Direita: o gráfico. -->
+                    <div class="group-card" id="group-card">
+                        <div class="group-controls">
+                            <label class="field field-inline">
+                                <span class="field-label">Agrupar por</span>
+                                <select id="group-field"></select>
+                            </label>
+                            <label class="field field-inline">
+                                <span class="field-label">Operador</span>
+                                <select id="group-operator"></select>
+                            </label>
+                            <label class="field field-inline" id="group-measure-field">
+                                <span class="field-label">Métrica</span>
+                                <select id="group-measure"></select>
+                            </label>
+                        </div>
+                        <ul class="group-list" id="group-bars"></ul>
+                    </div>
+
+                    <div class="chart-card" id="chart-card">
+                        <div class="chart-header">
+                            <label class="field field-inline">
+                                <span class="field-label">Gráfico</span>
+                                <select id="chart-type"></select>
+                            </label>
+                        </div>
+                        <div class="chart-area" id="chart-area"></div>
+                        <p class="chart-note" id="chart-note" hidden></p>
+                    </div>
+                </div>
+
+                <div class="dashboard-body" id="dashboard-table" role="tabpanel" aria-labelledby="tab-table">
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <thead id="table-head"></thead>
+                            <tbody id="table-body"></tbody>
+                            <!-- Totais do conjunto filtrado/buscado; operador escolhido por coluna. -->
+                            <tfoot id="table-foot"></tfoot>
+                        </table>
+                        <p class="table-empty" id="table-empty" hidden>Nenhuma feição no conjunto atual.</p>
+                    </div>
+
+                    <div class="table-pager">
+                        <button type="button" class="button button-ghost" id="table-prev" aria-label="Página anterior">‹</button>
+                        <span id="table-page-text" aria-live="polite"></span>
+                        <button type="button" class="button button-ghost" id="table-next" aria-label="Próxima página">›</button>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- CONTROLES DO MAPA (inferior direito) -->
+            <!--
+                Controles agrupados em blocos (estilo Apple Maps):
+                Dashboard · Enquadrar + Tela cheia · Zoom · Mapa base.
+            -->
+            <div class="map-controls">
+
+                <div class="control-stack">
+                    <button type="button" class="map-control-dashboard" data-panel-toggle="dashboard" aria-controls="dashboard" aria-expanded="false" title="Dashboard" aria-label="Dashboard">
+                        <!-- Três barras sólidas, cantos arredondados, separadas por vãos. -->
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="3.5" y="12" width="4.5" height="8.5" rx="1.2"/>
+                            <rect x="9.75" y="3.5" width="4.5" height="17" rx="1.2"/>
+                            <rect x="16" y="8" width="4.5" height="12.5" rx="1.2"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="control-stack">
+                    <button id="home-button" type="button" title="Enquadrar extensão total das camadas" aria-label="Enquadrar extensão total das camadas" disabled>
+                        <!-- Casa sólida com a porta vazada (estilo do mapa base). -->
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M11.1 3.4a1.4 1.4 0 0 1 1.8 0l8 6.7a.9.9 0 0 1-1.1 1.4l-.8-.6v8.1a1.5 1.5 0 0 1-1.5 1.5H14.5v-5.6a.9.9 0 0 0-.9-.9h-3.2a.9.9 0 0 0-.9.9V20.5H6.5A1.5 1.5 0 0 1 5 19V10.9l-.8.6a.9.9 0 0 1-1.1-1.4l8-6.7Z"/>
+                        </svg>
+                    </button>
+
+                    <button id="fullscreen-button" type="button" title="Tela cheia" aria-label="Tela cheia" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M9 3H3v6M15 3h6v6M21 15v6h-6M3 15v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="control-stack">
+                    <button id="zoom-in-button" type="button" title="Aumentar zoom" aria-label="Aumentar zoom">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+
+                    <button id="zoom-out-button" type="button" title="Reduzir zoom" aria-label="Reduzir zoom">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="control-stack map-control-group">
+                    <button id="basemap-button" type="button" title="Mapa base" aria-label="Mapa base" aria-haspopup="true" aria-expanded="false" aria-controls="basemap-menu">
+                        <!-- Mapa dobrado: três painéis preenchidos, separados por vãos. -->
+                        <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 6.5 8.5 4.5v15L3 21.5z"/>
+                            <path d="M10 4.5 14 6.5v15l-4-2z"/>
+                            <path d="M15.5 6.5 21 4.5v15l-5.5 2z"/>
+                        </svg>
+                    </button>
+
+                    <div class="basemap-menu" id="basemap-menu" role="group" aria-label="Mapa base" hidden>
+                        <p class="basemap-menu-title">Mapa base</p>
+                        <div id="basemap-options"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="map-status" id="map-status" role="status" hidden></div>
+
+            <!-- RODAPÉ: discreto e translúcido, sobre o mapa (coordenadas e zoom). -->
+            <footer class="map-footer" id="map-footer" aria-label="Posição no mapa">
+                <span class="map-footer-item">
+                    <span id="footer-coords-label">Centro</span>
+                    <strong id="footer-coords">—</strong>
+                </span>
+
+                <span class="map-footer-item">
+                    Zoom <strong id="footer-zoom">—</strong>
+                </span>
+            </footer>
+
+            <!-- CARREGAMENTO: progresso das camadas, no centro do mapa (não bloqueia cliques). -->
+            <div class="loading-overlay" id="loading-overlay" hidden>
+                <div class="loading-card" role="status" aria-live="polite">
+                    <p class="loading-title" id="loading-title">Carregando…</p>
+                    <div class="loading-bar" id="loading-bar" role="progressbar" aria-labelledby="loading-title" aria-valuemin="0" aria-valuemax="100">
+                        <div class="loading-bar-fill" id="loading-bar-fill"></div>
+                    </div>
+                    <p class="loading-detail" id="loading-detail"></p>
+                </div>
+            </div>
 
         </main>
 
 
-        <!-- =========================================================
-             RODAPÉ
+        <!-- Mensagens de status: só para leitores de tela (sem rodapé visível). -->
+        <p class="visually-hidden" id="app-status" role="status" aria-live="polite">Carregando…</p>
 
-             Duas zonas: o estado do mapa à esquerda, as coordenadas
-             à direita. O ponto de status, o zoom e a barra de escala
-             saíram daqui — a régua era a única coisa que exigia a
-             zona central, e sem ela a grade de 3 colunas não se
-             justifica mais.
-        ========================================================== -->
+    </div>
 
-        <footer
-            class="app-footer"
-            aria-label="Estado do mapa e coordenadas do cursor"
-        >
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
 
-            <!-- ESQUERDA -->
+    <script src="js/theme.js"></script>
+    <script type="module" src="js/main.js"></script>
 
-            <div class="footer-zone footer-left">
+</body>
 
-                <span class="footer-item footer-status">
-                    <strong id="footer-status">Carregando…</strong>
-                </span>
-
-            </div>
-
-
-            <!-- DIREITA -->
-
-            <div class="footer-zone footer-right">
-
-                <span class="footer-item">
-                    Lat/Lon:
-                    <strong id="footer-coords">—</strong>
-                </span>
-
-            </div>
-
-
-           </footer>
-
-        </div>
-
-
-        <!-- =========================================================
-            JAVASCRIPT
-        ========================================================== -->
-
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-        <script src="js/theme.js"></script>
-        <script src="js/navigation.js"></script>
-        <script src="js/map.js"></script>
-
-        <!-- Módulos de análise. csv.js antes dos outros: é o leitor
-            compartilhado, e ambos o esperam em window.WebGisCsv. -->
-        <script src="js/csv.js"></script>
-        <script src="js/clima.js"></script>
-        <script src="js/queimadas.js"></script>
-
-    </body>
-
-    </html>
+</html>
