@@ -77,6 +77,17 @@ const inferRole = (type, values, distinctCount) => {
 };
 
 
+/*
+   Campos internos ignorados em todas as camadas (atuais e futuras):
+   o identificador único "fid" que o QGIS/GeoPackage grava. Sem
+   entrar no schema, ele não aparece em popup, tabela, dashboard,
+   filtros, busca, rótulos, tema nem nas exportações CSV/KML.
+   Comparação sem caixa: "fid", "FID", "Fid".
+*/
+const IGNORED_FIELDS = new Set(["fid"]);
+
+export const isIgnoredField = (name) => IGNORED_FIELDS.has(String(name).trim().toLowerCase());
+
 export function inferSchema(features) {
     /* Ordem de primeira aparição, como no arquivo. */
     const names = [];
@@ -84,7 +95,7 @@ export function inferSchema(features) {
 
     features.forEach((feature) => {
         Object.keys(feature.properties || {}).forEach((name) => {
-            if (!seen.has(name)) {
+            if (!seen.has(name) && !isIgnoredField(name)) {
                 seen.add(name);
                 names.push(name);
             }

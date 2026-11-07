@@ -57,8 +57,64 @@ function validate(data) {
     return {
         name: typeof data.name === "string" ? data.name : null,
         features,
-        geometryTypes
+        geometryTypes,
+        metadata: {
+            description: typeof data.description === "string" ? data.description.trim() : "",
+            crs: crsLabel(crsName),
+            bbox: validBbox(data.bbox) || computeBbox(features)
+        }
     };
+}
+
+
+/*
+   Sistema de coordenadas dos dados como o mapa os lê. Sem "crs", o
+   GeoJSON é WGS 84 por definição (RFC 7946); os aceitos também são.
+*/
+const crsLabel = (crsName) => {
+    const name = String(crsName || "").toLowerCase();
+
+    return !name || name.includes("crs84") || name.includes("4326")
+        ? "WGS 84 · EPSG:4326 (graus decimais)"
+        : String(crsName);
+};
+
+const validBbox = (bbox) =>
+    Array.isArray(bbox) && bbox.length >= 4 && bbox.slice(0, 4).every(Number.isFinite)
+        ? (bbox.length === 6 ? [bbox[0], bbox[1], bbox[3], bbox[4]] : bbox.slice(0, 4))
+        : null;
+
+/* [oeste, sul, leste, norte] percorrendo todas as coordenadas (null sem geometria). */
+function computeBbox(features) {
+    const box = [Infinity, Infinity, -Infinity, -Infinity];
+
+    const visit = (coords) => {
+        if (typeof coords[0] === "number") {
+            box[0] = Math.min(box[0], coords[0]);
+            box[1] = Math.min(box[1], coords[1]);
+            box[2] = Math.max(box[2], coords[0]);
+            box[3] = Math.max(box[3], coords[1]);
+            return;
+        }
+
+        coords.forEach(visit);
+    };
+
+    const visitGeometry = (geometry) => {
+        if (!geometry) {
+            return;
+        }
+
+        if (geometry.type === "GeometryCollection") {
+            (geometry.geometries || []).forEach(visitGeometry);
+        } else if (Array.isArray(geometry.coordinates)) {
+            visit(geometry.coordinates);
+        }
+    };
+
+    features.forEach((feature) => visitGeometry(feature.geometry));
+
+    return box.every(Number.isFinite) ? box : null;
 }
 
 
