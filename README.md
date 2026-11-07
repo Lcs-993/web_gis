@@ -34,11 +34,13 @@ Depois acesse `http://127.0.0.1:8899`. Não há instalação nem build.
 | **Busca** (barra no canto superior direito) | Procura na camada ativa, respeitando os filtros |
 | **Filtros** (funil dentro da barra de busca) | Monta condições por atributo; o contador mostra quantos filtros estão ativos |
 | **Dashboard** (botão de gráfico nos controles do mapa) | Resumo (indicadores e distribuição por valor) e tabela ordenável e paginada; exportação CSV e KML |
-| Clique numa feição | Seleciona, destaca e abre o popup; a linha correspondente é destacada na tabela |
-| Clique numa linha da tabela | Seleciona e enquadra a feição no mapa |
+| Clique numa feição | Seleciona e abre o popup; com o dashboard aberto, a tabela vai até a página da feição e a linha aparece destacada no topo da tabela |
+| Clique numa linha da tabela | Seleciona e enquadra a feição no mapa. **Ctrl** (⌘) + clique acrescenta/retira linhas; **Shift** + clique seleciona o intervalo desde a última linha clicada (Ctrl + Shift soma ao que já estava). Com várias selecionadas: todas ganham o destaque de seleção, o mapa enquadra todas, não há popup e o dashboard mostra "N selecionadas" |
 | Controles do mapa (canto inferior direito) | Blocos agrupados, de cima para baixo: **Dashboard**; **Enquadrar** + **Tela cheia**; **Zoom** + / −; **Mapa base** |
 | Botão **casa** (controles do mapa) | Repõe o enquadramento total das camadas ligadas, com todas as feições, mesmo que filtros ou busca estejam ativos |
 | `Esc` | Fecha o painel aberto mais recente; na busca, limpa o termo |
+| Rodapé (base do mapa) | Faixa translúcida com as coordenadas do cursor (ou do centro, com o cursor fora do mapa) e o nível de zoom; fica visível também com o dashboard aberto |
+| Botão **?** (Ajuda) | Abre `ajuda.html`, o guia de uso para o usuário, numa nova aba |
 
 Busca, filtros e dashboard operam sobre a **camada ativa**. O mapa mostra
 todas as camadas ligadas.
@@ -51,14 +53,26 @@ todas as camadas ligadas.
 - Acento, caixa e pontuação são ignorados (`olhos d'água` = `OLHOS DAGUA`).
 - Sem resultado exato, uma segunda passada compara o termo sem espaços.
 - `Enter` busca na hora; a digitação tem *debounce* de 160 ms.
-- No mapa, os achados ficam como estão e o resto da camada esmaece (vira uma
-  sombra translúcida). Nenhum realce de cor: funciona com qualquer tema.
+- No mapa, os achados ficam mais intensos e o resto da camada quase some (só um
+  vestígio da forma, sem rótulo). Nenhum realce de cor: funciona com qualquer tema.
 
 ### Seleção
 
-Ao selecionar uma feição (clique no mapa ou na tabela), ela fica como está e
-todas as outras, de todas as camadas, **esmaecem** (inclusive os achados da
-busca e as divisas das fazendas). Ao limpar a seleção, tudo volta ao normal.
+Contorno dos polígonos (camadas com preenchimento): linha branca fina e
+translúcida (`POLYGON_STROKE*` em `js/map/leaflet-view.js`), igual com ou sem
+tema, só para marcar as divisas; a cor fica no preenchimento.
+
+Busca e seleção são dois níveis separados:
+
+- **Busca:** os achados ficam mais intensos que o normal e o que não casa
+  quase some (só um vestígio da forma, sem rótulo). Enquanto a busca está
+  ativa, as **outras camadas** (Fazendas, Unidade Industrial, arquivos) também
+  esmaecem por inteiro e ficam sem rótulo.
+- **Seleção** (clique no mapa ou na tabela), um nível acima: as selecionadas
+  ganham contorno branco forte e preenchimento mais intenso, na própria cor
+  (da camada ou do tema). A seleção não esmaece nada; com busca ativa, a
+  selecionada se destaca sobre os achados. Ícones de ponto selecionados ganham
+  um halo branco.
 
 ### Filtros
 
@@ -129,7 +143,9 @@ havendo busca, que casam com ela. O dashboard abre na aba **Tabela**.
   QGIS: as mesmas feições do CSV, com as cores do tema por categoria (uma pasta
   por categoria, na ordem e com as cores da legenda) ou a cor da camada; o
   atributo dos rótulos vira o nome de cada feição e todos os atributos vão em
-  `ExtendedData`. Camadas só de contorno (Fazendas) saem sem preenchimento.
+  `ExtendedData` (para o QGIS) e num balão HTML legível no Google Earth
+  (título, camada, faixa na cor da feição e tabela de atributos, sem os links
+  "Rotas" do balão padrão). Camadas só de contorno (Fazendas) saem sem preenchimento.
 - Os arquivos levam `_filtrado` ou `_completo` no nome, conforme haja filtro ou
   busca ativos.
 
@@ -190,7 +206,7 @@ ligado na abertura a partir do zoom 13 (`labels: { visible, fields, minZoom }`);
 e **Talhões** (polígonos), a camada ativa na abertura (`active: true`), fixada
 sempre na última posição (`keepLast: true`), mesmo com arquivos adicionados
 depois. A ordem do catálogo é a ordem do painel.
-Pontos com ícone esmaecem como as demais feições quando estão fora de foco.
+Pontos com ícone esmaecem como as demais feições fora da busca e ganham halo branco quando selecionados.
 
 Requisitos do arquivo: `FeatureCollection` em WGS84 (CRS84 / EPSG:4326). Um
 `crs` diferente é recusado com mensagem clara. São aceitos pontos, linhas,
@@ -221,14 +237,16 @@ em camadas sem atributo de categoria.
 
 ### Rótulos
 
-O ícone **T** na linha da camada liga os rótulos; abaixo dela aparece a
+O ícone **T** na linha da camada liga os rótulos (só uma camada rotulada por
+vez: ligar numa desliga na outra); abaixo dela aparece a
 escolha do atributo exibido (começa no primeiro atributo do arquivo). Para
 combinar atributos, **+ Adicionar linha** acrescenta outro (até 4): cada um
 vira uma linha do rótulo, na ordem escolhida; o **×** remove a linha. Linhas
 sem valor na feição são omitidas. O texto segue a formatação do papel de cada
 atributo. No KML exportado, as linhas viram o nome da feição, unidas por " · ".
 
-Para não pesar com milhares de feições, os rótulos são desenhados só para as
+Feições escondidas por filtro ou esmaecidas pela busca ficam sem rótulo (as
+selecionadas sempre têm). Para não pesar com milhares de feições, os rótulos são desenhados só para as
 feições visíveis na tela (até 400 por vez) e sem sobreposição: o que não cabe
 fica oculto até aproximar o zoom. A feição selecionada e as achadas na busca
 têm prioridade. Polígonos côncavos recebem o rótulo num ponto garantidamente
@@ -269,6 +287,7 @@ KML e KMZ são convertidos para GeoJSON ao abrir (`js/data/kml.js` e
 
 ```text
 index.html
+ajuda.html                 guia de uso (botão Ajuda)
 css/style.css
 geojson/                   dados servidos pelo site (versões otimizadas)
 tools/otimizar_geojson.py  gera as versões otimizadas (não é publicado)
@@ -383,7 +402,15 @@ cada push na `main`. No GitHub: **Settings → Pages → Source: GitHub Actions*
   um módulo: implementá-lo em `js/modules/`, tratar a action em
   `MODULE_ACTIONS` (`js/main.js`) e pôr a action no item. Os menus abrem por
   clique ou teclado (↓, ↑, ←, →, Esc) e ficam ocultos em telas de até 720 px.
-  Camadas, Filtros e Dashboard abrem só pelos botões sobre o mapa.
+  Os menus são botões de texto (estilo barra de navegação do iOS): o aberto fica
+  com fundo suave e texto na cor de destaque.
+  Camadas, Filtros e Dashboard abrem só pelos botões sobre o mapa. Com o
+  dashboard aberto, abrir a aba Camadas desloca o dashboard para depois dela
+  (os dois ficam lado a lado, sem sobreposição).
+- **Ajuda:** `ajuda.html` é o guia de uso (camadas, rótulos e tema, busca,
+  filtros, seleção, dashboard, exportação, controles, arquivos, módulos e
+  teclado), com o mesmo visual e tema do mapa. Este README é a documentação
+  técnica. Ao mudar um comportamento, atualize os dois.
 - Painéis fechados ficam `inert`; gatilhos mantêm `aria-expanded`; abas,
   ordenação da tabela (`aria-sort`) e status (`aria-live`) são anunciados.
 - Linhas da tabela são focáveis e acionáveis com `Enter`.

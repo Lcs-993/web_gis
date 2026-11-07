@@ -95,6 +95,9 @@ export function createColumnFilter(store) {
     };
 
     window.addEventListener("resize", () => close());
+    /* Entrar ou sair da tela cheia muda onde o painel pode aparecer: fecha. */
+    document.addEventListener("fullscreenchange", () => close());
+    document.addEventListener("webkitfullscreenchange", () => close());
 
 
     /* ---------------- controles por tipo ---------------- */
@@ -457,7 +460,11 @@ export function createColumnFilter(store) {
             }
         });
 
-        document.body.appendChild(popover);
+        /*
+           Em tela cheia só o elemento em tela cheia (o mapa) é exibido:
+           o painel entra nele; fora disso, no <body>.
+        */
+        (document.fullscreenElement || document.webkitFullscreenElement || document.body).appendChild(popover);
         place();
 
         const first = popover.querySelector("input, button");

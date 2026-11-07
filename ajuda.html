@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ajuda · WebGIS</title>
+    <meta name="description" content="Guia de uso do WebGIS: camadas, busca, filtros, dashboard, exportação e controles do mapa.">
+    <meta name="theme-color" id="meta-theme-color" content="#1c1c1e">
+
+    <!-- Mesma CSP do mapa; o hash corresponde ao script de tema abaixo (idêntico ao do index.html). -->
+    <meta
+        http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'sha256-5VChX8X2tOFSpdbvpNxURqT/QXo24LC3D2YyUNdts7Y='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'"
+    >
+
+    <link rel="icon" href="assets/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="assets/favcon_red_green.png">
+    <link rel="stylesheet" href="css/style.css?v=20261108c">
+
+    <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
+
+    <style>
+        /* Página de leitura: rola normalmente (o mapa usa altura fixa). */
+        html,
+        body {
+            height: auto;
+            min-height: 100%;
+            overflow: auto;
+            background: var(--color-bg);
+        }
+
+        .help-topbar {
+            position: sticky;
+            top: 0;
+        }
+
+        .help-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--color-text);
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .help-back:hover {
+            background: var(--segment-selected);
+            box-shadow: var(--shadow-segment);
+        }
+
+        .help-layout {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 28px 20px 64px;
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 40px;
+            align-items: start;
+        }
+
+        .help-nav {
+            position: sticky;
+            top: calc(var(--topbar-h) + 24px);
+            display: grid;
+            gap: 2px;
+        }
+
+        .help-nav p {
+            margin: 0 10px 8px;
+            color: var(--color-text-subtle);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .help-nav a {
+            padding: 6px 10px;
+            border-radius: 8px;
+            color: var(--color-text-label);
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .help-nav a:hover {
+            background: var(--hover-bg);
+            color: var(--color-text);
+        }
+
+        .help-content {
+            color: var(--color-text-label);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .help-content h1 {
+            margin: 0 0 6px;
+            color: var(--color-text);
+            font-size: 30px;
+            letter-spacing: -0.6px;
+        }
+
+        .help-lead {
+            margin: 0 0 28px;
+            color: var(--color-text-muted);
+            font-size: 16px;
+        }
+
+        .help-section {
+            margin-bottom: 18px;
+            padding: 20px 22px;
+            border: 0.5px solid var(--border-hairline);
+            border-radius: 14px;
+            background: var(--color-surface-strong);
+            scroll-margin-top: calc(var(--topbar-h) + 16px);
+        }
+
+        .help-section h2 {
+            margin: 0 0 10px;
+            color: var(--color-text);
+            font-size: 19px;
+            letter-spacing: -0.3px;
+        }
+
+        .help-section h3 {
+            margin: 16px 0 6px;
+            color: var(--color-text);
+            font-size: 15px;
+        }
+
+        .help-section p {
+            margin: 0 0 10px;
+        }
+
+        .help-section ul {
+            margin: 0 0 10px;
+            padding-left: 20px;
+        }
+
+        .help-section li {
+            margin-bottom: 4px;
+        }
+
+        .help-section strong {
+            color: var(--color-text);
+        }
+
+        kbd {
+            display: inline-block;
+            min-width: 22px;
+            padding: 1px 6px;
+            border: 1px solid var(--border-hairline);
+            border-bottom-width: 2px;
+            border-radius: 6px;
+            background: var(--color-surface-solid);
+            color: var(--color-text);
+            font-family: inherit;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .help-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .help-table th,
+        .help-table td {
+            padding: 7px 10px;
+            border-top: 1px solid var(--border-hairline);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .help-table th {
+            color: var(--color-text);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .help-tip {
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: var(--color-brand-soft);
+            color: var(--color-text);
+            font-size: 14px;
+        }
+
+        @media (max-width: 820px) {
+            .help-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .help-nav {
+                position: static;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .help-nav p {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar help-topbar">
+        <div class="brand">
+            <img class="brand-logo" src="assets/favcon_red_green.png" alt="" width="28" height="28">
+            <span class="brand-name">Web<span class="brand-accent">GIS</span></span><span class="brand-suffix">Ajuda</span>
+        </div>
+
+        <div></div>
+
+        <div class="topbar-actions">
+            <a class="help-back" href="index.html">← Voltar ao mapa</a>
+
+            <button class="topbar-icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Ativar modo claro" aria-pressed="true" title="Alternar tema">
+                <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M12 2.5V5M12 19V21.5M4.6 4.6L6.4 6.4M17.6 17.6L19.4 19.4M2.5 12H5M19 12H21.5M4.6 19.4L6.4 17.6M17.6 6.4L19.4 4.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="help-layout">
+        <nav class="help-nav" aria-label="Seções da ajuda">
+            <p>Nesta página</p>
+            <a href="#visao-geral">Visão geral</a>
+            <a href="#camadas">Camadas</a>
+            <a href="#rotulos-tema">Rótulos e tema</a>
+            <a href="#busca">Busca</a>
+            <a href="#filtros">Filtros</a>
+            <a href="#selecao">Seleção</a>
+            <a href="#dashboard">Dashboard</a>
+            <a href="#exportar">Exportar</a>
+            <a href="#mapa">Controles do mapa</a>
+            <a href="#arquivos">Abrir arquivos</a>
+            <a href="#modulos">Módulos</a>
+            <a href="#teclado">Teclado</a>
+        </nav>
+
+        <main class="help-content">
+            <h1>Como usar o WebGIS</h1>
+            <p class="help-lead">Visualize as camadas da operação, encontre feições, filtre, analise na tabela e exporte o que está no mapa.</p>
+
+            <section class="help-section" id="visao-geral">
+                <h2>Visão geral</h2>
+                <ul>
+                    <li><strong>Barra superior:</strong> menus dos módulos (Monitoramento, Operação, Análises, Ferramentas), assistente de IA (em breve), esta ajuda e o tema claro/escuro.</li>
+                    <li><strong>Canto superior esquerdo do mapa:</strong> botão da aba <strong>Camadas</strong>.</li>
+                    <li><strong>Canto superior direito:</strong> barra de <strong>busca</strong> com o botão de <strong>filtros</strong>.</li>
+                    <li><strong>Canto inferior direito:</strong> Dashboard, Enquadrar, Tela cheia, Zoom e Mapa base.</li>
+                    <li><strong>Rodapé:</strong> coordenadas do cursor (ou do centro do mapa) e o nível de zoom.</li>
+                </ul>
+                <p>Busca, filtros e dashboard trabalham sempre sobre a <strong>camada ativa</strong> (a que aparece em destaque na aba Camadas). Na abertura, a ativa é <strong>Talhões</strong>.</p>
+            </section>
+
+            <section class="help-section" id="camadas">
+                <h2>Camadas</h2>
+                <p>Abra a aba pelo botão de camadas no canto superior esquerdo; feche pelo <strong>×</strong> preso à borda da aba. Cada camada mostra o nome, a quantidade de feições entre parênteses e os botões:</p>
+                <table class="help-table">
+                    <tr><th>Olho</th><td>Mostra ou oculta a camada no mapa.</td></tr>
+                    <tr><th>Paleta</th><td>Liga o tema por categoria (cores por valor de um atributo).</td></tr>
+                    <tr><th>T</th><td>Liga os rótulos.</td></tr>
+                    <tr><th>i</th><td>Identificar: feições, tipo de geometria, origem e a lista de atributos com seus tipos.</td></tr>
+                </table>
+                <p>Clique no <strong>nome</strong> da camada para torná-la a camada ativa. <strong>Fazendas</strong> é só referência visual: aparece como contorno, não recebe clique e mostra o número da fazenda a partir do zoom 13. <strong>Talhões</strong> fica sempre por último na lista.</p>
+                <p>Em tela cheia, a aba mostra no topo o logo e o nome WebGIS.</p>
+            </section>
+
+            <section class="help-section" id="rotulos-tema">
+                <h2>Rótulos e tema</h2>
+                <h3>Rótulos</h3>
+                <ul>
+                    <li>Ligue pelo <strong>T</strong> e escolha o atributo no seletor <strong>Rótulo</strong>. Só uma camada fica rotulada por vez: ligar os rótulos de uma desliga os da outra.</li>
+                    <li><strong>+ Adicionar linha</strong> combina até 4 atributos, um por linha (ex.: Chave, Variedade, área). O <strong>×</strong> remove a linha.</li>
+                    <li>Rótulos que se sobreporiam são omitidos e aparecem ao aproximar o zoom. Feições escondidas por filtro ou esmaecidas pela busca ficam sem rótulo.</li>
+                </ul>
+                <h3>Tema por categoria</h3>
+                <ul>
+                    <li>Ligue pela <strong>paleta</strong> e escolha o atributo. Só atributos do tipo categoria (ex.: Variedade) podem virar tema.</li>
+                    <li>A legenda mostra cada valor com sua cor e quantidade; valores vazios ficam em cinza.</li>
+                </ul>
+            </section>
+
+            <section class="help-section" id="busca">
+                <h2>Busca</h2>
+                <ul>
+                    <li>Digite um ou mais termos: todos precisam aparecer na feição, em qualquer atributo.</li>
+                    <li>Acentos, maiúsculas e pontuação são ignorados. Números casam por inteiro: <kbd>22</kbd> acha 22, não 122.</li>
+                    <li>No mapa, os resultados ficam <strong>mais intensos</strong> e o resto da camada <strong>quase some</strong> (sem rótulo). As outras camadas, como Fazendas e Unidade Industrial, também esmaecem enquanto a busca está ativa. A quantidade de resultados aparece abaixo da barra.</li>
+                    <li><kbd>Esc</kbd> ou o <strong>×</strong> limpa a busca.</li>
+                </ul>
+                <p>Com o dashboard aberto, a busca vai para o centro do cabeçalho do dashboard.</p>
+            </section>
+
+            <section class="help-section" id="filtros">
+                <h2>Filtros</h2>
+                <p>Há duas formas de filtrar, e as duas criam os mesmos filtros (valem para mapa, tabela e exportação):</p>
+                <h3>Painel Filtros</h3>
+                <ul>
+                    <li>Abra pelo funil na barra de busca, escolha o atributo e a condição.</li>
+                    <li>Números usam uma <strong>barra de intervalo</strong> com De/Até; juntar os dois marcadores significa “igual a”.</li>
+                    <li>Os filtros ativos aparecem como etiquetas; o número no funil mostra quantos são.</li>
+                </ul>
+                <h3>Filtro por coluna (na tabela)</h3>
+                <ul>
+                    <li>Clique no ícone de filtro (três traços) ao lado do nome da coluna.</li>
+                    <li>Categorias: marque os valores desejados (com contagem e busca). Números: intervalo. Datas: De/Até. Textos: “contém”.</li>
+                    <li><strong>Limpar</strong> remove o filtro da coluna. Ícone verde = coluna filtrada.</li>
+                </ul>
+            </section>
+
+            <section class="help-section" id="selecao">
+                <h2>Seleção</h2>
+                <ul>
+                    <li>Clique numa feição no mapa ou numa linha da tabela.</li>
+                    <li>A seleção é um nível acima da busca: as selecionadas ganham <strong>contorno branco forte</strong> e cor mais intensa (a do tema, se houver). As outras feições não mudam; só a busca esmaece o que não casa com ela.</li>
+                    <li>Com o dashboard fechado, abre o popup com os atributos; com ele aberto, a tabela vai até a página da feição e a linha aparece destacada <strong>no topo da tabela</strong>, sem precisar procurar.</li>
+                    <li><strong>Várias linhas na tabela:</strong> <kbd>Ctrl</kbd> (ou <kbd>⌘</kbd>) + clique acrescenta ou retira uma linha; <kbd>Shift</kbd> + clique seleciona o intervalo desde a última linha clicada, na ordem atual da tabela (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> soma o intervalo ao que já estava). O mapa enquadra todas as selecionadas e o dashboard mostra quantas são.</li>
+                    <li>Clique num lugar vazio do mapa ou feche o popup para limpar a seleção.</li>
+                </ul>
+            </section>
+
+            <section class="help-section" id="dashboard">
+                <h2>Dashboard</h2>
+                <p>Abra pelo botão de barras nos controles do mapa. Ele mostra a camada ativa, já com filtros e busca aplicados.</p>
+                <h3>Tabela</h3>
+                <ul>
+                    <li>Clique no nome da coluna para <strong>ordenar</strong> (de novo inverte).</li>
+                    <li>O <strong>rodapé de totais</strong> calcula sobre todo o conjunto filtrado, não só a página. Escolha por coluna: Soma, Média, Mediana, Mínimo, Máximo, Desvio padrão, Preenchidos ou Distintos.</li>
+                    <li>50 linhas por página, com setas para navegar.</li>
+                </ul>
+                <h3>Resumo</h3>
+                <ul>
+                    <li>À esquerda, agrupe por uma categoria, escolha o operador (Contagem, Soma, Média, Mínimo, Máximo) e a métrica numérica.</li>
+                    <li>À direita, o gráfico do mesmo resultado: barras, colunas, barra segmentada ou rosca.</li>
+                </ul>
+                <h3>Altura</h3>
+                <p>Arraste a alça na borda superior do dashboard. Duplo clique volta à altura padrão; pelo teclado, foque a alça e use <kbd>↑</kbd> <kbd>↓</kbd>.</p>
+            </section>
+
+            <section class="help-section" id="exportar">
+                <h2>Exportar</h2>
+                <table class="help-table">
+                    <tr><th>Exportar CSV</th><td>A tabela como está: com filtro ou busca, só as feições filtradas, na ordem atual; sem filtro, todos os dados. Abre no Excel/LibreOffice.</td></tr>
+                    <tr><th>Exportar KML</th><td>O mapa como está, para Google Earth ou QGIS: mesmas feições do CSV, com as cores do tema e uma pasta por categoria. O rótulo vira o nome de cada feição; ao clicar numa feição no Google Earth, abre um balão com os atributos organizados.</td></tr>
+                </table>
+                <p>O nome do arquivo termina em <strong>_filtrado</strong> ou <strong>_completo</strong>.</p>
+            </section>
+
+            <section class="help-section" id="mapa">
+                <h2>Controles do mapa</h2>
+                <table class="help-table">
+                    <tr><th>Dashboard</th><td>Abre e fecha o dashboard (fecha a aba Camadas).</td></tr>
+                    <tr><th>Enquadrar</th><td>Volta à extensão total das camadas ligadas.</td></tr>
+                    <tr><th>Tela cheia</th><td>Mapa ocupando a tela inteira; <kbd>Esc</kbd> sai.</td></tr>
+                    <tr><th>+ / −</th><td>Zoom (também com a roda do mouse).</td></tr>
+                    <tr><th>Mapa base</th><td>Alterna entre Satélite e Ruas.</td></tr>
+                </table>
+            </section>
+
+            <section class="help-section" id="arquivos">
+                <h2>Abrir arquivos</h2>
+                <p>Em <strong>Ferramentas › Adicionar dados</strong>, abra arquivos <strong>GeoJSON</strong>, <strong>KML</strong> ou <strong>KMZ</strong> do computador. O arquivo é lido só no navegador; nada é enviado. Ele vira uma camada como as outras e pode ser removido da lista.</p>
+                <p class="help-tip">Os arquivos precisam estar em WGS84 (coordenadas em graus). Cores e ícones do KML não são usados: vale a simbologia da camada.</p>
+            </section>
+
+            <section class="help-section" id="modulos">
+                <h2>Módulos</h2>
+                <p>Os menus da barra superior reúnem os módulos. Os marcados como <strong>Em breve</strong> ainda estão em implementação: queimadas, clima, pragas, vigor da vegetação, safra e colheita, plantio, aplicações, logística (frota em tempo real), produtividade, raio de abrangência, medir e imprimir. O mesmo vale para o <strong>Assistente de IA</strong>.</p>
+            </section>
+
+            <section class="help-section" id="teclado">
+                <h2>Teclado</h2>
+                <table class="help-table">
+                    <tr><th><kbd>Esc</kbd></th><td>Fecha o painel ou menu aberto mais recente; na busca, limpa o termo.</td></tr>
+                    <tr><th><kbd>Enter</kbd></th><td>Na busca, busca na hora; numa linha da tabela, seleciona a feição.</td></tr>
+                    <tr><th><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></th><td>Navegam nos menus dos módulos; na alça do dashboard, ajustam a altura.</td></tr>
+                    <tr><th><kbd>Tab</kbd></th><td>Percorre botões e campos.</td></tr>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/theme.js"></script>
+</body>
+
+</html>

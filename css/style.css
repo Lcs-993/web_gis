@@ -240,17 +240,43 @@ ol {
 }
 
 .brand-logo {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     display: block;
     object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+/*
+   Marca nas cores da logo (Bambuí Bioenergia): "Web" no verde do
+   símbolo e "GIS" no vermelho de "Bioenergia", em fonte pesada
+   como a da logo.
+*/
+:root {
+    --logo-green: #5bb54f;
+    --logo-red: #e8333c;
 }
 
 .brand-name {
-    color: var(--color-text);
-    font-size: 17px;
-    font-weight: 600;
+    color: var(--logo-green);
+    font-size: 21px;
+    font-weight: 800;
     letter-spacing: -0.4px;
+    line-height: 1;
+}
+
+.brand-accent {
+    color: var(--logo-red);
+}
+
+/* Complemento da marca (ex.: "Ajuda"), separado por um traço fino. */
+.brand-suffix {
+    margin-left: 4px;
+    padding-left: 12px;
+    border-left: 1px solid var(--border-hairline);
+    color: var(--color-text-muted);
+    font-size: 15px;
+    font-weight: 500;
 }
 
 /* ---------- Menus de módulos (centro da barra) ----------
@@ -260,10 +286,15 @@ ol {
    entrada com leve escala.
 */
 
+/* Menus em texto, como os itens de uma barra de navegação do iOS. */
 .module-menu {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
+}
+
+.module-menu:empty {
+    display: none;
 }
 
 .module-menu-group {
@@ -271,12 +302,12 @@ ol {
 }
 
 .module-menu-trigger {
-    height: 34px;
+    height: 32px;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 13px;
-    border-radius: 10px;
+    gap: 5px;
+    padding: 0 12px;
+    border-radius: 8px;
     color: var(--color-text-label);
     font-size: 15px;
     font-weight: 500;
@@ -285,14 +316,15 @@ ol {
     transition: background-color var(--duration) ease, color var(--duration) ease;
 }
 
-.module-menu-trigger:hover,
-.module-menu-trigger[aria-expanded="true"] {
+.module-menu-trigger:hover {
     background: var(--hover-bg);
     color: var(--color-text);
 }
 
+/* Menu aberto: fundo suave e texto na cor de destaque (tint do iOS). */
 .module-menu-trigger[aria-expanded="true"] {
     background: var(--fill-segment);
+    color: var(--color-brand);
 }
 
 .module-menu-chevron {
@@ -457,9 +489,9 @@ ol {
 .topbar-actions {
     /* Coluna fixa: as ações ficam sempre à direita, mesmo com o centro vazio. */
     grid-column: 3;
+    justify-self: end;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
     gap: 8px;
 }
 
@@ -470,6 +502,11 @@ ol {
 
 .ai-button[aria-expanded="true"] {
     background: var(--fill-segment-hover);
+}
+
+/* Assistente de IA: ícone na cor roxa do recurso. */
+.ai-button svg {
+    color: #af52de;
 }
 
 /* Cartão "Em breve": mesmo visual dos itens dos menus de módulos. */
@@ -696,9 +733,15 @@ ol {
     transition: filter var(--duration) ease;
 }
 
-/* Seleção ou busca ativa: os pontos que não estão em foco esmaecem. */
+/* Busca ativa: os pontos que não casam esmaecem. */
 .feature-marker.is-dimmed {
-    opacity: 0.3;
+    opacity: 0.2;
+}
+
+/* Selecionado (nível acima da busca): halo branco forte em volta do ícone. */
+.feature-marker.is-selected {
+    opacity: 1;
+    filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 5px #ffffff) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
 }
 
 /* ---------- Carregamento de camadas (cartão central) ---------- */
@@ -1893,6 +1936,12 @@ ol {
     flex-direction: column;
     border-width: 1px 0 0;
     z-index: 240;
+    transition: left var(--duration) ease;
+}
+
+/* Aba Camadas aberta com o dashboard: ele começa depois dela, sem ficar por baixo. */
+.layers-open .dashboard {
+    left: var(--sidebar-w);
 }
 
 /* Alça de altura: faixa invisível na borda superior, com um "grip" central (estilo iOS). */
@@ -2924,7 +2973,8 @@ th[aria-sort="descending"] .table-sort::after {
         gap: 8px;
     }
 
-    .layers-open .map-footer {
+    .layers-open .map-footer,
+    .layers-open .dashboard {
         left: 0;
     }
 

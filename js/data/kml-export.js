@@ -7,7 +7,8 @@
    - com tema, uma pasta por categoria (vira a legenda no Google
      Earth), na mesma ordem e com as mesmas cores do mapa;
    - camadas "outline" (ex.: Fazendas) saem só com contorno;
-   - todos os atributos em <ExtendedData>.
+   - todos os atributos em <ExtendedData> (QGIS) e num balão HTML
+     legível (Google Earth): título, faixa na cor da feição e tabela.
 
    Puro (sem DOM): recebe dados, devolve o texto do KML.
    ============================================================ */
@@ -84,12 +85,43 @@ function geometryToKml(geometry) {
 function styleXml(hex, { outline, themed }) {
     const fillAlpha = outline ? 0 : themed ? 0.55 : 0.35;
 
+    /* Balão: só a descrição HTML de cada feição (sem os links "Rotas" do Google Earth). */
     return `<Style id="${styleId(hex)}">` +
+        "<BalloonStyle><text><![CDATA[$[description]]]></text></BalloonStyle>" +
         `<LineStyle><color>${kmlColor(hex, 1)}</color><width>${outline ? 2 : 1.5}</width></LineStyle>` +
         `<PolyStyle><color>${kmlColor(hex, fillAlpha)}</color><fill>${outline ? 0 : 1}</fill><outline>1</outline></PolyStyle>` +
         `<IconStyle><color>${kmlColor(hex, 1)}</color><scale>1</scale>` +
         "<Icon><href>https://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle>" +
         "</Style>";
+}
+
+
+/* ---------------- balão (popup) ---------------- */
+
+/*
+   HTML do balão do Google Earth: cabeçalho com faixa na cor da
+   feição, nome e camada; depois os atributos numa tabela leve,
+   com linhas alternadas. Só estilos inline (o Earth ignora <style>).
+*/
+function balloonHtml({ title, subtitle, color, rows }) {
+    const accent = /^#[0-9a-f]{6}$/i.test(color || "") ? color : "#50ab46";
+    const font = "font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif";
+
+    const body = rows.map(([label, value], index) =>
+        `<tr style="background:${index % 2 ? "#f6f7f9" : "#ffffff"}">` +
+        `<td style="padding:6px 12px 6px 0;color:#6e6e73;font-size:12px;white-space:nowrap;vertical-align:top">${escapeXml(label)}</td>` +
+        `<td style="padding:6px 0;color:#1d1d1f;font-size:13px;font-weight:600">${escapeXml(value)}</td>` +
+        "</tr>"
+    ).join("");
+
+    return `<div style="${font};width:300px">` +
+        `<div style="border-left:5px solid ${accent};padding:2px 0 2px 10px;margin-bottom:10px">` +
+        `<div style="color:#1d1d1f;font-size:16px;font-weight:700">${escapeXml(title)}</div>` +
+        (subtitle ? `<div style="color:#8e8e93;font-size:12px">${escapeXml(subtitle)}</div>` : "") +
+        "</div>" +
+        `<table style="width:100%;border-collapse:collapse;border-top:1px solid #e5e5ea">${body}</table>` +
+        `<div style="margin-top:8px;color:#aeaeb2;font-size:10px">Exportado do WebGIS</div>` +
+        "</div>";
 }
 
 
@@ -122,8 +154,20 @@ export function toKml({ documentName, groups, attributes, nameFields = [], outli
             })
             .join("");
 
+        const rows = attributes
+            .map((attribute) => [attribute.name, getAttribute(feature, attribute.name)])
+            .filter(([, value]) => !isEmpty(value));
+        const description = balloonHtml({
+            title: isEmpty(nameValue) ? documentName : nameValue,
+            subtitle: isEmpty(nameValue) ? "" : documentName,
+            color,
+            rows
+        });
+
         return "<Placemark>" +
             (isEmpty(nameValue) ? "" : `<name>${escapeXml(nameValue)}</name>`) +
+            /* CDATA: "]]>" dentro do HTML fecharia o bloco antes da hora. */
+            `<description><![CDATA[${description.replace(/]]>/g, "]]&gt;")}]]></description>` +
             `<styleUrl>#${styleId(color)}</styleUrl>` +
             (data ? `<ExtendedData>${data}</ExtendedData>` : "") +
             geometryToKml(feature.geometry) +

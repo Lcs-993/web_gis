@@ -46,7 +46,7 @@ export function createStore() {
     const state = {
         layers: [],
         activeLayerId: null,
-        selection: null,      // { layerId, uid } | null
+        selection: null,      // { layerId, uid, uids } | null — uid: a principal (último clique); uids: todas
         basemap: null
     };
 
@@ -74,16 +74,18 @@ export function createStore() {
             considered
         };
 
-        /* Seleção que deixou de passar no filtro é descartada. */
+        /* Feições selecionadas que deixaram de passar no filtro saem da seleção. */
         const selection = state.selection;
 
-        if (
-            selection &&
-            selection.layerId === layer.id &&
-            !layer.view.filteredSet.has(selection.uid)
-        ) {
-            state.selection = null;
-            emitter.emit("selection", null);
+        if (selection && selection.layerId === layer.id) {
+            const kept = selection.uids.filter((uid) => layer.view.filteredSet.has(uid));
+
+            if (kept.length !== selection.uids.length) {
+                state.selection = kept.length
+                    ? { layerId: layer.id, uid: kept.includes(selection.uid) ? selection.uid : kept[kept.length - 1], uids: kept }
+                    : null;
+                emitter.emit("selection", state.selection);
+            }
         }
     };
 
@@ -259,7 +261,7 @@ export function createStore() {
 
     /*
        Liga/desliga rótulos e escolhe os atributos exibidos (fields:
-       um por linha, na ordem). Sem nenhum, usa o primeiro atributo
+       um por linha, na ordem). Só uma camada fica rotulada por vez. Sem nenhum, usa o primeiro atributo
        com valores (ordem do arquivo).
     */
     const setLabels = (id, patch) => {
@@ -278,6 +280,17 @@ export function createStore() {
         }
 
         layer.labels = next;
+
+        /* Só uma camada rotulada por vez: ligar aqui desliga nas outras. */
+        if (next.visible) {
+            state.layers.forEach((other) => {
+                if (other !== layer && other.labels.visible) {
+                    other.labels = { ...other.labels, visible: false };
+                    emitter.emit("labels", other);
+                }
+            });
+        }
+
         emitter.emit("labels", layer);
     };
 
@@ -393,21 +406,41 @@ export function createStore() {
 
     /* ---------------- seleção e mapa base ---------------- */
 
-    const select = (layerId, uid) => {
-        const next = layerId === null || uid === null || uid === undefined
-            ? null
-            : { layerId, uid };
-        const current = state.selection;
+    const sameSelection = (a, b) =>
+        (a === null && b === null) ||
+        Boolean(a && b && a.layerId === b.layerId && a.uid === b.uid &&
+            a.uids.length === b.uids.length && a.uids.every((uid, index) => uid === b.uids[index]));
 
-        if (
-            (current === null && next === null) ||
-            (current && next && current.layerId === next.layerId && current.uid === next.uid)
-        ) {
+    const setSelection = (next) => {
+        if (sameSelection(state.selection, next)) {
             return;
         }
 
         state.selection = next;
         emitter.emit("selection", next);
+    };
+
+    /* Seleção simples (uma feição) ou limpar (null). */
+    const select = (layerId, uid) => {
+        setSelection(layerId === null || uid === null || uid === undefined
+            ? null
+            : { layerId, uid, uids: [uid] });
+    };
+
+    /*
+       Seleção múltipla (tabela com Ctrl/Shift): várias feições da
+       mesma camada; primary é a do último clique (a "principal").
+       Lista vazia limpa a seleção.
+    */
+    const selectMany = (layerId, uids, primary) => {
+        const unique = Array.from(new Set(uids));
+
+        if (!unique.length) {
+            setSelection(null);
+            return;
+        }
+
+        setSelection({ layerId, uid: unique.includes(primary) ? primary : unique[unique.length - 1], uids: unique });
     };
 
     const setBasemap = (id) => {
@@ -444,6 +477,7 @@ export function createStore() {
         removeLayer,
         setActiveLayer,
         setLabels,
+        selectMany,
         setTheme,
         addFilter,
         setFieldFilter,

@@ -51,7 +51,7 @@ const funnelIcon = () => {
     return svg;
 };
 
-export function createDashboard(store, { isOpen, onRowSelect }) {
+export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     const context = byId("dashboard-context");
     const chartType = byId("chart-type");
     const chartArea = byId("chart-area");
@@ -101,6 +101,11 @@ export function createDashboard(store, { isOpen, onRowSelect }) {
         const parts = [
             `${formatCount(layer.view.considered.length)} de ${formatCount(layer.features.length)} feições`
         ];
+        const selection = store.state.selection;
+
+        if (selection && selection.layerId === layer.id && selection.uids.length > 1) {
+            parts.push(`${formatCount(selection.uids.length)} selecionadas`);
+        }
 
         if (layer.filters.length) {
             parts.push(layer.filters.map(describeFilter).join(" · "));
@@ -356,11 +361,12 @@ export function createDashboard(store, { isOpen, onRowSelect }) {
         })));
 
         const selection = store.state.selection;
+        const selectedSet = new Set(selection && selection.layerId === layer.id ? selection.uids : []);
         const start = page * TABLE_PAGE_SIZE;
         const slice = rows.slice(start, start + TABLE_PAGE_SIZE);
 
         tableBody.replaceChildren(...slice.map(({ uid, feature }) => {
-            const selected = Boolean(selection && selection.layerId === layer.id && selection.uid === uid);
+            const selected = selectedSet.has(uid);
 
             return el("tr", {
                 class: selected ? "is-selected" : null,
@@ -433,20 +439,70 @@ export function createDashboard(store, { isOpen, onRowSelect }) {
         })));
     };
 
-    const activateRow = (row) => {
+    /* Seleção feita na própria tabela: a linha já está à vista, não salta para o topo. */
+    let selectingFromTable = false;
+    /* Âncora do Shift: a última linha clicada sem Shift. */
+    let anchorUid = null;
+
+    /*
+       Clique simples: seleciona só a linha.
+       Ctrl (ou ⌘): acrescenta ou retira a linha da seleção.
+       Shift: seleciona o intervalo da âncora até a linha, na ordem
+       atual da tabela (com Ctrl+Shift, soma o intervalo ao que já
+       estava selecionado).
+    */
+    const activateRow = (row, event = {}) => {
         const layer = store.getActiveLayer();
 
-        if (row && layer) {
-            onRowSelect(layer.id, Number(row.dataset.uid));
+        if (!row || !layer) {
+            return;
         }
+
+        const uid = Number(row.dataset.uid);
+        const toggle = Boolean(event.ctrlKey || event.metaKey);
+        const range = Boolean(event.shiftKey);
+        const selection = store.state.selection;
+        const current = selection && selection.layerId === layer.id ? selection.uids : [];
+
+        selectingFromTable = true;
+
+        if (range && anchorUid !== null) {
+            const order = sortedRows(layer).map((item) => item.uid);
+            const from = order.indexOf(anchorUid);
+            const to = order.indexOf(uid);
+
+            if (from !== -1 && to !== -1) {
+                const span = order.slice(Math.min(from, to), Math.max(from, to) + 1);
+
+                onRowsSelect(layer.id, toggle ? [...current, ...span] : span, uid);
+            } else {
+                anchorUid = uid;
+                onRowSelect(layer.id, uid);
+            }
+        } else if (toggle) {
+            anchorUid = uid;
+            onRowsSelect(layer.id, current.includes(uid) ? current.filter((item) => item !== uid) : [...current, uid], uid);
+        } else {
+            anchorUid = uid;
+            onRowSelect(layer.id, uid);
+        }
+
+        selectingFromTable = false;
     };
 
-    tableBody.addEventListener("click", (event) => activateRow(event.target.closest("tr[data-uid]")));
+    tableBody.addEventListener("click", (event) => activateRow(event.target.closest("tr[data-uid]"), event));
+
+    /* Shift+clique não deve selecionar o texto das células. */
+    tableBody.addEventListener("mousedown", (event) => {
+        if (event.shiftKey) {
+            event.preventDefault();
+        }
+    });
 
     tableBody.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            activateRow(event.target.closest("tr[data-uid]"));
+            activateRow(event.target.closest("tr[data-uid]"), event);
         }
     });
 
@@ -669,8 +725,27 @@ export function createDashboard(store, { isOpen, onRowSelect }) {
 
             const row = tableBody.querySelector(`tr[data-uid="${uid}"]`);
 
-            if (row) {
+            if (!row) {
+                return;
+            }
+
+            if (selectingFromTable) {
                 row.scrollIntoView({ block: "nearest" });
+                return;
+            }
+
+            /*
+               Seleção vinda do mapa (ou da busca): a linha vai para o topo
+               da tabela, logo abaixo do cabeçalho fixo, sem rolar o resto
+               da página.
+            */
+            const scroller = row.closest(".table-scroll");
+
+            if (scroller) {
+                const header = tableHead.getBoundingClientRect().height;
+                const offset = row.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+
+                scroller.scrollTop += offset - header;
             }
         }
     }

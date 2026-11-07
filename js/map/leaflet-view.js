@@ -20,7 +20,7 @@ const STATE_DEFAULT = 0;
 const STATE_MATCH = 1;
 const STATE_SELECTED = 2;
 const STATE_SELECTED_MATCH = 3;
-/* Fora de foco (há seleção, ou busca ativa sem casar): esmaecida. */
+/* Busca ativa e a feição não casa com ela: esmaecida. */
 const STATE_DIMMED = 4;
 
 const isSelectedState = (state) => state === STATE_SELECTED || state === STATE_SELECTED_MATCH;
@@ -43,44 +43,83 @@ const OUTLINE_HALO = {
     interactive: false
 };
 
+/*
+   Contorno dos polígonos (camadas com preenchimento): branco fino
+   e translúcido, discreto, para marcar as divisas em qualquer tema.
+*/
+const POLYGON_STROKE = "#ffffff";
+const POLYGON_STROKE_WEIGHT = 0.8;
+const POLYGON_STROKE_OPACITY = 0.55;
+
 const POINT_RADIUS = 5;
+const POINT_RADIUS_SELECTED = 8;
 
 
 /*
-   Estilo por estado. Nada ganha realce: a feição selecionada e os
-   achados da busca ficam com o estilo normal (cor da camada ou do
-   tema) e todo o resto esmaece (STATE_DIMMED):
-   - com uma seleção, todas as outras feições, de todas as camadas;
-   - com busca ativa e sem seleção, o que não casa com a busca.
+   Estilo por estado, em dois níveis independentes:
+   - busca: os achados ficam com o estilo normal (cor da camada ou
+     do tema) e o que não casa esmaece (STATE_DIMMED);
+   - seleção (nível acima): as selecionadas ganham contorno branco
+     forte e preenchimento mais intenso, com ou sem busca ativa.
 */
 const styleFor = (color, state, isPoint, themed = false, outline = false) => {
     const base = { lineCap: "round", lineJoin: "round", opacity: 1, fillColor: color };
 
     /* Opacidade de preenchimento "normal": tema precisa de mais para a cor ser lida sobre o satélite. */
-    const fill = isPoint ? 0.85 : themed ? 0.5 : 0.10;
+    const fill = isPoint ? 0.85 : themed ? 0.5 : 0.35;
 
     if (outline && !isPoint) {
         /* Camada de referência (style: "outline"): só a borda, sobre um halo escuro (OUTLINE_HALO). */
         return { ...base, color, weight: OUTLINE_WEIGHT, opacity: state === STATE_DIMMED ? 0.3 : 1, fill: false };
     }
 
+    /*
+       Seleção (clique no mapa ou na tabela): nível acima da busca.
+       Contorno branco forte e preenchimento mais intenso, na própria
+       cor (camada ou tema); nada mais é esmaecido por ela.
+    */
+    if (isSelectedState(state)) {
+        return {
+            ...base,
+            color: "#ffffff",
+            weight: isPoint ? 2.5 : 3,
+            opacity: 1,
+            fillOpacity: isPoint ? 1 : themed ? 0.8 : 0.6,
+            radius: POINT_RADIUS_SELECTED
+        };
+    }
+
     if (state === STATE_DIMMED) {
         /* Sombra translúcida: a feição continua lá, mas sai de cena. */
         return {
             ...base,
-            color: isPoint ? "#1d1d1f" : color,
-            weight: 1,
-            opacity: 0.25,
-            fillOpacity: isPoint ? 0.25 : themed ? 0.12 : 0.03,
+            color: isPoint ? "#1d1d1f" : POLYGON_STROKE,
+            weight: isPoint ? 1 : POLYGON_STROKE_WEIGHT,
+            /* Quase some: fica só um vestígio da forma, para não competir com os achados. */
+            opacity: isPoint ? 0.2 : 0.07,
+            fillOpacity: isPoint ? 0.15 : themed ? 0.05 : 0.03,
             radius: POINT_RADIUS
         };
     }
 
+    /* Achados da busca: mais intensos que o normal (sem contorno grosso), em contraste com os esmaecidos. */
+    if (state === STATE_MATCH && !isPoint) {
+        return {
+            ...base,
+            color: POLYGON_STROKE,
+            weight: 1,
+            opacity: 0.9,
+            fillOpacity: themed ? 0.72 : 0.55,
+            radius: POINT_RADIUS
+        };
+    }
+
+    /* Divisas: linha fina e clara, igual com ou sem tema; o preenchimento leva a cor. */
     return {
         ...base,
-        color: isPoint ? "#1d1d1f" : color,
-        weight: isPoint ? 1 : themed ? 1.2 : 1.4,
-        opacity: 0.95,
+        color: isPoint ? "#1d1d1f" : POLYGON_STROKE,
+        weight: isPoint ? 1 : POLYGON_STROKE_WEIGHT,
+        opacity: isPoint ? 0.95 : POLYGON_STROKE_OPACITY,
         fillOpacity: fill,
         radius: POINT_RADIUS
     };
@@ -92,6 +131,7 @@ const applyMarkerState = (layer, state) => {
 
         if (element) {
             element.classList.toggle("is-dimmed", state === STATE_DIMMED);
+            element.classList.toggle("is-selected", isSelectedState(state));
         }
 
         if (typeof layer.setZIndexOffset === "function") {
@@ -150,8 +190,6 @@ export function createMapView(L, element, { options, basemaps }) {
 
     const renderer = L.canvas({ padding: 0.5 });
 
-    /* Há uma feição selecionada: todas as outras, de todas as camadas, esmaecem. */
-    let selectionActive = false;
 
     const basemapLayers = new Map(basemaps.map((basemap) => [
         basemap.id,
@@ -294,6 +332,7 @@ export function createMapView(L, element, { options, basemaps }) {
         });
 
         const entry = {
+            layer,   // camada do store (mesmo objeto; view muda a cada filtro/busca)
             group,
             paths,
             points,
@@ -305,7 +344,8 @@ export function createMapView(L, element, { options, basemaps }) {
             haloGroup: halos ? L.featureGroup() : null,
             attribution: layer.attribution,
             onMap: false,
-            selectedUid: null,
+            selectedUid: null,       // principal (prioridade de rótulo)
+            selectedSet: new Set(),  // todas as selecionadas desta camada
             features: layer.features,
             anchors: new Array(layer.features.length),
             labelGroup: L.layerGroup().addTo(map),
@@ -349,6 +389,8 @@ export function createMapView(L, element, { options, basemaps }) {
         }
 
         drawLabels(entry);
+        /* Camada com busca ocultada ou reexibida: as outras param ou voltam a esmaecer. */
+        syncSearchFocus(entry.layer);
     };
 
 
@@ -383,9 +425,10 @@ export function createMapView(L, element, { options, basemaps }) {
         const rest = [];
 
         filtered.forEach((uid) => {
-            if (uid === entry.selectedUid || (matchSet && matchSet.has(uid))) {
+            if (entry.selectedSet.has(uid) || (matchSet && matchSet.has(uid))) {
                 first.push(uid);
-            } else {
+            } else if (!matchSet && !otherLayerSearching(layer.id)) {
+                /* Esmaecidas (fora da busca, ou de outra camada durante uma busca) ficam sem rótulo. */
                 rest.push(uid);
             }
         });
@@ -601,17 +644,22 @@ export function createMapView(L, element, { options, basemaps }) {
         }
     };
 
+    /*
+       Camadas com busca ativa (normalmente só a ativa). Enquanto houver
+       uma, as demais camadas inteiras também esmaecem: o foco do mapa
+       fica nos achados.
+    */
+    const searchingLayers = new Set();
+
+    const otherLayerSearching = (layerId) =>
+        Array.from(searchingLayers).some((id) => id !== layerId);
+
     const stateOf = (entry, layer, uid) => {
-        const selected = entry.selectedUid === uid;
+        const selected = entry.selectedSet.has(uid);
         const matched = layer.view.matchSet ? layer.view.matchSet.has(uid) : false;
 
         if (selected) {
             return matched ? STATE_SELECTED_MATCH : STATE_SELECTED;
-        }
-
-        /* Com uma seleção, o resto vira uma sombra translúcida (inclusive achados da busca). */
-        if (selectionActive) {
-            return STATE_DIMMED;
         }
 
         if (matched) {
@@ -619,7 +667,38 @@ export function createMapView(L, element, { options, basemaps }) {
         }
 
         /* Com busca ativa, o que não casa esmaece: os achados se destacam em qualquer tema. */
-        return layer.view.matchSet ? STATE_DIMMED : STATE_DEFAULT;
+        if (layer.view.matchSet) {
+            return STATE_DIMMED;
+        }
+
+        /* Busca ativa em outra camada: esta inteira esmaece (Fazendas, Unidade Industrial…). */
+        return otherLayerSearching(layer.id) ? STATE_DIMMED : STATE_DEFAULT;
+    };
+
+    /* Liga/desliga o esmaecimento das outras camadas quando a busca de uma começa ou termina. */
+    const syncSearchFocus = (layer) => {
+        const entry = entries.get(layer.id);
+        const searching = Boolean(layer.view.matchSet && entry && entry.onMap);
+
+        if (searching === searchingLayers.has(layer.id)) {
+            return;
+        }
+
+        if (searching) {
+            searchingLayers.add(layer.id);
+        } else {
+            searchingLayers.delete(layer.id);
+        }
+
+        entries.forEach((other, id) => {
+            if (id !== layer.id) {
+                restyleAll(other, other.layer);
+
+                if (other.labels) {
+                    drawLabels(other);
+                }
+            }
+        });
     };
 
     /* Aplica filtro (presença no grupo) e realces (estilo). */
@@ -669,32 +748,11 @@ export function createMapView(L, element, { options, basemaps }) {
         }
 
         raiseOutlines();
+        syncSearchFocus(layer);
         notifyContent();
     };
 
     const setSelection = (layers, selection) => {
-        const active = Boolean(selection);
-
-        /* Entrar ou sair do modo "seleção" repinta todas as feições (esmaecer / restaurar). */
-        if (active !== selectionActive) {
-            selectionActive = active;
-
-            layers.forEach((layer) => {
-                const entry = entries.get(layer.id);
-
-                if (entry) {
-                    entry.selectedUid = selection && selection.layerId === layer.id ? selection.uid : null;
-                    restyleAll(entry, layer);
-
-                    if (entry.labels) {
-                        drawLabels(entry);
-                    }
-                }
-            });
-
-            return;
-        }
-
         layers.forEach((layer) => {
             const entry = entries.get(layer.id);
 
@@ -702,17 +760,24 @@ export function createMapView(L, element, { options, basemaps }) {
                 return;
             }
 
-            const previous = entry.selectedUid;
-            const next = selection && selection.layerId === layer.id ? selection.uid : null;
+            const mine = selection && selection.layerId === layer.id;
+            const previous = entry.selectedSet;
+            const next = new Set(mine ? selection.uids : []);
+            const nextPrimary = mine ? selection.uid : null;
 
-            if (previous === next) {
+            if (entry.selectedUid === nextPrimary && previous.size === next.size &&
+                Array.from(next).every((uid) => previous.has(uid))) {
                 return;
             }
 
-            entry.selectedUid = next;
+            entry.selectedUid = nextPrimary;
+            entry.selectedSet = next;
 
-            [previous, next].forEach((uid) => {
-                if (uid !== null && entry.paths[uid] && entry.shown[uid]) {
+            /* Repinta só o que mudou de estado (entrou ou saiu da seleção). */
+            const changed = new Set([...previous, ...next]);
+
+            changed.forEach((uid) => {
+                if (entry.paths[uid] && entry.shown[uid]) {
                     restyle(entry, uid, stateOf(entry, layer, uid));
                 }
             });

@@ -197,7 +197,7 @@ const fitToFocus = () => {
     const selection = store.state.selection;
 
     if (selection) {
-        return mapView.fitFeatures(selection.layerId, [selection.uid], MAP_OPTIONS.fitMaxZoom + 1);
+        return mapView.fitFeatures(selection.layerId, selection.uids, MAP_OPTIONS.fitMaxZoom + 1);
     }
 
     const layer = store.getActiveLayer();
@@ -228,6 +228,13 @@ const presentSelection = (selection) => {
         return;
     }
 
+    /* Várias feições selecionadas: sem popup (seria só de uma delas). */
+    if (selection.uids.length > 1) {
+        pendingLatLng = null;
+        mapView.closePopup();
+        return;
+    }
+
     if (!mapView.isPopupOpenFor(selection.layerId, selection.uid)) {
         openSelectionPopup(selection);
     }
@@ -239,7 +246,7 @@ mapView.onFeatureClick(({ layerId, uid, latlng }) => {
     /* Clicar de novo na feature já selecionada a mostra outra vez. */
     const current = store.state.selection;
 
-    if (current && current.layerId === layerId && current.uid === uid) {
+    if (current && current.layerId === layerId && current.uid === uid && current.uids.length === 1) {
         presentSelection(current);
         return;
     }
@@ -393,7 +400,12 @@ createModuleMenu(document.getElementById("module-menu"), MODULE_MENUS, {
 
 dashboard = createDashboard(store, {
     isOpen: () => panels.isOpen("dashboard"),
-    onRowSelect: (layerId, uid) => selectFeature(layerId, uid, { fit: true })
+    onRowSelect: (layerId, uid) => selectFeature(layerId, uid, { fit: true }),
+    /* Ctrl/Shift na tabela: várias linhas; o mapa enquadra todas as selecionadas. */
+    onRowsSelect: (layerId, uids, primary) => {
+        mapView.fitFeatures(layerId, uids, MAP_OPTIONS.fitMaxZoom + 1);
+        store.selectMany(layerId, uids, primary);
+    }
 });
 
 

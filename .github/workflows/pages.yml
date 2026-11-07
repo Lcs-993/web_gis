@@ -34,7 +34,7 @@ jobs:
       - name: Montar o site
         run: |
           mkdir _site
-          cp -r index.html README.md .nojekyll css js assets _site/
+          cp -r index.html ajuda.html README.md .nojekyll css js assets _site/
           if [ -d geojson ]; then cp -r geojson _site/; fi
 
       - name: Preparar arquivos do site

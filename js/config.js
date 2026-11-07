@@ -134,8 +134,8 @@ export const SEARCH_DEBOUNCE_MS = 160;
 /*
    MENUS DE MÓDULOS (centro da barra superior)
 
-   Cada menu agrupa módulos e tem uma cor (tone) para os ícones:
-   orange, green, blue ou gray. Um item é:
+   Cada menu agrupa módulos e tem uma cor (tone) para os ícones
+   dos itens: orange, green, blue ou gray. Um item é:
      { id, icon, label, description, action? }
    - icon: nome de um ícone de js/ui/module-menu.js (ICONS).
    - action: identificador tratado em main.js. Item sem action
