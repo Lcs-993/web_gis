@@ -62,6 +62,8 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     const groupOperator = byId("group-operator");
     const groupCard = byId("group-card");
     const groupBars = byId("group-bars");
+    const groupTotal = byId("group-total");
+    const chartTotal = byId("chart-total");
     const tableHead = byId("table-head");
     const tableBody = byId("table-body");
     const tableFoot = byId("table-foot");
@@ -189,6 +191,22 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     };
 
 
+    /* Rótulo da linha de total conforme o operador, com o nº de grupos. */
+    const TOTAL_LABELS = { count: "Total", sum: "Total", mean: "Média geral", min: "Mínimo geral", max: "Máximo geral" };
+
+    const totalLabel = (operator, groupCount) =>
+        `${TOTAL_LABELS[operator.id] || "Total"} (${formatCount(groupCount)} ${groupCount === 1 ? "grupo" : "grupos"})`;
+
+    /* Rodapé de total de um card (null esconde). */
+    const renderTotal = (node, total) => {
+        node.hidden = !total;
+        node.replaceChildren(...(total ? [
+            el("span", { class: "summary-total-label", text: total.label }),
+            el("span", { class: "summary-total-value", text: total.value })
+        ] : []));
+    };
+
+
     /*
        Lista do agrupamento: barra proporcional ao maior grupo e
        participação % só para operadores aditivos (contagem, soma).
@@ -222,6 +240,11 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         if (!rows.length) {
             rows.push(el("li", { class: "group-empty", text: "Nenhuma feição no conjunto atual." }));
         }
+
+        renderTotal(groupTotal, rows.length && result.rows.length ? {
+            label: totalLabel(operator, result.groupCount),
+            value: `${formatResult(result.overall)}${showShare ? " · 100%" : ""}`
+        } : null);
 
         groupBars.replaceChildren(...rows);
     };
@@ -277,6 +300,11 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         chartArea.replaceChildren(renderChart(type.id, items, {
             centerText: source.total !== null ? formatResult(source.total) : ""
         }));
+
+        renderTotal(chartTotal, items.length ? {
+            label: totalLabel(operator, source.groupCount),
+            value: `${formatResult(source.overall)}${additive ? " · 100%" : ""}`
+        } : null);
     };
 
 
@@ -723,7 +751,36 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         }
     });
 
+    /*
+       Seletor da camada analisada: lista todas as camadas, na ordem do
+       painel, com a quantidade de feições. Trocar aqui = clicar no
+       nome da camada no painel (store.setActiveLayer); e vice-versa.
+       Camadas ainda carregando ou com erro aparecem desabilitadas.
+    */
+    const layerSelect = byId("dashboard-layer");
+
+    const renderLayerSelect = () => {
+        const layers = store.state.layers;
+
+        layerSelect.replaceChildren(...layers.map((layer) => el("option", {
+            value: layer.id,
+            disabled: !ready(layer),
+            text: ready(layer)
+                ? `${layer.name} (${formatCount(layer.features.length)})`
+                : `${layer.name} (${layer.status === "error" ? "erro" : "carregando…"})`
+        })));
+
+        layerSelect.value = store.state.activeLayerId || "";
+        layerSelect.disabled = !layers.length;
+    };
+
+    layerSelect.addEventListener("change", () => store.setActiveLayer(layerSelect.value));
+
+    store.on("layers", renderLayerSelect);
+    renderLayerSelect();
+
     store.on("active", () => {
+        renderLayerSelect();
         sort = { field: null, direction: 1 };
         page = 0;
         invalidate();

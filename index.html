@@ -296,6 +296,12 @@
                     <!-- Com o dashboard aberto, o campo de busca do mapa é movido para cá (js/main.js). -->
                     <div class="dashboard-search" id="dashboard-search-slot"></div>
 
+                    <!-- Camada analisada (a mesma "ativa" do painel Camadas; os dois ficam sincronizados). -->
+                    <label class="field field-inline dashboard-layer">
+                        <span class="field-label">Camada</span>
+                        <select id="dashboard-layer" title="Camada analisada pelo dashboard"></select>
+                    </label>
+
                     <div class="tabs" role="tablist" aria-label="Visões do dashboard">
                         <button type="button" role="tab" class="tab" id="tab-table" data-tab="table" aria-controls="dashboard-table" aria-selected="true">Tabela</button>
                         <button type="button" role="tab" class="tab" id="tab-summary" data-tab="summary" aria-controls="dashboard-summary" aria-selected="false" tabindex="-1">Resumo</button>
@@ -326,6 +332,8 @@
                             </label>
                         </div>
                         <ul class="group-list" id="group-bars"></ul>
+                        <!-- Total do agrupamento: fixo no rodapé do card, fora da lista que rola. -->
+                        <p class="summary-total" id="group-total" hidden></p>
                     </div>
 
                     <div class="chart-card" id="chart-card">
@@ -336,6 +344,7 @@
                             </label>
                         </div>
                         <div class="chart-area" id="chart-area"></div>
+                        <p class="summary-total" id="chart-total" hidden></p>
                         <p class="chart-note" id="chart-note" hidden></p>
                     </div>
                 </div>

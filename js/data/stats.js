@@ -121,7 +121,16 @@ export function groupBy(features, attribute, metric, operator = "count", limit =
         ? rows.reduce((acc, row) => acc + (row.value || 0), 0)
         : null;
 
-    return { operator, rows: top, others, total, groupCount: rows.length };
+    /*
+       Valor do conjunto inteiro (linha de total): soma/contagem
+       total, média real de todas as feições, mínimo/máximo geral.
+    */
+    const overall = valueOf(
+        rows.reduce((acc, row) => merge(acc, row.accumulator), emptyAccumulator(null)),
+        operator
+    );
+
+    return { operator, rows: top, others, total, overall, groupCount: rows.length };
 }
 
 
