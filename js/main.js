@@ -121,9 +121,22 @@ const moveSearch = (intoDashboard) => {
 
 /* Altura do dashboard ajustável pela alça da borda superior; o mapa desconta a nova altura. */
 const dashboardResize = createDashboardResize(document.getElementById("dashboard"), {
+    maximizeButton: document.getElementById("dashboard-maximize"),
     onResize: (height) => {
-        if (panels.isOpen("dashboard")) {
+        /* Maximizado, o mapa fica coberto: o recuo só muda ao restaurar. */
+        const maximized = document.documentElement.classList.contains("dashboard-maximized");
+
+        if (panels.isOpen("dashboard") && !maximized) {
             mapView.setInsets({ bottom: height + footerHeight() });
+        }
+
+        /* Maximizar esconde a barra superior: ao restaurar, o mapa volta a ter outro tamanho. */
+        if (!maximized && leafletAvailable) {
+            mapView.map.invalidateSize({ animate: false });
+        }
+
+        if (dashboard) {
+            dashboard.onLayoutChange();
         }
     }
 });
@@ -138,6 +151,9 @@ const panels = createPanels([
         if (id === "dashboard") {
             if (open) {
                 dashboardResize.refresh();
+            } else {
+                /* Fechar sempre restaura: ao reabrir, volta à altura normal. */
+                dashboardResize.setMaximized(false);
             }
 
             moveSearch(open);
@@ -386,7 +402,9 @@ createSearchBox(store, mapView);
 */
 const MODULE_ACTIONS = {
     /* Seletor de arquivo oculto (#layer-file-input); a aba Camadas trata o arquivo escolhido. */
-    "open-file": () => document.getElementById("layer-file-input").click()
+    "open-file": () => document.getElementById("layer-file-input").click(),
+    /* KML da camada ativa como está no mapa (a lógica fica com a tabela, que sabe a ordem e os filtros). */
+    "export-kml": () => dashboard.exportKml()
 };
 
 /* Assistente de IA: por enquanto só o botão, com o aviso "Em breve". */

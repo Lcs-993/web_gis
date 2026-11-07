@@ -36,6 +36,12 @@ export function toCsv(features, attributes) {
 }
 
 
+/* Linhas prontas (ex.: o resumo agrupado): cabeçalho + valores, mesmo formato. */
+export function rowsToCsv(header, rows) {
+    return `﻿${[header, ...rows].map((row) => row.map(escapeCell).join(",")).join("\r\n")}`;
+}
+
+
 export function downloadText(text, fileName, type = "text/csv;charset=utf-8") {
     const url = URL.createObjectURL(new Blob([text], { type }));
     const link = document.createElement("a");

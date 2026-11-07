@@ -182,7 +182,8 @@ export const MODULE_MENUS = [
         items: [
             { id: "medir", icon: "ruler", label: "Medir", description: "Distância e área no mapa" },
             { id: "imprimir", icon: "printer", label: "Imprimir mapa", description: "PDF ou imagem com legenda" },
-            { id: "adicionar-dados", icon: "file-plus", label: "Adicionar dados", description: "GeoJSON, KML ou KMZ (lido só no navegador)", action: "open-file" }
+            { id: "adicionar-dados", icon: "file-plus", label: "Adicionar dados", description: "GeoJSON, KML ou KMZ (lido só no navegador)", action: "open-file" },
+            { id: "exportar-kml", icon: "map-pin", label: "Exportar KML", description: "Camada ativa como está no mapa (filtros e cores) para o Google Earth", action: "export-kml" }
         ]
     }
 ];
