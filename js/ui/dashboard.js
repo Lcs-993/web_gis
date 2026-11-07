@@ -7,9 +7,15 @@
    - "Agrupar por": só atributos do tipo categoria (top 10);
    - "Métrica": qualquer atributo numérico (inteiro ou decimal);
    - "Operador": contagem, soma, média, mínimo ou máximo;
+   - "+ Agrupador": subagrupa cada grupo por outra categoria (ex.:
+     área por setor, separada por variedade); a lista mostra as
+     partes de cada grupo e o gráfico empilha (ou põe lado a lado);
    - lista (à esquerda) com valor e participação % de cada grupo;
    - "Gráfico" (à direita): o mesmo resultado em barras, colunas,
-     barra segmentada ou rosca (ui/charts.js).
+     barra segmentada ou rosca (ui/charts.js);
+   - os controles de agrupamento ficam numa barra acima dos dois
+     cards; cada card tem título (gerado do agrupamento) e a sua
+     exportação: CSV dos grupos e PNG do gráfico.
 
    Só renderiza com o painel aberto; mudanças com ele fechado
    marcam o conteúdo como desatualizado.
@@ -17,18 +23,23 @@
 
 import { el, byId } from "./dom.js";
 import { formatCount, formatNumber, formatValue } from "./format.js";
-import { GROUP_OPERATORS, columnOperatorsFor, columnSummary, groupBy } from "../data/stats.js";
+import { GROUP_OPERATORS, columnOperatorsFor, columnSummary, crossTab, groupBy } from "../data/stats.js";
 import { createColumnFilter } from "./column-filter.js";
-import { CHART_TYPES, PART_LIMIT, renderChart } from "./charts.js";
+import { CHART_TYPES, PART_LIMIT, renderChart, renderSubgroupChart, seriesColors } from "./charts.js";
 import { isCategory, isMetric, isNumeric } from "../data/schema.js";
 import { getAttribute, isEmpty, toNumber } from "../data/values.js";
 import { describeFilter } from "../data/filters.js";
-import { downloadText, safeFileName, toCsv } from "../data/csv.js";
+import { downloadText, rowsToCsv, safeFileName, toCsv } from "../data/csv.js";
 import { toKml } from "../data/kml-export.js";
 import { EMPTY_COLOR } from "../data/theme.js";
 import { TABLE_PAGE_SIZE } from "../config.js";
+import { exportCardPng } from "./export-png.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+
+/* Grupos por página no Resumo: mais com o painel maximizado. */
+const GROUP_PAGE_SIZE = 10;
+const GROUP_PAGE_SIZE_MAXIMIZED = 25;
 
 /*
    Ícone de filtro do cabeçalho: três traços que encurtam (padrão
@@ -55,11 +66,20 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     const context = byId("dashboard-context");
     const chartType = byId("chart-type");
     const chartArea = byId("chart-area");
-    const chartNote = byId("chart-note");
+    const chartCard = byId("chart-card");
+    const chartTitle = byId("chart-title");
+    const chartSubtitle = byId("chart-subtitle");
+    const summaryToolbar = byId("summary-toolbar");
+    const groupTitle = byId("group-title");
+    const groupSubtitle = byId("group-subtitle");
     const groupField = byId("group-field");
     const groupMeasure = byId("group-measure");
     const groupMeasureField = byId("group-measure-field");
     const groupOperator = byId("group-operator");
+    const subRow = byId("group-sub");
+    const subAdd = byId("group-sub-add");
+    const subRemove = byId("group-sub-remove");
+    const subField = byId("group-sub-field");
     const groupCard = byId("group-card");
     const groupBars = byId("group-bars");
     const groupTotal = byId("group-total");
@@ -73,7 +93,12 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     const pagerPrev = byId("table-prev");
     const pagerNext = byId("table-next");
     const exportCsvButton = byId("export-csv");
-    const exportKmlButton = byId("export-kml");
+    const exportSummaryCsvButton = byId("export-summary-csv");
+    const exportChartPngButton = byId("export-chart-png");
+    const groupPager = byId("group-pager");
+    const groupPagerText = byId("group-page-text");
+    const groupPrev = byId("group-prev");
+    const groupNext = byId("group-next");
     const tabs = Array.from(document.querySelectorAll("#dashboard [role='tab']"));
 
     let dirty = true;
@@ -82,6 +107,26 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     let sort = { field: null, direction: 1 };
     let page = 0;
     let sortedCache = null;
+    /* Subagrupamento do Resumo ligado? (o select guarda o atributo) */
+    let subEnabled = false;
+    /* O que o Resumo mostra agora (exportações); null sem agrupamento. */
+    let summaryInfo = null;
+    /* Página da lista do Resumo e "Outros" (de subgrupo) abertos, por grupo. */
+    let groupPage = 0;
+    let groupPageSize = GROUP_PAGE_SIZE;
+    const expandedOthers = new Set();
+
+    const isMaximized = () => document.documentElement.classList.contains("dashboard-maximized");
+
+    /* Qualquer mudança no que é agrupado volta à 1ª página e fecha os "Outros". */
+    const resetGroups = () => {
+        groupPage = 0;
+        expandedOthers.clear();
+    };
+    /* "Soma de Área (ha.)", "Contagem de feições": a medida nos títulos e no CSV. */
+    const measureLabel = (operator, metric) =>
+        (operator.needsMetric && metric ? `${operator.label} de ${metric.name}` : "Contagem de feições");
+
     /* Operador do rodapé por camada e coluna ("camada::campo" → id); padrão por tipo. */
     const totals = new Map();
 
@@ -140,8 +185,14 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         const numeric = layer.schema.attributes.filter(isMetric);
 
         groupCard.hidden = !groupable.length;
+        summaryToolbar.hidden = !groupable.length;
 
         if (!groupable.length) {
+            summaryInfo = null;
+            groupPager.hidden = true;
+            chartTitle.textContent = "Resumo indisponível";
+            chartSubtitle.textContent = "";
+            renderTotal(chartTotal, null);
             chartArea.replaceChildren(el("p", {
                 class: "group-empty",
                 text: "Esta camada não tem atributos do tipo categoria para agrupar."
@@ -170,7 +221,32 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
 
         const attribute = groupable.find((item) => item.name === groupField.value);
         const metric = operator.needsMetric ? numeric.find((item) => item.name === groupMeasure.value) || null : null;
-        const result = groupBy(features, attribute, metric, operator.id, 10);
+        const subAttribute = renderSubControls(groupable, attribute);
+
+        /*
+           Lista e barras/colunas são paginadas (sem "Outros"): todos os
+           grupos ficam acessíveis, como na tabela.
+        */
+        groupPageSize = isMaximized() ? GROUP_PAGE_SIZE_MAXIMIZED : GROUP_PAGE_SIZE;
+
+        const compute = () => {
+            const paging = { paged: true, offset: groupPage * groupPageSize };
+
+            return subAttribute
+                ? crossTab(features, attribute, subAttribute, metric, operator.id, groupPageSize, PART_LIMIT, paging)
+                : groupBy(features, attribute, metric, operator.id, groupPageSize, paging);
+        };
+
+        let result = compute();
+        const lastPage = Math.max(0, Math.ceil(result.groupCount / groupPageSize) - 1);
+
+        /* Menos grupos que antes (filtro novo, página maior): volta para a última página válida. */
+        if (groupPage > lastPage) {
+            groupPage = lastPage;
+            result = compute();
+        }
+
+        renderGroupPager(result);
 
         const formatResult = (value) => {
             if (value === null) {
@@ -186,8 +262,72 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
                 : formatNumber(value);
         };
 
-        renderGroupList(result, attribute, operator, formatResult);
-        renderChartView(features, attribute, metric, operator, result, formatResult);
+        const series = subAttribute ? seriesOf(result, subAttribute, formatResult) : null;
+
+        summaryInfo = { attribute, metric, operator, subAttribute };
+
+        /*
+           Título do card dos dados: o que foi calculado e por quê
+           (ex.: "Soma de Área (ha.) por Setor e Variedade").
+        */
+        groupTitle.textContent = `${measureLabel(operator, metric)} por ${subAttribute ? `${attribute.name} e ${subAttribute.name}` : attribute.name}`;
+        groupSubtitle.textContent = [
+            `${formatCount(result.groupCount)} ${result.groupCount === 1 ? "grupo" : "grupos"}`,
+            subAttribute ? `cada um separado por ${subAttribute.name}` : null,
+            result.groupCount > 1 ? "do maior para o menor" : null
+        ].filter(Boolean).join(" · ");
+        exportSummaryCsvButton.disabled = !result.rows.length;
+
+        renderGroupList(result, attribute, operator, formatResult, series);
+        renderChartView(features, attribute, metric, operator, result, formatResult, series);
+    };
+
+    const renderGroupPager = (result) => {
+        const pages = Math.ceil(result.groupCount / groupPageSize);
+
+        groupPager.hidden = pages <= 1;
+        groupPagerText.textContent = `${formatCount(result.offset + 1)}–${formatCount(result.offset + result.rows.length)} de ${formatCount(result.groupCount)} grupos`;
+        groupPrev.disabled = groupPage === 0;
+        groupNext.disabled = groupPage >= pages - 1;
+    };
+
+    /*
+       Controles do subagrupamento: qualquer outra categoria que não a
+       do "Agrupar por". Sem uma segunda categoria, o botão some.
+       Retorna o atributo escolhido, ou null quando desligado.
+    */
+    const renderSubControls = (groupable, attribute) => {
+        const options = groupable.filter((item) => item.name !== attribute.name);
+        const active = subEnabled && options.length > 0;
+
+        subAdd.hidden = subEnabled || !options.length;
+        subRow.hidden = !active;
+
+        if (!active) {
+            return null;
+        }
+
+        fillSelect(subField, options.map((item) => [item.name, item.name]), options[0].name);
+
+        return options.find((item) => item.name === subField.value) || options[0];
+    };
+
+    /* Séries do subagrupamento (rótulo, cor, cinza para "Outros"/vazio). */
+    const seriesOf = (result, subAttribute, formatResult) => {
+        const series = result.series.map((item) => ({
+            label: item.isOthers
+                ? `Outros (${formatCount(item.groups)})`
+                : item.key === null ? "(vazio)" : formatValue(item.key, subAttribute),
+            muted: item.isOthers || item.key === null,
+            isOthers: item.isOthers,
+            empty: !item.isOthers && item.key === null,
+            valueText: formatResult(item.value),
+            /* Para listar o que há dentro de "Outros" em cada grupo. */
+            formatKey: (key) => (key === null ? "(vazio)" : formatValue(key, subAttribute))
+        }));
+        const colors = seriesColors(series);
+
+        return series.map((item, index) => ({ ...item, color: colors[index] }));
     };
 
 
@@ -211,31 +351,144 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
        Lista do agrupamento: barra proporcional ao maior grupo e
        participação % só para operadores aditivos (contagem, soma).
     */
-    const renderGroupList = (result, attribute, operator, formatResult) => {
+    const renderGroupList = (result, attribute, operator, formatResult, series) => {
         const values = result.rows.map((row) => row.value).concat(result.others ? [result.others.value] : []);
         const max = Math.max(0, ...values.filter((value) => value !== null));
         const showShare = Boolean(operator.additive && result.total);
 
-        const bar = (label, value, muted) => {
+        /* `only`: série única do grupo (com subgrupo), mostrada ao lado do nome. */
+        const bar = (label, value, muted, only = null) => {
             const fill = el("span", { class: "group-bar-fill" });
             const share = showShare && value !== null ? ` · ${formatNumber((value / result.total) * 100, 1)}%` : "";
+            let tag = null;
 
             fill.style.width = `${max && value !== null ? Math.max(2, (value / max) * 100) : 0}%`;
 
+            if (only) {
+                const swatch = el("span", { class: "group-swatch", "aria-hidden": "true" });
+
+                swatch.style.background = only.color;
+                tag = el("span", { class: "group-only-part" }, [swatch, only.label]);
+            }
+
             return el("li", { class: `group-row${muted ? " is-muted" : ""}` }, [
-                el("span", { class: "group-label", text: label, title: label }),
+                el("span", { class: "group-label", title: only ? `${label} · ${only.label}` : label }, [label, tag]),
                 el("span", { class: "group-bar" }, fill),
                 el("span", { class: "group-value", text: `${formatResult(value)}${share}` })
             ]);
         };
 
-        const rows = result.rows.map((row) =>
-            bar(row.key === null ? "(vazio)" : formatValue(row.key, attribute), row.value, row.key === null)
+        /*
+           Partes do grupo (com subgrupo). Contagem/soma: barra e % são
+           a fatia dentro do grupo. Média/mín./máx.: barra na mesma
+           escala dos grupos, sem %.
+        */
+        const partMax = series
+            ? Math.max(max, ...result.rows.concat(result.others ? [result.others] : [])
+                .flatMap((row) => row.parts.filter((part) => part !== null)))
+            : max;
+
+        const subRows = (row) => (series ? row.parts.flatMap((part, index) => {
+            if (part === null) {
+                return [];
+            }
+
+            const serie = series[index];
+            const fill = el("span", { class: "group-bar-fill" });
+            const swatch = el("span", { class: "group-swatch", "aria-hidden": "true" });
+            const ratio = operator.additive
+                ? (row.value ? part / row.value : 0)
+                : (partMax ? part / partMax : 0);
+            const share = operator.additive && row.value ? ` · ${formatNumber(ratio * 100, 1)}%` : "";
+
+            fill.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+            fill.style.background = serie.color;
+            swatch.style.background = serie.color;
+
+            /*
+               "Outros" conta só os subgrupos presentes neste grupo (não o
+               total do conjunto) e a dica lista os maiores deles.
+            */
+            let label = serie.label;
+            let title = `${serie.label}: ${formatResult(part)}${share}`;
+
+            if (!(serie.isOthers && row.othersDetail)) {
+                return [el("li", { class: "group-row group-subrow", title }, [
+                    el("span", { class: "group-label" }, [swatch, el("span", { text: label })]),
+                    el("span", { class: "group-bar" }, fill),
+                    el("span", { class: "group-value", text: `${formatResult(part)}${share}` })
+                ])];
+            }
+
+            /*
+               "Outros" do subgrupo: clique (ou Enter) abre os subgrupos
+               reunidos nele, só os presentes neste grupo, do maior para
+               o menor. O gráfico continua com as cores de sempre.
+            */
+            const inside = row.othersDetail;
+            const expandKey = row.key === null ? "\u0000" : row.key;
+            const open = expandedOthers.has(expandKey);
+
+            label = `Outros (${formatCount(inside.length)})`;
+
+            const head = el("li", {
+                class: "group-row group-subrow is-expandable",
+                tabindex: "0",
+                role: "button",
+                "aria-expanded": String(open),
+                title: open ? "Recolher" : `Mostrar os ${formatCount(inside.length)} itens agrupados em Outros`,
+                dataset: { expand: expandKey }
+            }, [
+                el("span", { class: "group-label" }, [
+                    swatch,
+                    el("span", { text: label }),
+                    el("span", { class: "group-expand-icon", "aria-hidden": "true", text: open ? "▾" : "▸" })
+                ]),
+                el("span", { class: "group-bar" }, fill),
+                el("span", { class: "group-value", text: `${formatResult(part)}${share}` })
+            ]);
+
+            if (!open) {
+                return [head];
+            }
+
+            return [head, ...inside.map((item) => {
+                const itemFill = el("span", { class: "group-bar-fill" });
+                const itemRatio = operator.additive
+                    ? (row.value ? item.value / row.value : 0)
+                    : (partMax ? item.value / partMax : 0);
+                const itemShare = operator.additive && row.value ? ` · ${formatNumber(itemRatio * 100, 1)}%` : "";
+                const name = serie.formatKey(item.key);
+
+                itemFill.style.width = `${Math.max(0, Math.min(1, itemRatio)) * 100}%`;
+                itemFill.style.background = serie.color;
+
+                return el("li", { class: "group-row group-subrow group-subrow-detail", title: `${name}: ${formatResult(item.value)}${itemShare}` }, [
+                    el("span", { class: "group-label" }, el("span", { text: name })),
+                    el("span", { class: "group-bar" }, itemFill),
+                    el("span", { class: "group-value", text: `${formatResult(item.value)}${itemShare}` })
+                ]);
+            })];
+        }) : []);
+
+        /* Grupo e suas partes; com uma parte só, ela vira etiqueta (a sub-linha repetiria o grupo a 100%). */
+        const block = (label, row, muted) => {
+            const present = series ? row.parts.map((part, index) => (part === null ? -1 : index)).filter((index) => index !== -1) : [];
+
+            return present.length === 1
+                ? [bar(label, row.value, muted, series[present[0]])]
+                : [bar(label, row.value, muted), ...subRows(row)];
+        };
+
+        const rows = result.rows.flatMap((row) =>
+            block(row.key === null ? "(vazio)" : formatValue(row.key, attribute), row, row.key === null)
         );
 
         if (result.others) {
-            rows.push(bar(`Outros (${formatCount(result.others.groups)})`, result.others.value, true));
+            rows.push(...block(`Outros (${formatCount(result.others.groups)})`, result.others, true));
         }
+
+        groupBars.classList.toggle("has-sub", Boolean(series));
 
         if (!rows.length) {
             rows.push(el("li", { class: "group-empty", text: "Nenhuma feição no conjunto atual." }));
@@ -256,26 +509,88 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
        PART_LIMIT maiores grupos + "Outros"; com média/mín./máx. esses
        tipos ficam desabilitados e o gráfico volta para barras.
     */
-    const renderChartView = (features, attribute, metric, operator, result, formatResult) => {
+    const renderChartView = (features, attribute, metric, operator, result, formatResult, series) => {
         const additive = Boolean(operator.additive);
+
+        /*
+           Com subgrupo, a rosca não se aplica (seriam várias); a
+           segmentada vira composição 100% de cada grupo.
+        */
+        const unavailable = (type) => Boolean(type && ((type.partToWhole && !additive) || (series && type.id === "donut")));
 
         fillSelect(chartType, CHART_TYPES.map((type) => [type.id, type.label]), "bars");
 
+        /* Opção indisponível diz o porquê no próprio nome (dica em option desabilitada não aparece). */
         Array.from(chartType.options).forEach((option) => {
-            const type = CHART_TYPES.find((item) => item.id === option.value);
+            const item = CHART_TYPES.find((entry) => entry.id === option.value);
 
-            option.disabled = Boolean(type && type.partToWhole && !additive);
+            option.disabled = unavailable(item);
+
+            if (option.disabled) {
+                option.textContent = `${item.label} (${item.partToWhole && !additive ? "só Contagem ou Soma" : "só sem subgrupo"})`;
+            }
         });
 
         let type = CHART_TYPES.find((item) => item.id === chartType.value) || CHART_TYPES[0];
 
-        if (type.partToWhole && !additive) {
+        if (unavailable(type)) {
             type = CHART_TYPES[0];
             chartType.value = type.id;
         }
 
-        chartNote.hidden = additive;
-        chartNote.textContent = additive ? "" : "Segmentada e rosca: só com Contagem ou Soma.";
+        /*
+           Título do gráfico conforme o tipo e o agrupamento; o
+           subtítulo explica a leitura (empilhado, 100%, lado a lado,
+           5 maiores) e diz a página, quando há mais de uma.
+        */
+        const measure = measureLabel(operator, metric);
+        const subAttribute = summaryInfo && summaryInfo.subAttribute;
+        const shape = type.id === "columns" ? "Colunas" : "Barras";
+        const pageText = groupPager.hidden ? null : `grupos ${groupPagerText.textContent.replace(/ grupos$/, "")}`;
+        const setTitles = (title, ...details) => {
+            chartTitle.textContent = title;
+            chartSubtitle.textContent = details.filter(Boolean).join(" · ");
+        };
+
+        if (series) {
+            const group = (label, row, muted) => ({
+                label,
+                muted,
+                valueText: formatResult(row.value),
+                parts: row.parts.map((value, index) => ({
+                    value,
+                    valueText: formatResult(value),
+                    /* "Outros" com a contagem deste grupo, não a do conjunto. */
+                    label: series[index].isOthers && row.othersDetail ? `Outros (${formatCount(row.othersDetail.length)})` : null
+                }))
+            });
+            const groups = result.rows.map((row) =>
+                group(row.key === null ? "(vazio)" : formatValue(row.key, attribute), row, row.key === null)
+            );
+
+            if (result.others) {
+                groups.push(group(`Outros (${formatCount(result.others.groups)})`, result.others, true));
+            }
+
+            const mode = type.id === "segmented" ? "normalized" : additive ? "stacked" : "grouped";
+
+            if (mode === "normalized") {
+                setTitles(`Composição de cada ${attribute.name} por ${subAttribute.name}`, `${measure} · 100% por grupo`, pageText);
+            } else if (mode === "stacked") {
+                setTitles(`${measure} por ${attribute.name} e ${subAttribute.name}`, `${shape} empilhadas por ${subAttribute.name}`, pageText);
+            } else {
+                setTitles(`${measure} por ${attribute.name} e ${subAttribute.name}`,
+                    `${shape} lado a lado por ${subAttribute.name} (${operator.label.toLowerCase()} não se soma)`, pageText);
+            }
+
+            chartArea.replaceChildren(renderSubgroupChart(type.id === "columns" ? "columns" : "bars", groups, series, mode));
+
+            renderTotal(chartTotal, groups.length ? {
+                label: totalLabel(operator, result.groupCount),
+                value: `${formatResult(result.overall)}${additive ? " · 100%" : ""}`
+            } : null);
+            return;
+        }
 
         const source = type.partToWhole
             ? groupBy(features, attribute, metric, operator.id, PART_LIMIT)
@@ -295,6 +610,13 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
                 valueText: formatResult(source.others.value),
                 muted: true
             });
+        }
+
+        if (type.partToWhole) {
+            setTitles(`Participação de cada ${attribute.name}`, measure,
+                source.others ? `${PART_LIMIT} maiores + Outros` : null);
+        } else {
+            setTitles(`${measure} por ${attribute.name}`, shape, pageText);
         }
 
         chartArea.replaceChildren(renderChart(type.id, items, {
@@ -575,7 +897,71 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         });
     });
 
-    [groupField, groupMeasure, groupOperator, chartType].forEach((select) => select.addEventListener("change", () => render()));
+    [groupField, groupMeasure, groupOperator, subField].forEach((select) => select.addEventListener("change", () => {
+        resetGroups();
+        render();
+    }));
+
+    chartType.addEventListener("change", () => render());
+
+    groupPrev.addEventListener("click", () => {
+        groupPage = Math.max(0, groupPage - 1);
+        render();
+    });
+
+    groupNext.addEventListener("click", () => {
+        groupPage += 1;
+        render();
+    });
+
+    /* Abre/fecha um "Outros" de subgrupo (delegado: as linhas são recriadas a cada render). */
+    const toggleOthers = (target) => {
+        const row = target.closest("[data-expand]");
+
+        if (!row) {
+            return false;
+        }
+
+        const key = row.dataset.expand;
+
+        if (expandedOthers.has(key)) {
+            expandedOthers.delete(key);
+        } else {
+            expandedOthers.add(key);
+        }
+
+        render();
+
+        const again = groupBars.querySelector(`[data-expand="${CSS.escape(key)}"]`);
+
+        if (again) {
+            again.focus();
+        }
+
+        return true;
+    };
+
+    groupBars.addEventListener("click", (event) => toggleOthers(event.target));
+    groupBars.addEventListener("keydown", (event) => {
+        if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-expand]")) {
+            event.preventDefault();
+            toggleOthers(event.target);
+        }
+    });
+
+    subAdd.addEventListener("click", () => {
+        subEnabled = true;
+        resetGroups();
+        render();
+        subField.focus();
+    });
+
+    subRemove.addEventListener("click", () => {
+        subEnabled = false;
+        resetGroups();
+        render();
+        subAdd.focus();
+    });
 
     /* Filtro ou busca ativos: o arquivo leva "filtrado" no nome. */
     /*
@@ -651,6 +1037,12 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         const layer = store.getActiveLayer();
 
         if (!ready(layer)) {
+            store.setStatus("KML: nenhuma camada pronta para exportar.");
+            return;
+        }
+
+        if (!layer.view.considered.length) {
+            store.setStatus(`KML: nada para exportar em ${layer.name} (os filtros não deixaram feições).`);
             return;
         }
 
@@ -694,11 +1086,122 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         });
 
         downloadText(kml, `${safeFileName(layer.name)}_${exportSuffix(layer)}.kml`, "application/vnd.google-earth.kml+xml");
-        store.setStatus(`KML exportado: ${formatCount(uids.length)} feições`);
+        store.setStatus(`KML exportado: ${layer.name}, ${formatCount(uids.length)} feições`);
     };
 
     exportCsvButton.addEventListener("click", exportCsv);
-    exportKmlButton.addEventListener("click", exportKml);
+
+    /* Nome dos arquivos do Resumo: camada, tipo, agrupamento e filtros. */
+    const summaryFileName = (layer, kind, extension) => {
+        const { attribute, subAttribute } = summaryInfo;
+
+        return `${[layer.name, kind, attribute.name, subAttribute && subAttribute.name, exportSuffix(layer)]
+            .filter(Boolean)
+            .map(safeFileName)
+            .join("_")}.${extension}`;
+    };
+
+    /* Resumo pronto para exportar (renderiza se estava desatualizado). */
+    const summaryLayer = () => {
+        const layer = store.getActiveLayer();
+
+        if (!ready(layer)) {
+            return null;
+        }
+
+        if (dirty) {
+            render();
+        }
+
+        if (!summaryInfo || groupCard.hidden) {
+            store.setStatus("Nada para exportar: a camada não tem categorias para agrupar.");
+            return null;
+        }
+
+        return layer;
+    };
+
+    /* Números do CSV sem resíduo de ponto flutuante (241.07000000000002 → 241.07). */
+    const csvNumber = (value) => (value === null || value === undefined ? null : Math.round(value * 1e6) / 1e6);
+    const csvKey = (key) => (key === null ? "(vazio)" : key);
+
+    /*
+       CSV dos dados agrupados: todos os grupos (não só a página).
+       Sem subgrupo: grupo, valor e % (contagem/soma). Com subgrupo:
+       tabela cruzada, um subgrupo por coluna (todos, sem "Outros");
+       em contagem/soma a célula sem feições vale 0. Última linha:
+       o total (ou média/mín./máx. geral).
+    */
+    const exportSummaryCsv = () => {
+        const layer = summaryLayer();
+
+        if (!layer) {
+            return;
+        }
+
+        const { attribute, metric, operator, subAttribute } = summaryInfo;
+        const features = consideredFeatures(layer);
+        const measure = measureLabel(operator, metric);
+        const totalName = TOTAL_LABELS[operator.id] || "Total";
+        let header;
+        let rows;
+
+        if (subAttribute) {
+            const result = crossTab(features, attribute, subAttribute, metric, operator.id, Infinity, Infinity, { paged: true, offset: 0 });
+            const cell = (value) => (value === null ? (operator.additive ? 0 : null) : csvNumber(value));
+
+            header = [attribute.name, `${measure} (total)`, ...result.series.map((serie) => csvKey(serie.key))];
+            rows = result.rows.map((row) => [csvKey(row.key), csvNumber(row.value), ...row.parts.map(cell)]);
+            rows.push([totalName, csvNumber(result.overall), ...result.series.map((serie) => cell(serie.value))]);
+        } else {
+            const result = groupBy(features, attribute, metric, operator.id, Infinity, { paged: true, offset: 0 });
+            const share = operator.additive && result.total;
+
+            header = [attribute.name, measure, ...(share ? ["%"] : [])];
+            rows = result.rows.map((row) => [
+                csvKey(row.key),
+                csvNumber(row.value),
+                ...(share ? [Math.round((row.value / result.total) * 10000) / 100] : [])
+            ]);
+            rows.push([totalName, csvNumber(result.overall), ...(share ? [100] : [])]);
+        }
+
+        downloadText(rowsToCsv(header, rows), summaryFileName(layer, "resumo", "csv"));
+        store.setStatus(`CSV do resumo exportado: ${formatCount(rows.length - 1)} grupos`);
+    };
+
+    /*
+       PNG do gráfico: o card como está na tela (legenda, barras e
+       total), com o título do card e, abaixo, camada e filtros.
+    */
+    const exportChartPng = async () => {
+        const layer = summaryLayer();
+
+        if (!layer) {
+            return;
+        }
+
+        exportChartPngButton.disabled = true;
+        store.setStatus("Gerando PNG…");
+
+        try {
+            await exportCardPng({
+                card: chartCard,
+                title: chartTitle.textContent,
+                subtitle: chartSubtitle.textContent,
+                meta: `${layer.name} — ${context.textContent}`,
+                fileName: summaryFileName(layer, "grafico", "png")
+            });
+            store.setStatus("PNG exportado");
+        } catch (error) {
+            store.setStatus(`Erro ao exportar PNG: ${error.message}`);
+        } finally {
+            exportChartPngButton.disabled = false;
+        }
+    };
+
+    exportSummaryCsvButton.addEventListener("click", exportSummaryCsv);
+    exportChartPngButton.addEventListener("click", exportChartPng);
 
 
     /* ---------------- ciclo de render ---------------- */
@@ -711,7 +1214,8 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         const usable = ready(layer);
 
         exportCsvButton.disabled = !usable || !layer.view.considered.length;
-        exportKmlButton.disabled = !usable || !layer.view.considered.length;
+        exportSummaryCsvButton.disabled = !usable || !layer.view.considered.length;
+        exportChartPngButton.disabled = !usable || !layer.view.considered.length;
 
         if (!usable) {
             chartArea.replaceChildren();
@@ -747,6 +1251,7 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     store.on("view", (layer) => {
         if (layer.id === store.state.activeLayerId) {
             page = 0;
+            resetGroups();
             invalidate();
         }
     });
@@ -783,6 +1288,7 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         renderLayerSelect();
         sort = { field: null, direction: 1 };
         page = 0;
+        resetGroups();
         invalidate();
     });
 
@@ -796,8 +1302,20 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     });
 
     return {
+        /* Ferramentas › Exportar KML (barra superior). */
+        exportKml,
         onOpen: () => {
             if (dirty) {
+                render();
+            }
+        },
+        /* Maximizar/restaurar muda os grupos por página do Resumo. */
+        onLayoutChange: () => {
+            const size = isMaximized() ? GROUP_PAGE_SIZE_MAXIMIZED : GROUP_PAGE_SIZE;
+
+            if (size !== groupPageSize && activeTab === "summary" && isOpen()) {
+                /* Mantém à vista o primeiro grupo que estava na tela. */
+                groupPage = Math.floor((groupPage * groupPageSize) / size);
                 render();
             }
         },

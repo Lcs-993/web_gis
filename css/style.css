@@ -2151,6 +2151,119 @@ ol {
     gap: 6px;
 }
 
+/* ---------- Exportar: ícone no cabeçalho de cada card ---------- */
+
+.export-button {
+    width: 30px;
+    height: 28px;
+    border: 1px solid var(--border-hairline);
+    color: var(--color-text-label);
+}
+
+.export-button svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.export-button:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ---------- Maximizar: o painel cobre a área do mapa ---------- */
+
+.dashboard-maximize svg {
+    width: 16px;
+    height: 16px;
+}
+
+.dashboard-maximize .icon-restore,
+.dashboard-maximized .dashboard-maximize .icon-maximize {
+    display: none;
+}
+
+.dashboard-maximized .dashboard-maximize .icon-restore {
+    display: block;
+}
+
+.dashboard-maximized .dashboard {
+    top: 0;
+    height: auto;
+    border-top-width: 0;
+    /* Sem o mapa por trás, o vidro fosco vira fundo opaco. */
+    background: var(--color-bg);
+}
+
+/* Maximizado não tem alça de altura, barra superior nem controles do mapa por cima. */
+.dashboard-maximized .topbar,
+.dashboard-maximized .dashboard-resizer,
+.dashboard-maximized .sidebar-toggle,
+.dashboard-maximized .map-controls {
+    display: none;
+}
+
+/* Mais altura: as colunas do gráfico crescem junto. */
+.dashboard-maximized #dashboard-summary .chart-columns {
+    height: 360px;
+}
+
+
+/* ---------- Folha do PNG (montada fora da tela só durante a exportação) ---------- */
+
+.export-sheet {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    /* Largura real do Resumo na tela (definida pelo JS); este é só o padrão. */
+    width: 1600px;
+    display: grid;
+    gap: 20px;
+    padding: 32px 36px 22px;
+    /* Opaco: as superfícies translúcidas do app ficariam cinza na imagem. */
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 13px;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.export-sheet-title {
+    color: var(--color-text);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.export-sheet-subtitle {
+    margin-top: 4px;
+    color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+.export-sheet-meta {
+    margin-top: 2px;
+    color: var(--color-text-subtle);
+    font-size: 12px;
+}
+
+/* O card na imagem: sem cabeçalho (o título está na folha) nem rolagem. */
+.export-card .chart-columns {
+    height: 320px;
+}
+
+.export-sheet-footer {
+    display: flex;
+    justify-content: space-between;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+}
+
 .tabs {
     display: inline-flex;
     padding: 2px;
@@ -2179,14 +2292,101 @@ ol {
     padding: 12px 14px;
 }
 
-/* Resumo: agrupamento (controles + lista) à esquerda, gráfico à direita. */
+/*
+   Resumo: barra de agrupamento no topo (vale para os dois), dados
+   agrupados à esquerda e gráfico à direita.
+*/
 #dashboard-summary:not([hidden]) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    /* Uma linha na altura do dashboard: quem rola é a lista de cada card. */
-    grid-template-rows: minmax(0, 1fr);
-    gap: 14px;
+    /* Os cards ficam com o resto da altura: quem rola é a lista de cada um. */
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px 14px;
     overflow: hidden;
+}
+
+/* ---------- Barra de agrupamento ---------- */
+
+#dashboard-summary .summary-toolbar {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+.summary-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+}
+
+.summary-toolbar[hidden] {
+    display: none;
+}
+
+/* Dimensões (agrupar/subagrupar) | medida (operador/métrica). */
+.summary-toolbar-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
+.summary-toolbar-divider {
+    align-self: stretch;
+    width: 1px;
+    min-height: 22px;
+    background: var(--border-hairline);
+}
+
+/* ---------- Cabeçalho dos cards: título gerado + ações ---------- */
+
+.card-header {
+    display: flex;
+    flex: none;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-hairline);
+}
+
+.card-heading {
+    min-width: 0;
+}
+
+.card-title,
+.card-subtitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.card-title {
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: -0.1px;
+}
+
+.card-subtitle {
+    margin-top: 2px;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+}
+
+.card-actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+}
+
+.card-actions .chart-type select {
+    max-width: 190px;
 }
 
 /*
@@ -2210,15 +2410,15 @@ ol {
 }
 
 
-/* Posições explícitas: agrupamento sempre à esquerda, gráfico à direita. */
+/* Posições explícitas: dados sempre à esquerda, gráfico à direita. */
 #dashboard-summary .group-card {
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 2;
 }
 
 #dashboard-summary .chart-card {
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 2;
 }
 
 
@@ -2260,17 +2460,6 @@ ol {
     background: var(--color-surface-strong);
 }
 
-.chart-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.chart-note {
-    color: var(--color-text-subtle);
-    font-size: 11px;
-}
-
 .chart-area {
     min-width: 0;
 }
@@ -2297,12 +2486,21 @@ ol {
     gap: 6px;
 }
 
+.chart-bars {
+    grid-template-columns: fit-content(40%) minmax(60px, 1fr) auto;
+    column-gap: 10px;
+}
+
 .chart-bar-row {
+    grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: minmax(70px, 1fr) minmax(60px, 2fr) auto;
+    grid-template-columns: subgrid;
     align-items: center;
-    gap: 10px;
     padding: 1px 0;
+}
+
+.chart-bar-row .chart-value {
+    text-align: right;
 }
 
 .chart-bar-track {
@@ -2422,6 +2620,104 @@ ol {
     border-radius: 3px;
 }
 
+/* ---------- Com subgrupo: barras/colunas empilhadas ou lado a lado ---------- */
+
+.chart-series-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.chart-series-legend li {
+    min-width: 0;
+    max-width: 180px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-text-label);
+    font-size: 11px;
+}
+
+.chart-series-legend li span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-series-legend .chart-swatch {
+    width: 10px;
+    height: 10px;
+    flex: none;
+}
+
+.chart-stack {
+    display: flex;
+    gap: 1px;
+    height: 100%;
+}
+
+.chart-stack-part {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.chart-stack-part:hover {
+    filter: brightness(1.15);
+}
+
+/* Barras empilhadas e 100%: segmentos lado a lado no comprimento. */
+.chart-stack-bars .chart-bar-track {
+    height: 14px;
+}
+
+.chart-stack-bars .chart-stack-part:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+/* Barras lado a lado (média/mín./máx.): uma barra fina por série, empilhadas na altura. */
+.chart-stack-bars.is-grouped .chart-bar-track {
+    height: auto;
+}
+
+.chart-stack-bars.is-grouped .chart-stack {
+    flex-direction: column;
+}
+
+.chart-stack-bars.is-grouped .chart-stack-part {
+    height: 4px;
+    border-radius: 0 2px 2px 0;
+}
+
+/* Colunas empilhadas: crescem de baixo para cima. */
+.chart-stack-columns .chart-stack {
+    width: min(100%, 36px);
+    flex-direction: column-reverse;
+}
+
+.chart-stack-columns .chart-stack-part:last-child {
+    border-radius: 4px 4px 0 0;
+}
+
+/* Colunas lado a lado: colunas finas, uma por série. */
+.chart-stack-columns.is-grouped .chart-stack {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.chart-stack-columns.is-grouped .chart-stack-part {
+    flex: 1 1 0;
+    border-radius: 2px 2px 0 0;
+}
+
 .group-card {
     display: grid;
     gap: 10px;
@@ -2432,27 +2728,32 @@ ol {
     background: var(--color-surface-strong);
 }
 
-/* Controles em linha: Agrupar por, Operador, Métrica. */
-.group-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 14px;
-}
-
+/*
+   As linhas usam subgrid: barras e valores ficam alinhados entre
+   todos os grupos e subgrupos; align-content evita que poucas
+   linhas se espalhem pela altura do card.
+*/
 .group-list {
     display: grid;
-    gap: 6px;
+    /* Rótulo do tamanho do maior nome (até 40%); a barra fica com o resto. */
+    grid-template-columns: fit-content(40%) minmax(60px, 1fr) auto;
+    align-content: start;
+    column-gap: 10px;
+    row-gap: 6px;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
 .group-row {
+    grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: minmax(70px, 1fr) minmax(60px, 2fr) auto;
+    grid-template-columns: subgrid;
     align-items: center;
-    gap: 10px;
+}
+
+.group-list > .group-empty {
+    grid-column: 1 / -1;
 }
 
 .group-label {
@@ -2478,6 +2779,118 @@ ol {
     background: var(--color-brand);
 }
 
+.group-sub-add {
+    min-height: 28px;
+    padding: 4px 10px;
+}
+
+/* Subagrupamento na mesma linha dos outros controles (quebra se faltar espaço). */
+.group-sub {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/*
+   Com subgrupo: cada grupo abre um bloco (linha fina acima) com
+   suas partes recuadas logo abaixo.
+*/
+.group-list.has-sub .group-row:not(.group-subrow) {
+    margin-top: 2px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-hairline);
+}
+
+.group-list.has-sub .group-row:not(.group-subrow):first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+/* Grupo com uma parte só: o nome dela vai ao lado do grupo, sem sub-linha. */
+.group-only-part {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 8px;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.group-list.has-sub .group-row:not(.group-subrow) .group-label,
+.group-list.has-sub .group-row:not(.group-subrow) .group-value {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.group-subrow {
+    margin-top: -2px;
+}
+
+.group-subrow .group-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 12px;
+    font-size: 11px;
+}
+
+.group-subrow .group-label > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.group-subrow .group-bar {
+    height: 4px;
+}
+
+/* "Outros" de subgrupo: clicável para abrir o que está reunido nele. */
+.group-subrow.is-expandable {
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.group-subrow.is-expandable:hover,
+.group-subrow.is-expandable:focus-visible {
+    background: var(--hover-bg);
+    outline: none;
+}
+
+.group-expand-icon {
+    flex: none;
+    color: var(--color-text-subtle);
+    font-size: 10px;
+}
+
+/* Itens abertos de "Outros": um nível mais recuados, discretos. */
+.group-subrow-detail .group-label {
+    padding-left: 26px;
+    color: var(--color-text-subtle);
+}
+
+.group-subrow-detail .group-bar-fill {
+    opacity: 0.7;
+}
+
+.group-pager {
+    flex: none;
+    padding-top: 6px;
+}
+
+.group-pager .button {
+    min-height: 26px;
+    padding: 2px 10px;
+}
+
+.group-swatch {
+    width: 8px;
+    height: 8px;
+    flex: none;
+    border-radius: 2px;
+}
+
 .group-row.is-muted .group-label {
     color: var(--color-text-subtle);
 }
@@ -2489,6 +2902,7 @@ ol {
 .group-value {
     color: var(--color-text-muted);
     font-size: 11px;
+    text-align: right;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
@@ -2842,6 +3256,29 @@ th[aria-sort="descending"] .table-sort::after {
     font-variant-numeric: tabular-nums;
 }
 
+/* Exportar CSV da tabela: no rodapé dela, à esquerda das páginas. */
+.table-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: auto;
+}
+
+.table-export svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.table-export:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
 
 /* ============================================================
    9. CONTROLES DO MAPA E MAPA BASE
@@ -3049,11 +3486,16 @@ th[aria-sort="descending"] .table-sort::after {
         overflow: visible;
     }
 
-    /* Empilhado: agrupamento em cima, gráfico embaixo. */
+    /* Empilhado: barra de agrupamento, dados e gráfico. */
+    #dashboard-summary .summary-toolbar,
     #dashboard-summary .group-card,
     #dashboard-summary .chart-card {
         grid-column: 1;
         grid-row: auto;
+    }
+
+    .summary-toolbar-divider {
+        display: none;
     }
 }
 

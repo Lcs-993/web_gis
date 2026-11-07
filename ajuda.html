@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Ajuda · WebGIS</title>
-    <meta name="description" content="Guia de uso do WebGIS: camadas, busca, filtros, dashboard, exportação e controles do mapa.">
+    <meta name="description" content="Guia de uso do WebGIS: camadas, busca, filtros, Analytics, exportação e controles do mapa.">
     <meta name="theme-color" id="meta-theme-color" content="#1c1c1e">
 
     <!-- Mesma CSP do mapa; o hash corresponde ao script de tema abaixo (idêntico ao do index.html). -->
@@ -245,7 +245,7 @@
             <a href="#busca">Busca</a>
             <a href="#filtros">Filtros</a>
             <a href="#selecao">Seleção</a>
-            <a href="#dashboard">Dashboard</a>
+            <a href="#dashboard">Analytics</a>
             <a href="#exportar">Exportar</a>
             <a href="#mapa">Controles do mapa</a>
             <a href="#arquivos">Abrir arquivos</a>
@@ -263,10 +263,10 @@
                     <li><strong>Barra superior:</strong> menus dos módulos (Monitoramento, Operação, Análises, Ferramentas), assistente de IA (em breve), esta ajuda e o tema claro/escuro.</li>
                     <li><strong>Canto superior esquerdo do mapa:</strong> botão da aba <strong>Camadas</strong>.</li>
                     <li><strong>Canto superior direito:</strong> barra de <strong>busca</strong> com o botão de <strong>filtros</strong>.</li>
-                    <li><strong>Canto inferior direito:</strong> Dashboard, Enquadrar, Tela cheia, Zoom e Mapa base.</li>
+                    <li><strong>Canto inferior direito:</strong> Analytics, Enquadrar, Tela cheia, Zoom e Mapa base.</li>
                     <li><strong>Rodapé:</strong> coordenadas do cursor (ou do centro do mapa) e o nível de zoom.</li>
                 </ul>
-                <p>Busca, filtros e dashboard trabalham sempre sobre a <strong>camada ativa</strong> (a que aparece em destaque na aba Camadas). Na abertura, a ativa é <strong>Talhões</strong>.</p>
+                <p>Busca, filtros e Analytics trabalham sempre sobre a <strong>camada ativa</strong> (a que aparece em destaque na aba Camadas). Na abertura, a ativa é <strong>Talhões</strong>.</p>
             </section>
 
             <section class="help-section" id="camadas">
@@ -305,7 +305,7 @@
                     <li>No mapa, os resultados ficam <strong>mais intensos</strong> e o resto da camada <strong>quase some</strong> (sem rótulo). As outras camadas, como Fazendas e Unidade Industrial, também esmaecem enquanto a busca está ativa. A quantidade de resultados aparece abaixo da barra.</li>
                     <li><kbd>Esc</kbd> ou o <strong>×</strong> limpa a busca.</li>
                 </ul>
-                <p>Com o dashboard aberto, a busca vai para o centro do cabeçalho do dashboard.</p>
+                <p>Com o Analytics aberto, a busca vai para o centro do cabeçalho do Analytics.</p>
             </section>
 
             <section class="help-section" id="filtros">
@@ -330,14 +330,14 @@
                 <ul>
                     <li>Clique numa feição no mapa ou numa linha da tabela.</li>
                     <li>A seleção é um nível acima da busca: as selecionadas ganham <strong>contorno branco forte</strong> e cor mais intensa (a do tema, se houver). As outras feições não mudam; só a busca esmaece o que não casa com ela.</li>
-                    <li>Com o dashboard fechado, abre o popup com os atributos; com ele aberto, a tabela vai até a página da feição e a linha aparece destacada <strong>no topo da tabela</strong>, sem precisar procurar.</li>
-                    <li><strong>Várias linhas na tabela:</strong> <kbd>Ctrl</kbd> (ou <kbd>⌘</kbd>) + clique acrescenta ou retira uma linha; <kbd>Shift</kbd> + clique seleciona o intervalo desde a última linha clicada, na ordem atual da tabela (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> soma o intervalo ao que já estava). O mapa enquadra todas as selecionadas e o dashboard mostra quantas são.</li>
+                    <li>Com o Analytics fechado, abre o popup com os atributos; com ele aberto, a tabela vai até a página da feição e a linha aparece destacada <strong>no topo da tabela</strong>, sem precisar procurar.</li>
+                    <li><strong>Várias linhas na tabela:</strong> <kbd>Ctrl</kbd> (ou <kbd>⌘</kbd>) + clique acrescenta ou retira uma linha; <kbd>Shift</kbd> + clique seleciona o intervalo desde a última linha clicada, na ordem atual da tabela (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> soma o intervalo ao que já estava). O mapa enquadra todas as selecionadas e o Analytics mostra quantas são.</li>
                     <li>Clique num lugar vazio do mapa ou feche o popup para limpar a seleção.</li>
                 </ul>
             </section>
 
             <section class="help-section" id="dashboard">
-                <h2>Dashboard</h2>
+                <h2>Analytics</h2>
                 <p>Abra pelo botão de barras nos controles do mapa. Ele mostra a camada ativa, já com filtros e busca aplicados.</p>
                 <h3>Tabela</h3>
                 <ul>
@@ -347,18 +347,22 @@
                 </ul>
                 <h3>Resumo</h3>
                 <ul>
-                    <li>À esquerda, agrupe por uma categoria, escolha o operador (Contagem, Soma, Média, Mínimo, Máximo) e a métrica numérica.</li>
-                    <li>À direita, o gráfico do mesmo resultado: barras, colunas, barra segmentada ou rosca.</li>
+                    <li>Na barra do topo, agrupe por uma categoria, escolha o operador (Contagem, Soma, Média, Mínimo, Máximo) e a métrica numérica. Ela vale para os dados e para o gráfico.</li>
+                    <li>À esquerda, os dados agrupados; à direita, o gráfico do mesmo resultado: barras, colunas, barra segmentada ou rosca. Cada um tem um título gerado a partir do agrupamento (ex.: “Soma de Área (ha.) por Setor e Variedade”).</li>
+                    <li><strong>+ Agrupador</strong> quebra cada grupo por uma segunda categoria (ex.: área por setor, separada por variedade). O gráfico empilha as partes; a barra segmentada mostra a composição (100%) de cada grupo.</li>
+                    <li>Cada card exporta o seu conteúdo pelo ícone no canto: <strong>CSV</strong> nos dados (todos os grupos, não só a página; com subgrupo, um subgrupo por coluna) e <strong>PNG</strong> no gráfico (com título e filtros, para apresentações).</li>
                 </ul>
+                <h3>Maximizar</h3>
+                <p>O botão ao lado do × faz o Analytics ocupar a área do mapa; clique de novo (ou feche) para voltar.</p>
                 <h3>Altura</h3>
-                <p>Arraste a alça na borda superior do dashboard. Duplo clique volta à altura padrão; pelo teclado, foque a alça e use <kbd>↑</kbd> <kbd>↓</kbd>.</p>
+                <p>Arraste a alça na borda superior do Analytics. Duplo clique volta à altura padrão; pelo teclado, foque a alça e use <kbd>↑</kbd> <kbd>↓</kbd>.</p>
             </section>
 
             <section class="help-section" id="exportar">
                 <h2>Exportar</h2>
                 <table class="help-table">
-                    <tr><th>Exportar CSV</th><td>A tabela como está: com filtro ou busca, só as feições filtradas, na ordem atual; sem filtro, todos os dados. Abre no Excel/LibreOffice.</td></tr>
-                    <tr><th>Exportar KML</th><td>O mapa como está, para Google Earth ou QGIS: mesmas feições do CSV, com as cores do tema e uma pasta por categoria. O rótulo vira o nome de cada feição; ao clicar numa feição no Google Earth, abre um balão com os atributos organizados.</td></tr>
+                    <tr><th>Exportar CSV</th><td>No rodapé da Tabela. A tabela como está: com filtro ou busca, só as feições filtradas, na ordem atual; sem filtro, todos os dados. Abre no Excel/LibreOffice.</td></tr>
+                    <tr><th>Exportar KML</th><td>Em <strong>Ferramentas › Exportar KML</strong>, na barra superior. A camada ativa como está no mapa, para Google Earth ou QGIS: mesmas feições do CSV, com as cores do tema e uma pasta por categoria. O rótulo vira o nome de cada feição; ao clicar numa feição no Google Earth, abre um balão com os atributos organizados.</td></tr>
                 </table>
                 <p>O nome do arquivo termina em <strong>_filtrado</strong> ou <strong>_completo</strong>.</p>
             </section>
@@ -366,7 +370,7 @@
             <section class="help-section" id="mapa">
                 <h2>Controles do mapa</h2>
                 <table class="help-table">
-                    <tr><th>Dashboard</th><td>Abre e fecha o dashboard (fecha a aba Camadas).</td></tr>
+                    <tr><th>Analytics</th><td>Abre e fecha o Analytics (fecha a aba Camadas).</td></tr>
                     <tr><th>Enquadrar</th><td>Volta à extensão total das camadas ligadas.</td></tr>
                     <tr><th>Tela cheia</th><td>Mapa ocupando a tela inteira; <kbd>Esc</kbd> sai.</td></tr>
                     <tr><th>+ / −</th><td>Zoom (também com a roda do mouse).</td></tr>
@@ -390,7 +394,7 @@
                 <table class="help-table">
                     <tr><th><kbd>Esc</kbd></th><td>Fecha o painel ou menu aberto mais recente; na busca, limpa o termo.</td></tr>
                     <tr><th><kbd>Enter</kbd></th><td>Na busca, busca na hora; numa linha da tabela, seleciona a feição.</td></tr>
-                    <tr><th><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></th><td>Navegam nos menus dos módulos; na alça do dashboard, ajustam a altura.</td></tr>
+                    <tr><th><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></th><td>Navegam nos menus dos módulos; na alça do Analytics, ajustam a altura.</td></tr>
                     <tr><th><kbd>Tab</kbd></th><td>Percorre botões e campos.</td></tr>
                 </table>
             </section>

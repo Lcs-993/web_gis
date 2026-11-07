@@ -40,9 +40,9 @@ const writeStored = (value) => {
     }
 };
 
-export function createDashboardResize(dashboard, { onResize } = {}) {
+export function createDashboardResize(dashboard, { onResize, maximizeButton = null } = {}) {
     if (!dashboard) {
-        return { refresh: () => {} };
+        return { refresh: () => {}, setMaximized: () => {} };
     }
 
     const root = document.documentElement;
@@ -55,7 +55,7 @@ export function createDashboardResize(dashboard, { onResize } = {}) {
     handle.title = "Arraste para ajustar a altura (duplo clique: altura padrão)";
     handle.setAttribute("role", "separator");
     handle.setAttribute("aria-orientation", "horizontal");
-    handle.setAttribute("aria-label", "Altura do dashboard");
+    handle.setAttribute("aria-label", "Altura do Analytics");
     handle.appendChild(document.createElement("span")).className = "dashboard-resizer-grip";
     dashboard.prepend(handle);
 
@@ -172,7 +172,32 @@ export function createDashboardResize(dashboard, { onResize } = {}) {
         apply(custom);
     }
 
+
+    /*
+       Maximizar: o painel ocupa toda a área do mapa (classe no <html>;
+       o CSS cuida do resto). A altura escolhida na alça é mantida e
+       volta ao restaurar. Não é lembrado entre sessões.
+    */
+    const setMaximized = (on) => {
+        root.classList.toggle("dashboard-maximized", on);
+
+        if (maximizeButton) {
+            const label = on ? "Restaurar" : "Maximizar";
+
+            maximizeButton.setAttribute("aria-pressed", String(on));
+            maximizeButton.title = label;
+            maximizeButton.setAttribute("aria-label", `${label} o Analytics`);
+        }
+
+        notify();
+    };
+
+    if (maximizeButton) {
+        maximizeButton.addEventListener("click", () => setMaximized(!root.classList.contains("dashboard-maximized")));
+    }
+
     return {
+        setMaximized,
         /* Chamar ao abrir o dashboard: os limites dependem do tamanho atual do mapa. */
         refresh: () => {
             if (custom !== null) {

@@ -244,7 +244,7 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                 type: "button",
                 class: "layer-name",
                 "aria-pressed": String(active),
-                title: active ? "Camada ativa" : "Tornar ativa para busca, filtros e dashboard",
+                title: active ? "Camada ativa" : "Tornar ativa para busca, filtros e Analytics",
                 text: layer.name,
                 dataset: { focusKey: `active:${layer.id}` },
                 disabled: layer.status !== "ready",
