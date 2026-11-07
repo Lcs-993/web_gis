@@ -105,10 +105,9 @@ export const LAYERS = [
         id: "pol_talhoes",
         name: "Talhões",
         /*
-           Versão otimizada (coordenadas com 6 casas decimais, ~10 cm;
-           JSON compacto) gerada a partir do commit 225cf99 de
-           Lcs-993/meus_layers. Atributos idênticos ao original.
-           15,7 MB → 9,3 MB (2,3 MB comprimidos na rede).
+           Exportação do QGIS (geodatabase local, fora do Git) em
+           07/11/2026: 3.388 talhões, coordenadas com 6 casas decimais
+           (~10 cm), JSON compacto. 9,5 MB (2,1 MB comprimidos na rede).
         */
         url: "geojson/pol_talhoes.geojson",
         attribution:
