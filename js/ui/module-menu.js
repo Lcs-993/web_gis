@@ -30,6 +30,7 @@ const ICONS = {
     ruler: "M3.5 15.5 15.5 3.5l5 5-12 12-5-5ZM7 12l1.5 1.5M10 9l2 2M13 6l1.5 1.5",
     printer: "M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v6H7z",
     "map-pin": "M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11ZM12 12.4a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8Z",
+    grid: "M5 4.5h4.5a.5.5 0 0 1 .5.5v4.5a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5ZM14.5 4.5H19a.5.5 0 0 1 .5.5v4.5a.5.5 0 0 1-.5.5h-4.5a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5ZM5 14h4.5a.5.5 0 0 1 .5.5V19a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5v-4.5A.5.5 0 0 1 5 14ZM14.5 14H19a.5.5 0 0 1 .5.5V19a.5.5 0 0 1-.5.5h-4.5a.5.5 0 0 1-.5-.5v-4.5a.5.5 0 0 1 .5-.5Z",
     "file-plus": "M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7l-4-4ZM14 3v4h4M12 11v6M9 14h6"
 };
 
@@ -60,6 +61,29 @@ export function createModuleMenu(container, menus, { onAction } = {}) {
 
     let openIndex = -1;
 
+    const makeItem = (item, tone = null) => {
+        const ready = Boolean(item.action);
+
+        return el("button", {
+            type: "button",
+            role: "menuitem",
+            class: `module-menu-item${ready ? "" : " is-soon"}${tone ? ` tone-${tone}` : ""}`,
+            tabindex: "-1",
+            "aria-disabled": ready ? null : "true",
+            dataset: ready ? { action: item.action } : {}
+        }, [
+            el("span", { class: "module-menu-icon" },
+                ICONS[item.icon] ? svgIcon(ICONS[item.icon], { className: "module-menu-icon-svg" }) : null),
+            el("span", { class: "module-menu-item-text" }, [
+                el("span", { class: "module-menu-item-label", text: item.label }),
+                item.description
+                    ? el("span", { class: "module-menu-item-description", text: item.description })
+                    : null
+            ]),
+            ready ? null : el("span", { class: "module-menu-soon", text: "Em breve" })
+        ]);
+    };
+
     const entries = menus.map((menu, index) => {
         const listId = `module-menu-${menu.id}`;
 
@@ -72,28 +96,7 @@ export function createModuleMenu(container, menus, { onAction } = {}) {
             "aria-controls": listId
         }, [el("span", { text: menu.label }), chevron()]);
 
-        const items = menu.items.map((item) => {
-            const ready = Boolean(item.action);
-
-            return el("button", {
-                type: "button",
-                role: "menuitem",
-                class: `module-menu-item${ready ? "" : " is-soon"}`,
-                tabindex: "-1",
-                "aria-disabled": ready ? null : "true",
-                dataset: ready ? { action: item.action } : {}
-            }, [
-                el("span", { class: "module-menu-icon" },
-                    ICONS[item.icon] ? svgIcon(ICONS[item.icon], { className: "module-menu-icon-svg" }) : null),
-                el("span", { class: "module-menu-item-text" }, [
-                    el("span", { class: "module-menu-item-label", text: item.label }),
-                    item.description
-                        ? el("span", { class: "module-menu-item-description", text: item.description })
-                        : null
-                ]),
-                ready ? null : el("span", { class: "module-menu-soon", text: "Em breve" })
-            ]);
-        });
+        const items = menu.items.map((item) => makeItem(item));
 
         const list = el("div", {
             class: `module-menu-list tone-${menu.tone || "gray"}`,
@@ -109,6 +112,56 @@ export function createModuleMenu(container, menus, { onAction } = {}) {
 
         return { index, trigger, list, items, group };
     });
+
+    /*
+       Versão compacta (telas estreitas): um único botão com todos os
+       menus numa folha. Sem ela, no celular os módulos prontos
+       (Adicionar dados, Exportar KML) ficariam inacessíveis. Menus
+       com algum módulo pronto vêm primeiro: o que funciona fica à mão.
+       O CSS mostra só uma das duas versões; o teclado pula a oculta.
+    */
+    const compactId = "module-menu-all";
+    const compactTrigger = el("button", {
+        type: "button",
+        class: "module-menu-trigger module-menu-compact-trigger",
+        id: `${compactId}-button`,
+        "aria-haspopup": "menu",
+        "aria-expanded": "false",
+        "aria-controls": compactId,
+        "aria-label": "Módulos e ferramentas",
+        title: "Módulos e ferramentas"
+    }, [svgIcon(ICONS.grid, { className: "module-menu-compact-icon", strokeWidth: "1.8" })]);
+
+    const ranked = menus
+        .map((menu, order) => ({ menu, order, ready: menu.items.some((item) => item.action) }))
+        .sort((a, b) => (b.ready - a.ready) || (a.order - b.order));
+
+    const compactItems = [];
+    const compactChildren = [];
+
+    ranked.forEach(({ menu }) => {
+        compactChildren.push(el("p", { class: "module-menu-title", text: menu.label, "aria-hidden": "true" }));
+
+        menu.items.forEach((item) => {
+            const button = makeItem(item, menu.tone || "gray");
+
+            compactItems.push(button);
+            compactChildren.push(button);
+        });
+    });
+
+    const compactList = el("div", {
+        class: "module-menu-list module-menu-sheet",
+        id: compactId,
+        role: "menu",
+        "aria-labelledby": compactTrigger.id,
+        hidden: true
+    }, compactChildren);
+
+    const compactGroup = el("div", { class: "module-menu-group module-menu-compact" }, [compactTrigger, compactList]);
+
+    container.appendChild(compactGroup);
+    entries.push({ index: entries.length, trigger: compactTrigger, list: compactList, items: compactItems, group: compactGroup });
 
     const focusItem = (entry, position) => {
         const { items } = entry;
@@ -152,7 +205,20 @@ export function createModuleMenu(container, menus, { onAction } = {}) {
         }
     };
 
-    const neighbor = (index, step) => (index + step + entries.length) % entries.length;
+    /* Próximo menu visível (a versão compacta e a completa nunca aparecem juntas). */
+    const neighbor = (index, step) => {
+        let next = index;
+
+        for (let i = 0; i < entries.length; i += 1) {
+            next = (next + step + entries.length) % entries.length;
+
+            if (entries[next].trigger.offsetParent !== null) {
+                return next;
+            }
+        }
+
+        return index;
+    };
 
     entries.forEach((entry) => {
         const { index, trigger, list, items } = entry;

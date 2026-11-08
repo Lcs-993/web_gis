@@ -34,7 +34,7 @@ Depois acesse `http://127.0.0.1:8899`. Não há instalação nem build.
 | **Busca** (barra no canto superior direito) | Procura na camada ativa, respeitando os filtros |
 | **Filtros** (funil dentro da barra de busca) | Monta condições por atributo; o contador mostra quantos filtros estão ativos |
 | **Dashboard** (botão de gráfico nos controles do mapa) | Resumo (indicadores e distribuição por valor) e tabela ordenável e paginada; exportação CSV e KML |
-| Clique numa feição | Seleciona e abre o popup; com o dashboard aberto, a tabela vai até a página da feição e a linha aparece destacada no topo da tabela |
+| Clique numa feição | Seleciona e abre o popup (título da feição, medidas em destaque, demais atributos agrupados, vazios recolhidos e os botões **Aproximar** e **Ver na tabela**); com o dashboard aberto, a tabela vai até a página da feição e a linha aparece destacada no topo da tabela |
 | Clique numa linha da tabela | Seleciona e enquadra a feição no mapa. **Ctrl** (⌘) + clique acrescenta/retira linhas; **Shift** + clique seleciona o intervalo desde a última linha clicada (Ctrl + Shift soma ao que já estava). Com várias selecionadas: todas ganham o destaque de seleção, o mapa enquadra todas, não há popup e o dashboard mostra "N selecionadas" |
 | Controles do mapa (canto inferior direito) | Blocos agrupados, de cima para baixo: **Dashboard**; **Enquadrar** + **Tela cheia**; **Zoom** + / −; **Mapa base**. **Tela cheia** usa o modo nativo do navegador; pressione `Esc` ou o botão para sair |
 | Botão **casa** (controles do mapa) | Repõe o enquadramento total das camadas ligadas, com todas as feições, mesmo que filtros ou busca estejam ativos |
@@ -396,7 +396,7 @@ cada push na `main`. No GitHub: **Settings → Pages → Source: GitHub Actions*
   esquerda e botões redondos para **Assistente de IA** (ainda "Em breve": o
   clique só mostra o aviso), Ajuda e tema à direita. No centro ficam os
   menus suspensos dos módulos (**Monitoramento**, **Operação**, **Análises** e
-  **Ferramentas**), definidos em `MODULE_MENUS` (`js/config.js`) e gerados por
+  **Ferramentas**; em telas estreitas, um botão único abre todos numa folha), definidos em `MODULE_MENUS` (`js/config.js`) e gerados por
   `js/ui/module-menu.js`. Item sem `action` aparece como "Em breve"; hoje só
   **Ferramentas › Adicionar dados** funciona (abre um GeoJSON local). Para ligar
   um módulo: implementá-lo em `js/modules/`, tratar a action em
