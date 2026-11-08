@@ -251,6 +251,28 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                 onclick: () => store.setActiveLayer(layer.id)
             });
 
+            /*
+               Símbolo da camada, como no sumário do ArcGIS: ícone do
+               ponto, círculo (pontos), traço (linhas), só contorno
+               (camadas de referência) ou quadrado preenchido.
+            */
+            const types = Object.keys(layer.geometryTypes || {}).join(" ");
+            const kind = layer.icon
+                ? "icon"
+                : /Point/.test(types) && !/Polygon|LineString/.test(types)
+                    ? "point"
+                    : /LineString/.test(types) && !/Polygon/.test(types)
+                        ? "line"
+                        : layer.style === "outline" ? "outline" : "fill";
+
+            const symbol = kind === "icon"
+                ? el("img", { class: "layer-symbol is-icon", src: layer.icon.url, alt: "", width: 14, height: 14 })
+                : el("span", { class: `layer-symbol is-${kind}`, "aria-hidden": "true" });
+
+            if (kind !== "icon") {
+                symbol.style.setProperty("--symbol-color", layer.color || "var(--color-text-muted)");
+            }
+
             const meta = el("span", {
                 class: `layer-meta${layer.status === "error" ? " is-error" : ""}`,
                 text: metaText(layer)
@@ -284,6 +306,7 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
             return el("li", { class: `layer-item${active ? " is-active" : ""}` }, [
                 el("div", { class: `layer-row${shown ? "" : " is-hidden"}` }, [
                     /* Nome + quantidade à esquerda; ações à direita. */
+                    symbol,
                     el("span", { class: "layer-title" }, [name, meta]),
                     el("span", { class: "layer-actions" }, [visibility, theme, labels, info, remove])
                 ]),

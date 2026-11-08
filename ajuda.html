@@ -271,7 +271,7 @@
 
             <section class="help-section" id="camadas">
                 <h2>Camadas</h2>
-                <p>Abra a aba pelo botão de camadas no canto superior esquerdo; feche pelo <strong>×</strong> preso à borda da aba. Cada camada mostra o nome, a quantidade de feições entre parênteses e os botões:</p>
+                <p>Abra a aba pelo botão de camadas no canto superior esquerdo; feche pelo <strong>×</strong> preso à borda da aba. Cada camada mostra o símbolo (cor e tipo de geometria), o nome, a quantidade de feições entre parênteses e os botões (resumidos também no pé da aba):</p>
                 <table class="help-table">
                     <tr><th>Olho</th><td>Mostra ou oculta a camada no mapa.</td></tr>
                     <tr><th>Paleta</th><td>Liga o tema por categoria (cores por valor de um atributo).</td></tr>
@@ -316,6 +316,8 @@
                     <li>Abra pelo funil na barra de busca, escolha o atributo e a condição.</li>
                     <li>Números usam uma <strong>barra de intervalo</strong> com De/Até; juntar os dois marcadores significa “igual a”.</li>
                     <li>Os filtros ativos aparecem como etiquetas; o número no funil mostra quantos são.</li>
+                    <li>Com duas ou mais condições, escolha <strong>todas</strong> (a feição precisa atender a todas) ou <strong>qualquer uma</strong> (basta uma). Entre as etiquetas aparece “e” ou “ou”.</li>
+                    <li><strong>Salvar…</strong> guarda o conjunto com um nome, neste navegador. Em <strong>Filtros salvos</strong>, clique no nome para reaplicar; o × exclui.</li>
                 </ul>
                 <h3>Filtro por coluna (na tabela)</h3>
                 <ul>
@@ -342,11 +344,13 @@
                 <h3>Tabela</h3>
                 <ul>
                     <li>Clique no nome da coluna para <strong>ordenar</strong> (de novo inverte).</li>
-                    <li>O <strong>rodapé de totais</strong> calcula sobre todo o conjunto filtrado, não só a página. Escolha por coluna: Soma, Média, Mediana, Mínimo, Máximo, Desvio padrão, Preenchidos ou Distintos.</li>
+                    <li>O <strong>rodapé de totais</strong> calcula sobre todo o conjunto filtrado, não só a página. Escolha por coluna: Soma, Média, Mediana, Mínimo, Máximo, Desvio padrão, Preenchidos ou Distintos. Nas colunas sem total, o seletor aparece ao passar o mouse sobre o rodapé.</li>
+                    <li>Ao selecionar uma linha, um <strong>cartão</strong> no canto do mapa mostra a feição inteira, com <strong>Aproximar</strong>. No celular ele aparece recolhido: toque na seta para ver os atributos.</li>
                     <li>50 linhas por página, com setas para navegar.</li>
                 </ul>
                 <h3>Resumo</h3>
                 <ul>
+                    <li>À direita da barra do topo ficam os <strong>indicadores</strong> do conjunto atual: feições, soma e média da medida (com a fração do total quando há filtro ou busca) e quantos valores tem o agrupamento.</li>
                     <li>Na barra do topo, agrupe por uma categoria, escolha o operador (Contagem, Soma, Média, Mínimo, Máximo) e a métrica numérica. Ela vale para os dados e para o gráfico.</li>
                     <li>À esquerda, os dados agrupados; à direita, o gráfico do mesmo resultado: barras, colunas, barra segmentada ou rosca. Cada um tem um título gerado a partir do agrupamento (ex.: “Soma de Área (ha.) por Setor e Variedade”).</li>
                     <li><strong>+ Agrupador</strong> quebra cada grupo por uma segunda categoria (ex.: área por setor, separada por variedade). O gráfico empilha as partes; a barra segmentada mostra a composição (100%) de cada grupo.</li>

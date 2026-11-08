@@ -23,6 +23,7 @@ import { createLoadingOverlay } from "./ui/loading.js";
 import { createModuleMenu } from "./ui/module-menu.js";
 import { createComingSoon } from "./ui/coming-soon.js";
 import { buildPopup } from "./ui/popup.js";
+import { createFeatureCard } from "./ui/feature-card.js";
 import { formatCount, formatValue } from "./ui/format.js";
 import { getAttribute, isEmpty } from "./data/values.js";
 
@@ -154,6 +155,7 @@ const panels = createPanels([
             } else {
                 /* Fechar sempre restaura: ao reabrir, volta à altura normal. */
                 dashboardResize.setMaximized(false);
+                featureCard.hide();
             }
 
             moveSearch(open);
@@ -189,6 +191,17 @@ const panels = createPanels([
 /* ---------------- seleção ↔ mapa ---------------- */
 
 let pendingLatLng = null;
+
+const featureCard = createFeatureCard();
+
+/* Trocar a camada analisada: o cartão só vale para a seleção da camada ativa. */
+store.on("active", (layer) => {
+    const selection = store.state.selection;
+
+    if (!selection || !layer || selection.layerId !== layer.id) {
+        featureCard.hide();
+    }
+});
 
 const openSelectionPopup = (selection) => {
     const layer = store.getLayer(selection.layerId);
@@ -255,7 +268,7 @@ const fitToFocus = () => {
    linha é destacada na aba Tabela. Fora disso (dashboard fechado
    ou feature de outra camada), vale o popup.
 */
-const presentSelection = (selection) => {
+const presentSelection = (selection, { reveal = false } = {}) => {
     const inTable = Boolean(
         dashboard &&
         panels.isOpen("dashboard") &&
@@ -266,8 +279,25 @@ const presentSelection = (selection) => {
         pendingLatLng = null;
         mapView.closePopup();
         dashboard.showRow(selection.layerId, selection.uid);
+
+        /* A linha mostra poucas colunas; o cartão mostra a feição inteira (uma só). */
+        const layer = store.getLayer(selection.layerId);
+        const feature = store.getSelectedFeature();
+
+        if (selection.uids.length === 1 && layer && feature) {
+            const { layerId, uid } = selection;
+
+            featureCard.show(`${layerId}:${uid}`, buildPopup(layer, feature, {
+                onZoom: () => mapView.fitFeatures(layerId, [uid], MAP_OPTIONS.fitMaxZoom + 1)
+            }), { reveal });
+        } else {
+            featureCard.hide();
+        }
+
         return;
     }
+
+    featureCard.hide();
 
     /* Várias feições selecionadas: sem popup (seria só de uma delas). */
     if (selection.uids.length > 1) {
@@ -288,7 +318,7 @@ mapView.onFeatureClick(({ layerId, uid, latlng }) => {
     const current = store.state.selection;
 
     if (current && current.layerId === layerId && current.uid === uid && current.uids.length === 1) {
-        presentSelection(current);
+        presentSelection(current, { reveal: true });
         return;
     }
 
@@ -303,6 +333,7 @@ store.on("selection", (selection) => {
 
     if (!selection) {
         mapView.closePopup();
+        featureCard.hide();
         return;
     }
 
