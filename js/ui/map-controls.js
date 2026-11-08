@@ -64,7 +64,8 @@ export function createMapControls(store, mapView, basemaps) {
 
     fullscreenButton.addEventListener("click", () => {
         if (fullscreenElement()) {
-            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            const exit = document.exitFullscreen || document.webkitExitFullscreen;
+            exit.call(document);
             return;
         }
 

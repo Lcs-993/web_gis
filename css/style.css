@@ -652,7 +652,7 @@ ol {
     outline-offset: -2px;
 }
 
-/* Tela cheia: classe aplicada pelo JS (map-controls.js) nos dois motores. */
+/* Tela cheia: classe aplicada pelo JS após a confirmação do navegador. */
 .map-container.is-fullscreen {
     width: 100vw;
     height: 100vh;
@@ -2405,8 +2405,10 @@ ol {
     flex: 1 1 auto;
     min-height: 0;
     overflow: auto;
-    /* Espaço para a barra de rolagem não encostar nos valores. */
-    padding-right: 4px;
+    /* A coluna final fica afastada da barra, inclusive em navegadores com
+       scrollbar sobreposta ao conteúdo. */
+    scrollbar-gutter: stable both-edges;
+    padding-right: 24px;
 }
 
 
@@ -2735,8 +2737,8 @@ ol {
 */
 .group-list {
     display: grid;
-    /* Rótulo do tamanho do maior nome (até 40%); a barra fica com o resto. */
-    grid-template-columns: fit-content(40%) minmax(60px, 1fr) auto;
+    /* Mantém uma coluna estável para valores e percentuais. */
+    grid-template-columns: fit-content(40%) minmax(60px, 1fr) minmax(128px, max-content);
     align-content: start;
     column-gap: 10px;
     row-gap: 6px;
@@ -2900,6 +2902,7 @@ ol {
 }
 
 .group-value {
+    padding-right: 8px;
     color: var(--color-text-muted);
     font-size: 11px;
     text-align: right;
