@@ -36,7 +36,7 @@ Depois acesse `http://127.0.0.1:8899`. Não há instalação nem build.
 | **Dashboard** (botão de gráfico nos controles do mapa) | Resumo (indicadores e distribuição por valor) e tabela ordenável e paginada; exportação CSV e KML |
 | Clique numa feição | Seleciona e abre o popup; com o dashboard aberto, a tabela vai até a página da feição e a linha aparece destacada no topo da tabela |
 | Clique numa linha da tabela | Seleciona e enquadra a feição no mapa. **Ctrl** (⌘) + clique acrescenta/retira linhas; **Shift** + clique seleciona o intervalo desde a última linha clicada (Ctrl + Shift soma ao que já estava). Com várias selecionadas: todas ganham o destaque de seleção, o mapa enquadra todas, não há popup e o dashboard mostra "N selecionadas" |
-| Controles do mapa (canto inferior direito) | Blocos agrupados, de cima para baixo: **Dashboard**; **Enquadrar** + **Tela cheia**; **Zoom** + / −; **Mapa base** |
+| Controles do mapa (canto inferior direito) | Blocos agrupados, de cima para baixo: **Dashboard**; **Enquadrar** + **Tela cheia**; **Zoom** + / −; **Mapa base**. **Tela cheia** usa o modo nativo do navegador; pressione `Esc` ou o botão para sair |
 | Botão **casa** (controles do mapa) | Repõe o enquadramento total das camadas ligadas, com todas as feições, mesmo que filtros ou busca estejam ativos |
 | `Esc` | Fecha o painel aberto mais recente; na busca, limpa o termo |
 | Rodapé (base do mapa) | Faixa translúcida com as coordenadas do cursor (ou do centro, com o cursor fora do mapa) e o nível de zoom; fica visível também com o dashboard aberto |
