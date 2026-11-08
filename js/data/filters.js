@@ -8,6 +8,9 @@
    lista aceita vazios. É criado pelo filtro de coluna da tabela
    (createListFilter) e não aparece no seletor do painel Filtros.
 
+   As condições de uma camada combinam por E (todas) ou OU
+   (qualquer uma): layer.filterMode = "all" | "any".
+
    Valores vazios (null, undefined, "") não passam em nenhuma
    comparação — exceto "≠", "não contém" e "vazio", em que a
    ausência de valor satisfaz a condição.
@@ -229,17 +232,29 @@ function compile(filter) {
 }
 
 
-/* Índices (uid) das features que passam em todos os filtros. */
-export function applyFilters(features, filters) {
+/*
+   Índices (uid) das features que passam nos filtros.
+   mode "all" (E): passa em todos; "any" (OU): passa em pelo menos um.
+   Sem filtros, todas passam.
+*/
+export function applyFilters(features, filters, mode = "all") {
     const predicates = filters.map(compile);
+    const any = mode === "any" && predicates.length > 0;
     const result = [];
 
     for (let uid = 0; uid < features.length; uid++) {
         const feature = features[uid];
-        let pass = true;
+        let pass = !any;
 
         for (let i = 0; i < predicates.length; i++) {
-            if (!predicates[i](feature)) {
+            const ok = predicates[i](feature);
+
+            if (any && ok) {
+                pass = true;
+                break;
+            }
+
+            if (!any && !ok) {
                 pass = false;
                 break;
             }
@@ -252,3 +267,8 @@ export function applyFilters(features, filters) {
 
     return result;
 }
+
+
+/* Junção das descrições conforme o modo: "·" para E, "ou" para OU. */
+export const describeFilters = (filters, mode = "all") =>
+    filters.map(describeFilter).join(mode === "any" ? " ou " : " · ");

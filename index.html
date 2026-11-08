@@ -35,7 +35,7 @@
         crossorigin=""
     >
 
-    <link rel="stylesheet" href="css/style.css?v=20261108i">
+    <link rel="stylesheet" href="css/style.css?v=20261108j">
 
     <!-- Tema escuro por padrão; o claro só vale se o usuário o escolheu. Aplicado antes da primeira pintura. O hash na CSP corresponde a este bloco. -->
     <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
@@ -142,6 +142,17 @@
                     <section class="sidebar-section" aria-labelledby="layer-list-title">
                         <ul class="layer-list" id="layer-list"></ul>
                     </section>
+
+                    <!-- Guia rápido: o que é a camada ativa e o que faz cada ícone (vale também no toque, sem tooltip). -->
+                    <footer class="sidebar-key">
+                        <p class="sidebar-key-text">Selecione o nome para tornar a camada <strong>ativa</strong>: ela alimenta busca, filtros e Analytics.</p>
+                        <ul class="sidebar-key-list">
+                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" stroke="currentColor" stroke-width="1.8"/></svg>Exibir</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.9 1.8-1.8 0-1.2-1-1.6-1-2.6 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Tema</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5V5h14v1.5M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Rótulos</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 11v5.5M12 7.6v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Dados</li>
+                        </ul>
+                    </footer>
                 </div>
             </aside>
 
@@ -217,6 +228,23 @@
             </div>
 
 
+            <!-- CARTÃO DA FEIÇÃO: seleção com o Analytics aberto (js/ui/feature-card.js). -->
+            <section class="feature-card" id="feature-card" aria-label="Feição selecionada" hidden>
+                <!-- Expandir/recolher: só em telas estreitas, onde o cartão começa recolhido (só o título). -->
+                <button type="button" class="feature-card-toggle" id="feature-card-toggle" aria-expanded="false" aria-controls="feature-card-body" aria-label="Mostrar todos os atributos" title="Mostrar atributos">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button type="button" class="feature-card-close" id="feature-card-close" aria-label="Fechar o cartão da feição" title="Fechar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 7l10 10M17 7L7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="feature-card-body" id="feature-card-body"></div>
+            </section>
+
+
             <!-- PAINEL DE FILTROS -->
             <section class="floating-panel filter-panel" id="filter-panel" aria-labelledby="filter-title">
                 <header class="panel-header">
@@ -276,9 +304,38 @@
                     <button type="submit" class="button button-primary">Adicionar filtro</button>
                 </form>
 
+                <!-- Combinação das condições (só com 2 ou mais filtros). -->
+                <div class="filter-mode" id="filter-mode" role="radiogroup" aria-label="Combinar condições" hidden>
+                    <span class="field-label">Mostrar feições que atendem a</span>
+                    <div class="tabs filter-mode-options">
+                        <button type="button" class="tab" role="radio" data-filter-mode="all" aria-checked="true">todas</button>
+                        <button type="button" class="tab" role="radio" data-filter-mode="any" aria-checked="false">qualquer uma</button>
+                    </div>
+                </div>
+
                 <ul class="filter-chips" id="filter-list" aria-label="Filtros ativos"></ul>
 
-                <button type="button" class="button button-ghost" id="filter-clear" hidden>Limpar filtros</button>
+                <div class="filter-actions" id="filter-actions" hidden>
+                    <button type="button" class="button button-ghost" id="filter-save-open">Salvar…</button>
+                    <button type="button" class="button button-ghost" id="filter-clear">Limpar filtros</button>
+                </div>
+
+                <!-- Salvar o conjunto atual com um nome (guardado neste navegador). -->
+                <form class="filter-save" id="filter-save-form" hidden novalidate>
+                    <label class="field">
+                        <span class="field-label">Nome do conjunto</span>
+                        <input type="text" id="filter-save-name" maxlength="60" autocomplete="off" placeholder="ex.: Fornecedores acima de 5 ha">
+                    </label>
+                    <div class="filter-save-buttons">
+                        <button type="button" class="button button-ghost" id="filter-save-cancel">Cancelar</button>
+                        <button type="submit" class="button button-primary">Salvar</button>
+                    </div>
+                </form>
+
+                <section class="filter-saved" id="filter-saved" aria-labelledby="filter-saved-title" hidden>
+                    <h3 class="field-label" id="filter-saved-title">Filtros salvos</h3>
+                    <ul class="filter-saved-list" id="filter-saved-list"></ul>
+                </section>
             </section>
 
 
@@ -350,6 +407,8 @@
                                 <select id="group-measure"></select>
                             </label>
                         </div>
+                        <!-- Indicadores do conjunto atual (filtros e busca aplicados), à direita na mesma barra. -->
+                        <dl class="summary-kpis" id="summary-kpis" aria-label="Indicadores do conjunto atual"></dl>
                     </div>
 
                     <!-- Esquerda: os dados agrupados (CSV). Direita: o gráfico (PNG). -->

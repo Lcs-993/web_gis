@@ -40,6 +40,7 @@
     /* Nomes dos campos nos popups: mesmo verde-claro nos dois temas. */
     --color-field-label: #9acd83;
     --color-brand-soft: rgba(80, 171, 70, 0.14);
+    --color-brand-strong: #2e7d32;
     --color-accent: #ff3b30;
     --color-accent-soft: rgba(255, 59, 48, 0.08);
     --color-on-accent: #ffffff;
@@ -945,6 +946,80 @@ ol {
     height: 16px;
 }
 
+/* ---------- Cartão da feição (seleção com o Analytics aberto) ---------- */
+
+.feature-card {
+    position: absolute;
+    top: var(--gutter);
+    left: calc(var(--gutter) + 52px);
+    width: 300px;
+    max-height: calc(100% - var(--dashboard-h) - var(--footer-h) - 2 * var(--gutter));
+    display: flex;
+    flex-direction: column;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: 16px;
+    background: var(--color-popup);
+    color: var(--color-text);
+    box-shadow: var(--shadow-dropdown);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    z-index: 310;
+    animation: feature-card-in 180ms ease-out;
+}
+
+.feature-card[hidden],
+.dashboard-maximized .feature-card {
+    display: none;
+}
+
+@keyframes feature-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+}
+
+.feature-card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.feature-card-body .feature-popup-body {
+    max-height: none;
+    min-height: 0;
+}
+
+.feature-card-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-segment);
+    color: var(--color-text-muted);
+    z-index: 1;
+}
+
+.feature-card-toggle {
+    display: none;
+}
+
+.feature-card-close:hover {
+    background: var(--fill-segment-hover);
+    color: var(--color-text);
+}
+
+.feature-card-close svg {
+    width: 14px;
+    height: 14px;
+}
+
 /* ---------- Pontos com ícone de imagem (ex.: usina) ---------- */
 
 .feature-marker {
@@ -1256,15 +1331,16 @@ ol {
     opacity: 0.45;
 }
 
+/* Verde mais fechado que a marca: texto branco com contraste ≥ 4,5:1 (WCAG AA). */
 .button-primary {
-    border-color: var(--color-brand);
-    background: var(--color-brand);
+    border-color: var(--color-brand-strong);
+    background: var(--color-brand-strong);
     color: var(--color-on-accent);
     font-weight: 600;
 }
 
 .button-primary:hover:not(:disabled) {
-    background: var(--color-brand);
+    background: var(--color-brand-strong);
     color: var(--color-on-accent);
     filter: brightness(1.06);
 }
@@ -1723,6 +1799,86 @@ ol {
     font-weight: 600;
 }
 
+/* Símbolo da camada (cor e tipo de geometria), antes do nome. */
+.layer-symbol {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.layer-symbol.is-fill {
+    border: 1.5px solid var(--symbol-color);
+    background: color-mix(in srgb, var(--symbol-color) 55%, transparent);
+}
+
+.layer-symbol.is-outline {
+    border: 1.5px solid var(--symbol-color);
+    background: transparent;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.layer-symbol.is-point {
+    width: 10px;
+    height: 10px;
+    margin: 2px;
+    border: 1.5px solid #ffffff;
+    border-radius: 50%;
+    background: var(--symbol-color);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.4);
+}
+
+.layer-symbol.is-line {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--symbol-color);
+    transform: rotate(-30deg);
+}
+
+.layer-symbol.is-icon {
+    border-radius: 0;
+    object-fit: contain;
+}
+
+.layer-row.is-hidden .layer-symbol {
+    opacity: 0.4;
+}
+
+/* Guia rápido no pé da aba Camadas. */
+.sidebar-key {
+    display: grid;
+    gap: 8px;
+    margin: 14px 8px 0;
+    padding-top: 12px;
+    border-top: 0.5px solid var(--border-hairline);
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.sidebar-key strong {
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.sidebar-key-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    list-style: none;
+}
+
+.sidebar-key-list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sidebar-key-list svg {
+    width: 14px;
+    height: 14px;
+}
+
 .layer-meta {
     flex: 0 0 auto;
     color: var(--color-text-subtle);
@@ -2020,7 +2176,6 @@ ol {
 
 .filter-chips {
     display: grid;
-    gap: 6px;
 }
 
 .filter-chips:empty {
@@ -2061,6 +2216,133 @@ ol {
 
 #filter-clear {
     color: var(--color-accent);
+}
+
+/* Entre dois chips, a palavra da combinação: "e" (todas) ou "ou" (qualquer uma). */
+.filter-chip + .filter-chip {
+    position: relative;
+    margin-top: 18px;
+}
+
+.filter-chip + .filter-chip::before {
+    content: "e";
+    position: absolute;
+    top: -16px;
+    left: 10px;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.filter-chips.is-any .filter-chip + .filter-chip::before {
+    content: "ou";
+}
+
+.filter-mode {
+    display: grid;
+    gap: 6px;
+}
+
+.filter-mode[hidden] {
+    display: none;
+}
+
+.filter-mode .filter-mode-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.filter-mode-options .tab {
+    padding: 6px 10px;
+}
+
+.filter-mode .filter-mode-options {
+    background: var(--fill-segment);
+}
+
+.filter-mode-options .tab[aria-checked="true"] {
+    background: var(--segment-selected);
+    color: var(--color-text);
+    font-weight: 600;
+    box-shadow: var(--shadow-segment);
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.filter-actions[hidden],
+.filter-save[hidden],
+.filter-saved[hidden] {
+    display: none;
+}
+
+.filter-save {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+}
+
+.filter-save-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.filter-saved {
+    display: grid;
+    gap: 6px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+.filter-saved-list {
+    display: grid;
+    gap: 4px;
+    list-style: none;
+}
+
+.filter-saved-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 8px;
+    transition: background-color var(--duration) ease;
+}
+
+.filter-saved-item:hover {
+    background: var(--hover-bg);
+}
+
+.filter-saved-apply {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 1px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.filter-saved-name {
+    overflow: hidden;
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filter-saved-meta {
+    color: var(--color-text-subtle);
+    font-size: 11px;
 }
 
 
@@ -2637,6 +2919,67 @@ ol {
 #dashboard-summary .chart-card {
     grid-column: 2;
     grid-row: 2;
+}
+
+/* ---------- Indicadores (KPIs) ---------- */
+
+/*
+   Na barra de agrupamento, à direita: rótulo em cima, valor e
+   fração do total embaixo, separados por filetes. Não ocupa uma
+   linha própria, para os cards manterem a altura.
+*/
+.summary-kpis {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.summary-kpis:empty {
+    display: none;
+}
+
+.kpi {
+    min-width: 0;
+    max-width: 220px;
+    padding: 0 14px;
+}
+
+.kpi + .kpi {
+    border-left: 0.5px solid var(--border-hairline);
+}
+
+.kpi:last-child {
+    padding-right: 4px;
+}
+
+.kpi-label {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.kpi-value,
+.kpi-caption {
+    display: inline;
+    margin: 0;
+}
+
+.kpi-value {
+    color: var(--color-text);
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.3px;
+}
+
+.kpi-caption {
+    margin-left: 6px;
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    white-space: nowrap;
 }
 
 
@@ -3323,6 +3666,23 @@ th[aria-sort="descending"] .table-sort::after {
     opacity: 0.6;
 }
 
+/*
+   Com mouse: colunas sem total ficam limpas e o seletor só aparece
+   ao passar sobre o rodapé ou focar pelo teclado. Em telas de toque
+   (sem hover) ele continua visível, senão não haveria como achá-lo.
+*/
+@media (hover: hover) {
+    .data-table tfoot td.is-unset .table-total-operator {
+        opacity: 0;
+        transition: opacity var(--duration) ease;
+    }
+
+    .data-table tfoot tr:hover td.is-unset .table-total-operator,
+    .data-table tfoot td.is-unset .table-total-operator:focus-visible {
+        opacity: 0.6;
+    }
+}
+
 .table-total-value {
     padding: 0 4px 2px;
     color: var(--color-text);
@@ -3705,6 +4065,21 @@ th[aria-sort="descending"] .table-sort::after {
         overflow: visible;
     }
 
+    /*
+       Empilhado, o painel rola por inteiro: cada card tem a altura
+       do conteúdo. Com min-height: 0 (da versão lado a lado), as
+       linhas encolhiam até a altura do painel e os cards se
+       sobrepunham.
+    */
+    #dashboard-summary:not([hidden]) {
+        grid-auto-rows: max-content;
+    }
+
+    #dashboard-summary .group-card,
+    #dashboard-summary .chart-card {
+        min-height: auto;
+    }
+
     /* Empilhado: barra de agrupamento, dados e gráfico. */
     #dashboard-summary .summary-toolbar,
     #dashboard-summary .group-card,
@@ -3715,6 +4090,32 @@ th[aria-sort="descending"] .table-sort::after {
 
     .summary-toolbar-divider {
         display: none;
+    }
+
+    /* Indicadores numa linha própria da barra, dois por linha. */
+    .summary-kpis {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 0;
+        margin-left: 0;
+        padding-top: 8px;
+        border-top: 0.5px solid var(--border-hairline);
+    }
+
+    .kpi,
+    .kpi:last-child {
+        max-width: none;
+        padding: 0 10px 0 0;
+    }
+
+    .kpi + .kpi {
+        border-left: 0;
+    }
+
+    .kpi-caption {
+        display: block;
+        margin-left: 0;
     }
 }
 
@@ -3824,6 +4225,45 @@ th[aria-sort="descending"] .table-sort::after {
 
     .dashboard-header .tabs {
         order: 4;
+    }
+
+    /* Cartão da feição: largura total, recolhido até o usuário expandir. */
+    .feature-card {
+        right: var(--gutter);
+        width: auto;
+    }
+
+    .feature-card:not(.is-expanded) .feature-popup-scroll,
+    .feature-card:not(.is-expanded) .feature-popup-actions {
+        display: none;
+    }
+
+    .feature-card .feature-popup-header {
+        padding-right: 80px;
+    }
+
+    .feature-card-toggle {
+        position: absolute;
+        top: 10px;
+        right: 42px;
+        width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--fill-segment);
+        color: var(--color-text-muted);
+        z-index: 1;
+    }
+
+    .feature-card-toggle svg {
+        width: 16px;
+        height: 16px;
+        transition: transform var(--duration) ease;
+    }
+
+    .feature-card.is-expanded .feature-card-toggle svg {
+        transform: rotate(180deg);
     }
 
     /* Sem altura para a pilha de controles acima do dashboard; ele tem seu próprio "×". */

@@ -33,7 +33,7 @@ Depois acesse `http://127.0.0.1:8899`. Não há instalação nem build.
 | Ícone **i** na linha da camada (Identificar) | Abre uma janela com os dados da camada: feições, geometria, origem e cada atributo com seu tipo |
 | **Busca** (barra no canto superior direito) | Procura na camada ativa, respeitando os filtros |
 | **Filtros** (funil dentro da barra de busca) | Monta condições por atributo; o contador mostra quantos filtros estão ativos |
-| **Dashboard** (botão de gráfico nos controles do mapa) | Resumo (indicadores e distribuição por valor) e tabela ordenável e paginada; exportação CSV e KML |
+| **Dashboard** (botão de gráfico nos controles do mapa) | Resumo (indicadores do conjunto atual na barra do topo: feições, soma e média da medida e quantidade de grupos; distribuição por valor) e tabela ordenável e paginada; exportação CSV e KML. Com ele aberto, a feição selecionada aparece num cartão no canto do mapa (no celular, recolhido até ser expandido) |
 | Clique numa feição | Seleciona e abre o popup (título da feição, medidas em destaque, demais atributos agrupados, vazios recolhidos e os botões **Aproximar** e **Ver na tabela**); com o dashboard aberto, a tabela vai até a página da feição e a linha aparece destacada no topo da tabela |
 | Clique numa linha da tabela | Seleciona e enquadra a feição no mapa. **Ctrl** (⌘) + clique acrescenta/retira linhas; **Shift** + clique seleciona o intervalo desde a última linha clicada (Ctrl + Shift soma ao que já estava). Com várias selecionadas: todas ganham o destaque de seleção, o mapa enquadra todas, não há popup e o dashboard mostra "N selecionadas" |
 | Controles do mapa (canto inferior direito) | Blocos agrupados, de cima para baixo: **Dashboard**; **Enquadrar** + **Tela cheia**; **Zoom** + / −; **Mapa base**. **Tela cheia** usa o modo nativo do navegador; pressione `Esc` ou o botão para sair |
@@ -91,6 +91,15 @@ acompanha a precisão do dado (inteiros de 1 em 1; `188,1` de 0,1 em 0,1).
 Abaixo da barra, uma frase descreve o filtro e quantas feições ele mantém,
 considerando os outros filtros ativos. Os filtros ativos aparecem por extenso,
 sem símbolos (ex.: "Valor por ha.: de 130 a 470").
+
+**Várias condições:** com duas ou mais, escolha se a feição precisa atender a
+**todas** (E) ou a **qualquer uma** (OU); entre as etiquetas aparece "e" ou
+"ou". O modo vale para todos os filtros da camada, inclusive os de coluna.
+
+**Filtros salvos:** **Salvar…** guarda o conjunto atual com um nome, por
+camada, neste navegador (`localStorage`, chave `webgis-saved-filters`). Um
+clique no nome reaplica o conjunto (condições de atributos que não existem mais
+são ignoradas); o **×** exclui.
 
 Campos categóricos sugerem os valores existentes enquanto você digita. Valores
 vazios não passam em comparações, exceto em "≠", "não contém" e "vazio".

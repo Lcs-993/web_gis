@@ -9,11 +9,15 @@
      significam "igual a".
    - Demais tipos: condição + valor; categorias ganham sugestões
      (datalist) com os valores existentes.
+   - Com 2+ condições: combinar por "todas" (E) ou "qualquer uma" (OU).
+   - Conjuntos de filtros podem ser salvos com nome (neste navegador)
+     e reaplicados com um clique.
    ============================================================ */
 
 import { el, byId } from "./dom.js";
 import { formatCount, formatValue, roleLabel } from "./format.js";
 import { createFilter, describeFilter, findOperator, operatorsFor } from "../data/filters.js";
+import { deleteFilterSet, listSavedFilters, saveFilterSet } from "../data/saved-filters.js";
 import { getAttribute, toNumber } from "../data/values.js";
 
 const INPUT_TYPE = { number: "number", date: "date" };
@@ -34,6 +38,15 @@ export function createFilterPanel(store) {
     const errorText = byId("filter-error");
     const list = byId("filter-list");
     const clearButton = byId("filter-clear");
+    const actions = byId("filter-actions");
+    const modeGroup = byId("filter-mode");
+    const modeButtons = Array.from(modeGroup.querySelectorAll("[data-filter-mode]"));
+    const saveOpen = byId("filter-save-open");
+    const saveForm = byId("filter-save-form");
+    const saveName = byId("filter-save-name");
+    const saveCancel = byId("filter-save-cancel");
+    const savedSection = byId("filter-saved");
+    const savedList = byId("filter-saved-list");
     const summary = byId("filter-summary");
     const title = byId("filter-title");
     const submit = form.querySelector("button[type='submit']");
@@ -313,7 +326,25 @@ export function createFilterPanel(store) {
             ])
         ));
 
-        clearButton.hidden = !filters.length;
+        actions.hidden = !filters.length;
+
+        if (!filters.length) {
+            saveForm.hidden = true;
+        }
+
+        const mode = layer ? layer.filterMode : "all";
+
+        modeGroup.hidden = filters.length < 2;
+        modeButtons.forEach((button) => {
+            const checked = button.dataset.filterMode === mode;
+
+            button.setAttribute("aria-checked", String(checked));
+            button.setAttribute("aria-selected", String(checked));
+            button.tabIndex = checked ? 0 : -1;
+        });
+
+        /* Entre os chips, a palavra da combinação ("e" / "ou"). */
+        list.classList.toggle("is-any", mode === "any");
 
         summary.textContent = ready
             ? `${formatCount(layer.view.filtered.length)} de ${formatCount(layer.features.length)} feições`
@@ -374,6 +405,140 @@ export function createFilterPanel(store) {
         valueInput.focus();
     });
 
+    /* ---------------- combinação E/OU ---------------- */
+
+    const setMode = (mode) => {
+        const layer = store.getActiveLayer();
+
+        if (layer) {
+            store.setFilterMode(layer.id, mode);
+        }
+    };
+
+    modeButtons.forEach((button) => {
+        button.addEventListener("click", () => setMode(button.dataset.filterMode));
+    });
+
+    /* Setas alternam as opções, como num grupo de rádio. */
+    modeGroup.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const current = modeButtons.findIndex((button) => button.getAttribute("aria-checked") === "true");
+        const next = modeButtons[(current + 1) % modeButtons.length];
+
+        setMode(next.dataset.filterMode);
+        next.focus();
+    });
+
+
+    /* ---------------- filtros salvos ---------------- */
+
+    const renderSaved = () => {
+        const layer = store.getActiveLayer();
+        const sets = layer ? listSavedFilters(layer.id) : [];
+
+        savedSection.hidden = !sets.length;
+
+        savedList.replaceChildren(...sets.map((set) => {
+            const summaryText = set.filters.map(describeFilter).join(set.mode === "any" ? " ou " : " · ");
+
+            return el("li", { class: "filter-saved-item" }, [
+                el("button", {
+                    type: "button",
+                    class: "filter-saved-apply",
+                    title: `Aplicar: ${summaryText}`,
+                    onclick: () => applySaved(set)
+                }, [
+                    el("span", { class: "filter-saved-name", text: set.name }),
+                    el("span", {
+                        class: "filter-saved-meta",
+                        text: `${set.filters.length} ${set.filters.length === 1 ? "condição" : "condições"}${set.filters.length > 1 ? (set.mode === "any" ? " · qualquer uma" : " · todas") : ""}`
+                    })
+                ]),
+                el("button", {
+                    type: "button",
+                    class: "filter-chip-remove",
+                    "aria-label": `Excluir o conjunto salvo ${set.name}`,
+                    title: "Excluir",
+                    text: "×",
+                    onclick: () => {
+                        deleteFilterSet(layer.id, set.name);
+                        renderSaved();
+                    }
+                })
+            ]);
+        }));
+    };
+
+    /* Só entram condições cujos atributos existem na camada como está agora. */
+    const applySaved = (set) => {
+        const layer = store.getActiveLayer();
+
+        if (!layer || layer.status !== "ready") {
+            return;
+        }
+
+        const names = new Set(layer.schema.attributes.map((attribute) => attribute.name));
+        const usable = set.filters.filter((filter) => filter && names.has(filter.field));
+        const dropped = set.filters.length - usable.length;
+
+        store.setFilters(layer.id, usable, set.mode);
+        store.setStatus(dropped
+            ? `“${set.name}” aplicado; ${dropped} condição(ões) ignorada(s): atributo inexistente`
+            : `“${set.name}” aplicado`);
+    };
+
+    const closeSaveForm = ({ focus = false } = {}) => {
+        saveForm.hidden = true;
+        showError(null);
+
+        if (focus) {
+            saveOpen.focus();
+        }
+    };
+
+    saveOpen.addEventListener("click", () => {
+        const layer = store.getActiveLayer();
+
+        saveForm.hidden = false;
+        saveName.value = layer ? describeFilter(layer.filters[0]).slice(0, 60) : "";
+        saveName.focus();
+        saveName.select();
+    });
+
+    saveCancel.addEventListener("click", () => closeSaveForm({ focus: true }));
+
+    saveForm.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            /* Esc fecha só o formulário, não o painel inteiro. */
+            event.preventDefault();
+            event.stopPropagation();
+            closeSaveForm({ focus: true });
+        }
+    });
+
+    saveForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const layer = store.getActiveLayer();
+        const name = saveName.value.trim();
+
+        if (!layer || !layer.filters.length || !name) {
+            saveName.focus();
+            return;
+        }
+
+        const saved = saveFilterSet(layer.id, name, layer.filters, layer.filterMode);
+
+        store.setStatus(saved ? `Filtros salvos como “${name}”` : "Não foi possível salvar neste navegador");
+        closeSaveForm({ focus: true });
+        renderSaved();
+    });
+
     clearButton.addEventListener("click", () => {
         const layer = store.getActiveLayer();
 
@@ -383,8 +548,10 @@ export function createFilterPanel(store) {
     });
 
     store.on("active", () => {
+        closeSaveForm();
         renderFields();
         renderFilters();
+        renderSaved();
     });
 
     store.on("view", (layer) => {
@@ -395,4 +562,5 @@ export function createFilterPanel(store) {
 
     renderFields();
     renderFilters();
+    renderSaved();
 }

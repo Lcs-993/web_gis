@@ -19,7 +19,7 @@
    Camada (Layer):
      { id, name, color, url, attribution, source, visible,
        status: "loading" | "ready" | "error", error,
-       features, schema, geometryTypes, filters,
+       features, schema, geometryTypes, filters, filterMode,
        search: { term },
        view: { filtered, filteredSet, matches, matchSet, considered },
        index }
@@ -61,7 +61,7 @@ export function createStore() {
             return;
         }
 
-        const filtered = applyFilters(layer.features, layer.filters);
+        const filtered = applyFilters(layer.features, layer.filters, layer.filterMode);
         const term = layer.search.term;
         const matches = term ? search(layer.index, term, filtered) : null;
         const considered = matches || filtered;
@@ -122,6 +122,8 @@ export function createStore() {
             geometryTypes: {},
             metadata: { description: "", crs: "", bbox: null },
             filters: [],
+            /* Combinação das condições: "all" (E) ou "any" (OU). */
+            filterMode: "all",
             /* minZoom: rótulos só a partir desse zoom (null = sempre). */
             /* fields: um atributo por linha do rótulo (aceita "field" único, legado). */
             labels: {
@@ -380,6 +382,31 @@ export function createStore() {
         emitView(layer);
     };
 
+    const setFilterMode = (layerId, mode) => {
+        const layer = getLayer(layerId);
+        const next = mode === "any" ? "any" : "all";
+
+        if (!layer || layer.filterMode === next) {
+            return;
+        }
+
+        layer.filterMode = next;
+        emitView(layer);
+    };
+
+    /* Troca todos os filtros de uma vez (aplicar um conjunto salvo). */
+    const setFilters = (layerId, filters, mode = "all") => {
+        const layer = getLayer(layerId);
+
+        if (!layer) {
+            return;
+        }
+
+        layer.filters = filters.slice();
+        layer.filterMode = mode === "any" ? "any" : "all";
+        emitView(layer);
+    };
+
     const clearFilters = (layerId) => {
         const layer = getLayer(layerId);
 
@@ -388,6 +415,7 @@ export function createStore() {
         }
 
         layer.filters = [];
+        layer.filterMode = "all";
         emitView(layer);
     };
 
@@ -485,6 +513,8 @@ export function createStore() {
         addFilter,
         setFieldFilter,
         removeFilter,
+        setFilterMode,
+        setFilters,
         clearFilters,
         setSearch,
         select,

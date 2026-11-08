@@ -209,7 +209,7 @@ export function createColumnFilter(store) {
         const counts = new Map();
         let empties = 0;
 
-        applyFilters(layer.features, otherFilters).forEach((uid) => {
+        applyFilters(layer.features, otherFilters, layer.filterMode).forEach((uid) => {
             const value = getAttribute(layer.features[uid], attribute.name);
 
             if (isEmpty(value)) {

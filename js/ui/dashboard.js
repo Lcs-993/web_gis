@@ -28,7 +28,7 @@ import { createColumnFilter } from "./column-filter.js";
 import { CHART_TYPES, PART_LIMIT, renderChart, renderSubgroupChart, seriesColors } from "./charts.js";
 import { isCategory, isMetric, isNumeric } from "../data/schema.js";
 import { getAttribute, isEmpty, toNumber } from "../data/values.js";
-import { describeFilter } from "../data/filters.js";
+import { describeFilters } from "../data/filters.js";
 import { downloadText, rowsToCsv, safeFileName, toCsv } from "../data/csv.js";
 import { toKml } from "../data/kml-export.js";
 import { EMPTY_COLOR } from "../data/theme.js";
@@ -74,6 +74,7 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     const groupSubtitle = byId("group-subtitle");
     const groupField = byId("group-field");
     const groupMeasure = byId("group-measure");
+    const summaryKpis = byId("summary-kpis");
     const groupMeasureField = byId("group-measure-field");
     const groupOperator = byId("group-operator");
     const subRow = byId("group-sub");
@@ -155,7 +156,7 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         }
 
         if (layer.filters.length) {
-            parts.push(layer.filters.map(describeFilter).join(" · "));
+            parts.push(describeFilters(layer.filters, layer.filterMode));
         }
 
         if (layer.search.term) {
@@ -180,6 +181,50 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         }
     };
 
+    /*
+       Indicadores (KPIs) do conjunto considerado, no topo do Resumo:
+       feições, soma e média de uma medida e quantidade de grupos.
+       A medida é a do Operador quando ele usa uma; senão, o 1º número
+       decimal da camada (inteiros costumam ser códigos: somá-los não
+       tem sentido). Com filtro ou busca, cada número mostra também a
+       fração do total da camada.
+    */
+    const renderKpis = (layer, features, { metric = null, groupAttribute = null, groupCount = null } = {}) => {
+        const total = layer.features.length;
+        const partial = features.length !== total;
+        const share = (part, whole) => whole ? `${formatNumber((part / whole) * 100, 1)}% do total` : null;
+
+
+        const tile = (label, value, caption) => el("div", { class: "kpi" }, [
+            el("dt", { class: "kpi-label", text: label, title: label }),
+            el("dd", { class: "kpi-value", text: value }),
+            caption ? el("dd", { class: "kpi-caption", text: caption }) : null
+        ]);
+
+        const tiles = [
+            tile("Feições", formatCount(features.length), partial ? share(features.length, total) : null)
+        ];
+
+        const measure = metric || layer.schema.attributes.find((attribute) => attribute.role === "measure") || null;
+
+        if (measure) {
+            const sum = columnSummary(features, measure, "sum");
+            const mean = columnSummary(features, measure, "mean");
+            const layerSum = partial ? columnSummary(layer.features, measure, "sum") : null;
+
+            tiles.push(
+                tile(`Soma de ${measure.name}`, formatNumber(sum), partial && layerSum ? share(sum || 0, layerSum) : null),
+                tile(`Média de ${measure.name}`, formatNumber(mean), null)
+            );
+        }
+
+        if (groupAttribute && groupCount !== null) {
+            tiles.push(tile(`Valores de ${groupAttribute.name}`, formatCount(groupCount), null));
+        }
+
+        summaryKpis.replaceChildren(...tiles);
+    };
+
     const renderGroups = (layer, features) => {
         const groupable = layer.schema.attributes.filter(isCategory);
         const numeric = layer.schema.attributes.filter(isMetric);
@@ -197,6 +242,7 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
                 class: "group-empty",
                 text: "Esta camada não tem atributos do tipo categoria para agrupar."
             }));
+            renderKpis(layer, features);
             return;
         }
 
@@ -265,6 +311,8 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         const series = subAttribute ? seriesOf(result, subAttribute, formatResult) : null;
 
         summaryInfo = { attribute, metric, operator, subAttribute };
+
+        renderKpis(layer, features, { metric, groupAttribute: attribute, groupCount: result.groupCount });
 
         /*
            Título do card dos dados: o que foi calculado e por quê
