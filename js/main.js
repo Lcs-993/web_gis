@@ -195,7 +195,26 @@ const openSelectionPopup = (selection) => {
     const feature = store.getSelectedFeature();
 
     if (layer && feature) {
-        mapView.openPopup({ ...selection, latlng: pendingLatLng }, buildPopup(layer, feature));
+        const { layerId, uid } = selection;
+
+        mapView.openPopup({ ...selection, latlng: pendingLatLng }, buildPopup(layer, feature, {
+            onZoom: () => mapView.fitFeatures(layerId, [uid], MAP_OPTIONS.fitMaxZoom + 1),
+            /*
+               Abre o Analytics na camada da feição: a tabela vai até a
+               linha (presentSelection) e o popup dá lugar a ela.
+            */
+            onShowInTable: dashboard
+                ? () => {
+                    store.setActiveLayer(layerId);
+
+                    if (panels.isOpen("dashboard")) {
+                        presentSelection(store.state.selection);
+                    } else {
+                        panels.open("dashboard");
+                    }
+                }
+                : null
+        }));
     }
 
     pendingLatLng = null;

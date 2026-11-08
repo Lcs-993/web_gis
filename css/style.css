@@ -44,6 +44,8 @@
     --color-accent-soft: rgba(255, 59, 48, 0.08);
     --color-on-accent: #ffffff;
     --color-highlight: #2f80ed;
+    /* Texto de ações (links do iOS): ≥ 4,5:1 sobre as superfícies. */
+    --color-action: #0066cc;
 
     --border-hairline: rgba(0, 0, 0, 0.08);
     --border-hover: rgba(0, 0, 0, 0.04);
@@ -105,6 +107,7 @@
     --color-accent: #ff453a;
     --color-accent-soft: rgba(255, 69, 58, 0.14);
     --color-highlight: #5aa9ff;
+    --color-action: #64b0ff;
 
     --border-hairline: rgba(255, 255, 255, 0.12);
     --border-hover: rgba(255, 255, 255, 0.06);
@@ -364,6 +367,18 @@ ol {
     display: none;
 }
 
+@keyframes module-sheet-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
 @keyframes module-menu-in {
     from {
         opacity: 0;
@@ -376,10 +391,39 @@ ol {
     }
 }
 
-.module-menu-list.tone-orange { --tone: #ff9500; }
-.module-menu-list.tone-green  { --tone: #34c759; }
-.module-menu-list.tone-blue   { --tone: #0a84ff; }
-.module-menu-list.tone-gray   { --tone: #8e8e93; }
+/* Tom na lista (menus completos) ou no item (folha compacta, que mistura menus). */
+.module-menu .tone-orange { --tone: #ff9500; }
+.module-menu .tone-green  { --tone: #34c759; }
+.module-menu .tone-blue   { --tone: #0a84ff; }
+.module-menu .tone-gray   { --tone: #8e8e93; }
+
+/* Versão compacta: só aparece em telas estreitas (ver seção 10). */
+.module-menu-compact {
+    display: none;
+}
+
+.module-menu-compact-trigger {
+    width: 32px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--fill-segment);
+    color: var(--color-text);
+}
+
+.module-menu-compact-trigger:hover {
+    background: var(--fill-segment-hover);
+}
+
+.module-menu-compact-icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Títulos de seção dentro da folha: espaço extra a partir do segundo. */
+.module-menu-sheet .module-menu-item + .module-menu-title {
+    margin-top: 14px;
+}
 
 .module-menu-title {
     margin: 6px 12px 8px;
@@ -652,6 +696,11 @@ ol {
     outline-offset: -2px;
 }
 
+/* Foco vindo de clique/toque (ver leaflet-view.js): sem anel. */
+.map-background.is-pointer-focus:focus-visible {
+    outline: none;
+}
+
 /* Tela cheia: classe aplicada pelo JS após a confirmação do navegador. */
 .map-container.is-fullscreen {
     width: 100vw;
@@ -684,49 +733,216 @@ ol {
     box-shadow: var(--shadow-dropdown);
 }
 
+.feature-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: 16px;
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+}
+
 .feature-popup .leaflet-popup-content {
-    min-width: 200px;
-    max-height: 50vh;
-    overflow-y: auto;
-    margin: 14px 16px;
+    width: 300px !important;
+    max-width: calc(100vw - 48px);
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
 }
 
 .feature-popup a.leaflet-popup-close-button {
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-segment);
     color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1;
+    transition: background-color var(--duration) ease, color var(--duration) ease;
+}
+
+.feature-popup a.leaflet-popup-close-button:hover {
+    background: var(--fill-segment-hover);
+    color: var(--color-text);
+}
+
+.feature-popup-body {
+    display: flex;
+    flex-direction: column;
+    max-height: min(56vh, 460px);
+}
+
+/* Cabeçalho: camada · atributo do título (kicker) e o título da feição. */
+.feature-popup-header {
+    padding: 14px 44px 10px 16px;
 }
 
 .feature-popup-layer {
-    margin-bottom: 8px;
+    overflow: hidden;
     color: var(--color-text-subtle);
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.feature-info {
-    display: grid;
-    gap: 2px;
-}
-
-.feature-info dt {
-    color: var(--color-field-label);
-    font-size: 10px;
-    font-weight: 700;
     letter-spacing: 0.02em;
-    text-transform: uppercase;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.feature-info dd {
-    margin: 0 0 8px;
+.feature-popup-title {
+    margin-top: 2px;
     color: var(--color-text);
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.3px;
     overflow-wrap: anywhere;
 }
 
-.feature-info dd:last-child {
-    margin-bottom: 0;
+.feature-popup-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    gap: 10px;
+    padding: 0 12px 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* Destaques: medidas em blocos lado a lado. */
+.feature-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+    gap: 6px;
+}
+
+.feature-highlight {
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--fill-segment);
+}
+
+.feature-highlight dt {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.feature-highlight dd {
+    margin: 1px 0 0;
+    color: var(--color-text);
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.3px;
+    overflow-wrap: anywhere;
+}
+
+/* Detalhes: lista agrupada, separadores finos recuados (iOS). */
+.feature-info {
+    display: grid;
+    border-radius: 10px;
+    background: var(--fill-segment);
+}
+
+.feature-info-row {
+    position: relative;
+    padding: 7px 12px;
+}
+
+.feature-info-row + .feature-info-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 12px;
+    height: 0.5px;
+    background: var(--border-hairline);
+}
+
+.feature-info dt {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.feature-info dd {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 13px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.feature-info-empty {
+    color: var(--color-text-muted);
+}
+
+/* Atributos sem valor: recolhidos numa linha discreta. */
+.feature-blank {
+    padding: 0 4px;
+    color: var(--color-text-subtle);
+    font-size: 12px;
+}
+
+.feature-blank summary {
+    width: fit-content;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.feature-blank summary:hover {
+    color: var(--color-text-muted);
+}
+
+.feature-blank-list {
+    margin-top: 4px;
+    overflow-wrap: anywhere;
+}
+
+/* Ações: botões discretos no rodapé, fora da área que rola. */
+.feature-popup-actions {
+    display: flex;
+    gap: 6px;
+    padding: 10px 12px 12px;
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+.feature-popup-action {
+    flex: 1 1 0;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 10px;
+    border-radius: 9px;
+    background: var(--fill-segment);
+    color: var(--color-action);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color var(--duration) ease, transform var(--duration) ease;
+}
+
+.feature-popup-action:hover {
+    background: var(--fill-segment-hover);
+}
+
+.feature-popup-action:active {
+    transform: scale(0.97);
+}
+
+.feature-popup-action svg {
+    width: 16px;
+    height: 16px;
 }
 
 /* ---------- Pontos com ícone de imagem (ex.: usina) ---------- */
@@ -3512,9 +3728,35 @@ th[aria-sort="descending"] .table-sort::after {
         padding: 0 14px;
     }
 
-    /* Sem espaço para os quatro menus; a versão para celular vem com os módulos. */
-    .module-menu {
+    /*
+       Sem espaço para os quatro menus: um botão único, ao lado das
+       ações, abre todos numa folha de largura total (estilo iOS).
+    */
+    .topbar {
+        grid-template-columns: 1fr auto auto;
+        gap: 8px;
+    }
+
+    .module-menu-group:not(.module-menu-compact) {
         display: none;
+    }
+
+    .module-menu-compact {
+        display: block;
+    }
+
+    .module-menu-sheet {
+        position: fixed;
+        top: calc(var(--topbar-h) + 8px);
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-height: calc(100dvh - var(--topbar-h) - 24px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        transform: none;
+        transform-origin: top right;
+        animation-name: module-sheet-in;
     }
 
     .filter-panel {
@@ -3538,6 +3780,50 @@ th[aria-sort="descending"] .table-sort::after {
     .map-controls button {
         width: 36px;
         height: 36px;
+    }
+
+    /*
+       Cabeçalho do Analytics compacto: título e ações na 1ª linha,
+       busca na 2ª, camada e abas na 3ª. Sobra altura para a tabela.
+    */
+    .dashboard-header {
+        gap: 8px;
+        padding: 8px 12px;
+    }
+
+    .dashboard-icon,
+    .dashboard-layer .field-label {
+        display: none;
+    }
+
+    .dashboard-heading {
+        flex: 1 1 auto;
+        order: 0;
+    }
+
+    .dashboard-actions {
+        order: 1;
+    }
+
+    .dashboard-search {
+        flex: 1 1 100%;
+        order: 2;
+    }
+
+    .dashboard-header .dashboard-layer {
+        flex: 1 1 0;
+        min-width: 0;
+        margin-left: 0;
+        order: 3;
+    }
+
+    .dashboard-layer select {
+        width: 100%;
+        max-width: none;
+    }
+
+    .dashboard-header .tabs {
+        order: 4;
     }
 
     /* Sem altura para a pilha de controles acima do dashboard; ele tem seu próprio "×". */

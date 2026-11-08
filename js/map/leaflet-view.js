@@ -188,6 +188,19 @@ export function createMapView(L, element, { options, basemaps }) {
         worldCopyJump: true
     });
 
+    /*
+       O Leaflet dá focus() no mapa a cada clique, e o navegador trata
+       esse foco por script como de teclado: o mapa inteiro ganhava o
+       anel azul. O anel fica só para quem chega pelo teclado (Tab).
+    */
+    element.addEventListener("pointerdown", () => element.classList.add("is-pointer-focus"));
+    element.addEventListener("keydown", (event) => {
+        if (event.key === "Tab") {
+            element.classList.remove("is-pointer-focus");
+        }
+    });
+    element.addEventListener("blur", () => element.classList.remove("is-pointer-focus"));
+
     const renderer = L.canvas({ padding: 0.5 });
 
 
