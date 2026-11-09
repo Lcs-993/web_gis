@@ -7,128 +7,214 @@
    3. Mapa, Leaflet, popup
    4. Ferramentas sobre o mapa (busca, filtros)
    5. Componentes (botões, campos, badge, painéis)
-   6. Sidebar de camadas
+   6. Painel Camadas (conteúdo)
    7. Painel de filtros
    8. Dashboard (resumo e tabela)
    9. Controles do mapa e mapa base
-   10. Responsivo e movimento reduzido
+   10. Estrutura: barras laterais e painéis
+   11. Movimento reduzido
    ============================================================ */
 
 
 /* ============================================================
    0. TOKENS
+
+   Duas camadas:
+
+   0a. Sistema de design (vidro fosco). Os nomes do briefing:
+       superfícies (--glass-*), texto, acento, alertas, raios,
+       ícones e movimento. Escuro é o padrão (:root); o claro vem
+       em [data-theme="light"]. Trocar a cor de acento = mudar
+       --accent, --accent-soft, --accent-text e --accent-contrast.
+
+   0b. Aliases legados (--color-*, --blur-*, --shadow-*): os
+       componentes antigos continuam lendo esses nomes, que agora
+       apontam para o sistema novo. Componentes novos usam só 0a.
+
+   Legibilidade sobre o satélite: o vidro é bem opaco (66% no
+   escuro, 76% no claro) e o texto passa de 4,5:1 (WCAG AA) sobre
+   o pior caso da imagem por trás.
    ============================================================ */
 
+/* ---------- 0a. Sistema de design: tema escuro (padrão) ---------- */
+
 :root {
-    color-scheme: light;
-
-    --color-bg: #f5f5f7;
-    --color-surface: rgba(250, 250, 252, 0.74);
-    --color-surface-strong: rgba(250, 250, 252, 0.64);
-    --color-surface-solid: rgba(255, 255, 255, 0.86);
-    --color-surface-bright: rgba(255, 255, 255, 0.88);
-    --color-surface-opaque: #f7f7f9;
-    --color-map-bg: #d9ddd9;
-    --color-popup: rgba(252, 252, 253, 0.95);
-
-    --color-text: #1d1d1f;
-    --color-text-muted: #6e6e73;
-    --color-text-subtle: #8e8e93;
-    --color-text-label: #3a3a3c;
-
-    --color-brand: #50ab46;
-    /* Nomes dos campos nos popups: mesmo verde-claro nos dois temas. */
-    --color-field-label: #9acd83;
-    --color-brand-soft: rgba(80, 171, 70, 0.14);
-    --color-brand-strong: #2e7d32;
-    --color-accent: #ff3b30;
-    --color-accent-soft: rgba(255, 59, 48, 0.08);
-    --color-on-accent: #ffffff;
-    --color-highlight: #2f80ed;
-    /* Texto de ações (links do iOS): ≥ 4,5:1 sobre as superfícies. */
-    --color-action: #0066cc;
-
-    --border-hairline: rgba(0, 0, 0, 0.08);
-    --border-hover: rgba(0, 0, 0, 0.04);
-
-    --hover-bg: rgba(0, 0, 0, 0.045);
-    --active-bg: rgba(0, 0, 0, 0.06);
-    --pressed-bg: rgba(0, 0, 0, 0.075);
-    --focus-ring: rgba(0, 122, 255, 0.55);
-
-    --blur-glass: blur(24px) saturate(170%);
-    --shadow-dropdown: 0 12px 32px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
-    --shadow-panel: 0 8px 28px rgba(0, 0, 0, 0.12);
-    --shadow-toggle: 0 4px 14px rgba(0, 0, 0, 0.10);
-    --shadow-toggle-hover: 0 6px 18px rgba(0, 0, 0, 0.14);
-
-    /* Barra superior e controle segmentado (materiais do iOS) */
-    --color-bar: rgba(249, 249, 249, 0.78);
-    --border-bar: rgba(0, 0, 0, 0.18);
-    --blur-bar: blur(20px) saturate(180%);
-    --fill-segment: rgba(118, 118, 128, 0.12);
-    --fill-segment-hover: rgba(118, 118, 128, 0.20);
-    --segment-selected: #ffffff;
-    --shadow-segment: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
-
-    --topbar-h: 56px;
-    /* Rodapé translúcido sobre o mapa (coordenadas e zoom). */
-    --footer-h: 26px;
-    --sidebar-w: 320px;
-    --gutter: 16px;
-    --dashboard-h: 46%;
-
-    --radius-sm: 9px;
-    --radius-md: 10px;
-    --radius-lg: 12px;
-
-    --duration: 220ms;
-}
-
-[data-theme="dark"] {
     color-scheme: dark;
 
+    /* Superfícies de vidro */
+    --glass-bg: rgba(30, 30, 33, 0.66);
+    /* Cartão interno: véu claro sobre o vidro do painel (a hierarquia vem do aninhamento). */
+    --glass-bg-strong: rgba(255, 255, 255, 0.07);
+    /* Menus, pop-ups e diálogos: mais opacos, pois ficam sobre conteúdo variado. */
+    --glass-bg-solid: rgba(36, 36, 40, 0.92);
+    /* Sem desfoque (fallback e .sem-blur): mais opaco para manter a leitura. */
+    --glass-bg-fallback: rgba(30, 30, 33, 0.94);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-blur: blur(22px) saturate(160%);
+    --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.30);
+
+    /* Texto */
+    --text: #f5f5f7;
+    --text-muted: #a8a8ae;
+    --text-disabled: #6c6c72;
+
+    /* Verde Bambuí: fixo nos dois temas (marca, camadas, sucesso). */
+    --brand-green: #5cb83f;
+    --success: var(--brand-green);
+
+    /* Acento. Escuro: verde Bambuí no fundo, texto escuro por cima (~8:1).
+       Claro: azul (ver [data-theme="light"]). */
+    --accent: #5cb83f;
+    --accent-contrast: #0f1f0a;
+    --accent-soft: rgba(92, 184, 63, 0.20);
+    /* Acento como cor de texto/ícone sobre o vidro (legível em cada tema). */
+    --accent-text: #7fd063;
+
+    /* Alertas. --danger é o vermelho Bambuí (fundos e ícones);
+       --danger-text é a versão legível como texto em cada tema. */
+    --danger: #e53935;
+    --danger-contrast: #ffffff;
+    --danger-text: #ff6f6b;
+    --warning: #f5a524;
+    --info: #4ea8ff;
+
+    /* Raios */
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 8px;
+    --radius-pill: 999px;
+
+    /* Ícones temáticos do sprite: o preenchimento claro sai da cor do
+       traço; o fundo interno imita a superfície onde o ícone está. */
+    --icon-fill: color-mix(in srgb, currentColor 18%, transparent);
+    --icon-bg: #232326;
+
+    /* Movimento */
+    --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+    --dur-fast: 150ms;
+    --dur: 250ms;
+}
+
+/* ---------- 0a. Sistema de design: tema claro ---------- */
+
+[data-theme="light"] {
+    color-scheme: light;
+
+    --glass-bg: rgba(255, 255, 255, 0.76);
+    --glass-bg-strong: rgba(255, 255, 255, 0.62);
+    --glass-bg-solid: rgba(252, 252, 253, 0.94);
+    --glass-bg-fallback: rgba(250, 250, 252, 0.96);
+    --glass-border: rgba(255, 255, 255, 0.55);
+    --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.10);
+
+    --text: #1d1d1f;
+    --text-muted: #5c5c63;
+    --text-disabled: #a5a5ab;
+
+    --brand-green: var(--accent);
+    --success: var(--accent);
+
+    /* Acento azul no tema claro: texto branco por cima (4,7:1) e
+       versão de texto mais escura (≥ 5:1 sobre o vidro claro). */
+    --accent: #0071e3;
+    --accent-contrast: #ffffff;
+    --accent-soft: rgba(0, 113, 227, 0.12);
+    --accent-text: #0062c4;
+
+    --danger-text: #c62828;
+
+    --icon-bg: #f4f4f6;
+}
+
+/* ---------- Sem desfoque: navegador sem suporte ou .sem-blur ----------
+   backdrop-filter sobre o mapa em movimento custa caro em máquinas
+   fracas. Sem ele, o vidro vira uma superfície quase sólida.
+   Para ligar à mão: localStorage.setItem("webgis-sem-blur", "1")
+   e recarregar (js/theme.js aplica a classe no <html>). */
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root,
+    :root[data-theme="light"] {
+        --glass-blur: none;
+        --glass-bg: var(--glass-bg-fallback);
+    }
+}
+
+:root.sem-blur,
+:root.sem-blur[data-theme="light"] {
+    --glass-blur: none;
+    --glass-bg: var(--glass-bg-fallback);
+}
+
+
+/* ---------- 0b. Tokens complementares: tema escuro (padrão) ---------- */
+
+:root {
     --color-bg: #1c1c1e;
-    --color-surface: rgba(34, 34, 36, 0.72);
-    --color-surface-strong: rgba(34, 34, 36, 0.62);
     --color-surface-solid: rgba(48, 48, 50, 0.86);
-    --color-surface-bright: rgba(70, 70, 74, 0.90);
     --color-surface-opaque: #2c2c2e;
     --color-map-bg: #232326;
-    --color-popup: rgba(40, 40, 42, 0.95);
 
-    --color-text: #f5f5f7;
-    --color-text-muted: #a1a1a6;
     --color-text-subtle: #8e8e93;
     --color-text-label: #d1d1d6;
 
-    --color-brand: #5bbd51;
+    /* Nomes dos campos nos popups: mesmo verde-claro nos dois temas. */
     --color-field-label: #9acd83;
-    --color-brand-soft: rgba(91, 189, 81, 0.18);
-    --color-accent: #ff453a;
-    --color-accent-soft: rgba(255, 69, 58, 0.14);
-    --color-highlight: #5aa9ff;
     --color-action: #64b0ff;
 
-    --border-hairline: rgba(255, 255, 255, 0.12);
-    --border-hover: rgba(255, 255, 255, 0.06);
+    --border-hairline: var(--glass-border);
 
     --hover-bg: rgba(255, 255, 255, 0.06);
     --active-bg: rgba(255, 255, 255, 0.10);
-    --pressed-bg: rgba(255, 255, 255, 0.13);
-    --focus-ring: rgba(10, 132, 255, 0.75);
 
-    --color-bar: rgba(29, 29, 31, 0.80);
-    --border-bar: rgba(255, 255, 255, 0.14);
+    --shadow-toggle: 0 4px 14px rgba(0, 0, 0, 0.46);
+
+    --border-bar: var(--glass-border);
     --fill-segment: rgba(118, 118, 128, 0.24);
     --fill-segment-hover: rgba(118, 118, 128, 0.34);
     --segment-selected: #636366;
     --shadow-segment: 0 3px 8px rgba(0, 0, 0, 0.24), 0 3px 1px rgba(0, 0, 0, 0.08);
 
-    --shadow-dropdown: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
-    --shadow-panel: 0 8px 28px rgba(0, 0, 0, 0.50);
-    --shadow-toggle: 0 4px 14px rgba(0, 0, 0, 0.46);
-    --shadow-toggle-hover: 0 6px 18px rgba(0, 0, 0, 0.56);
+    --topbar-h: 48px;
+    /* Rodapé translúcido sobre o mapa (coordenadas e zoom). */
+    --footer-h: 26px;
+    --sidebar-w: 320px;
+    /* Altura da coluna de controles do mapa (localização, início, zoom): o cartão da feição para acima dela. */
+    --map-controls-h: 216px;
+    --gutter: 16px;
+    --dashboard-h: 46%;
+}
+
+/* ---------- 0b. Tokens complementares: tema claro ---------- */
+
+[data-theme="light"] {
+    --color-bg: #f5f5f7;
+    --color-surface-solid: rgba(255, 255, 255, 0.86);
+    --color-surface-opaque: #f7f7f9;
+    --color-map-bg: #d9ddd9;
+
+    --color-text-subtle: #8e8e93;
+    --color-text-label: #3a3a3c;
+    --color-field-label: var(--accent-text);
+
+    /* Texto de ações (links do iOS): ≥ 4,5:1 sobre as superfícies. */
+    --color-action: #0066cc;
+
+    /* No claro, o filete branco some contra o vidro: usa-se cinza. */
+    --border-hairline: rgba(0, 0, 0, 0.08);
+
+    --hover-bg: rgba(0, 0, 0, 0.045);
+    --active-bg: rgba(0, 0, 0, 0.06);
+
+    --shadow-toggle: 0 4px 14px rgba(0, 0, 0, 0.10);
+
+    --border-bar: rgba(0, 0, 0, 0.12);
+    --fill-segment: rgba(118, 118, 128, 0.12);
+    --fill-segment-hover: rgba(118, 118, 128, 0.20);
+    --segment-selected: #ffffff;
+    --shadow-segment: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
 }
 
 
@@ -153,7 +239,7 @@ body {
 body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     background: var(--color-bg);
-    color: var(--color-text);
+    color: var(--text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
@@ -190,7 +276,7 @@ ol {
 }
 
 :focus-visible {
-    outline: 2px solid var(--focus-ring);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
 
@@ -232,10 +318,10 @@ ol {
     align-items: center;
     gap: 16px;
     padding: 0 16px 0 20px;
-    background: var(--color-bar);
+    background: var(--glass-bg);
     border-bottom: 0.5px solid var(--border-bar);
-    backdrop-filter: var(--blur-bar);
-    -webkit-backdrop-filter: var(--blur-bar);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     z-index: 100;
 }
 
@@ -281,7 +367,7 @@ ol {
     margin-left: 4px;
     padding-left: 12px;
     border-left: 1px solid var(--border-hairline);
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 15px;
     font-weight: 500;
 }
@@ -298,6 +384,7 @@ ol {
     display: flex;
     align-items: center;
     gap: 2px;
+    margin-left: 96px;
 }
 
 .module-menu:empty {
@@ -320,207 +407,29 @@ ol {
     font-weight: 500;
     letter-spacing: -0.24px;
     white-space: nowrap;
-    transition: background-color var(--duration) ease, color var(--duration) ease;
+    transition: background-color var(--dur) ease, color var(--dur) ease;
 }
 
 .module-menu-trigger:hover {
     background: var(--hover-bg);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 /* Menu aberto: fundo suave e texto na cor de destaque (tint do iOS). */
 .module-menu-trigger[aria-expanded="true"] {
     background: var(--fill-segment);
-    color: var(--color-brand);
+    color: var(--accent);
 }
 
 .module-menu-chevron {
     width: 12px;
     height: 12px;
     opacity: 0.6;
-    transition: transform var(--duration) ease;
+    transition: transform var(--dur) ease;
 }
 
 .module-menu-trigger[aria-expanded="true"] .module-menu-chevron {
     transform: rotate(180deg);
-}
-
-.module-menu-list {
-    --tone: var(--color-text-muted);
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 50%;
-    width: 340px;
-    display: flex;
-    flex-direction: column;
-    padding: 6px;
-    border: 0.5px solid var(--border-hairline);
-    border-radius: 14px;
-    background: var(--color-surface-opaque);
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.14);
-    transform: translateX(-50%);
-    transform-origin: top center;
-    z-index: 1200;
-    animation: module-menu-in 180ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
-}
-
-.module-menu-list[hidden] {
-    display: none;
-}
-
-@keyframes module-sheet-in {
-    from {
-        opacity: 0;
-        transform: translateY(-6px) scale(0.98);
-    }
-
-    to {
-        opacity: 1;
-        transform: none;
-    }
-}
-
-@keyframes module-menu-in {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-6px) scale(0.96);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(-50%);
-    }
-}
-
-/* Tom na lista (menus completos) ou no item (folha compacta, que mistura menus). */
-.module-menu .tone-orange { --tone: #ff9500; }
-.module-menu .tone-green  { --tone: #34c759; }
-.module-menu .tone-blue   { --tone: #0a84ff; }
-.module-menu .tone-gray   { --tone: #8e8e93; }
-
-/* Versão compacta: só aparece em telas estreitas (ver seção 10). */
-.module-menu-compact {
-    display: none;
-}
-
-.module-menu-compact-trigger {
-    width: 32px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 50%;
-    background: var(--fill-segment);
-    color: var(--color-text);
-}
-
-.module-menu-compact-trigger:hover {
-    background: var(--fill-segment-hover);
-}
-
-.module-menu-compact-icon {
-    width: 18px;
-    height: 18px;
-}
-
-/* Títulos de seção dentro da folha: espaço extra a partir do segundo. */
-.module-menu-sheet .module-menu-item + .module-menu-title {
-    margin-top: 14px;
-}
-
-.module-menu-title {
-    margin: 6px 12px 8px;
-    color: var(--color-text-subtle);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: -0.08px;
-}
-
-.module-menu-item {
-    position: relative;
-    min-height: 56px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: 10px;
-    text-align: left;
-}
-
-/* Separador fino, recuado até o texto (como nas listas do iOS). */
-.module-menu-item + .module-menu-item::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 10px;
-    left: 54px;
-    height: 0.5px;
-    background: var(--border-hairline);
-}
-
-.module-menu-item:hover::before,
-.module-menu-item:hover + .module-menu-item::before,
-.module-menu-item:focus-visible::before,
-.module-menu-item:focus-visible + .module-menu-item::before {
-    opacity: 0;
-}
-
-.module-menu-item:hover,
-.module-menu-item:focus-visible {
-    background: var(--hover-bg);
-    outline: none;
-}
-
-.module-menu-item:not(.is-soon):active {
-    background: var(--fill-segment);
-}
-
-.module-menu-icon {
-    flex: none;
-    width: 32px;
-    height: 32px;
-    display: grid;
-    place-items: center;
-    border-radius: 8px;
-    background: var(--tone);
-    color: #ffffff;
-}
-
-.module-menu-icon-svg {
-    width: 19px;
-    height: 19px;
-}
-
-.module-menu-item-text {
-    flex: 1;
-    min-width: 0;
-    display: grid;
-    gap: 2px;
-}
-
-.module-menu-item-label {
-    color: var(--color-text);
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: -0.24px;
-}
-
-.module-menu-item-description {
-    color: var(--color-text-subtle);
-    font-size: 13px;
-    line-height: 1.3;
-    letter-spacing: -0.08px;
-}
-
-.module-menu-item.is-soon {
-    cursor: default;
-}
-
-.module-menu-item.is-soon .module-menu-icon {
-    opacity: 0.55;
-}
-
-.module-menu-item.is-soon .module-menu-item-label {
-    color: var(--color-text-muted);
 }
 
 .module-menu-soon {
@@ -546,15 +455,6 @@ ol {
 /* Âncora de cartões que abrem sob um botão da barra (ex.: aviso "Em breve" da IA). */
 .topbar-popover-anchor {
     position: relative;
-}
-
-.ai-button[aria-expanded="true"] {
-    background: var(--fill-segment-hover);
-}
-
-/* Assistente de IA: ícone na cor roxa do recurso. */
-.ai-button svg {
-    color: #af52de;
 }
 
 /* Cartão "Em breve": mesmo visual dos itens dos menus de módulos. */
@@ -591,22 +491,6 @@ ol {
     }
 }
 
-.coming-soon-icon {
-    flex: none;
-    width: 32px;
-    height: 32px;
-    display: grid;
-    place-items: center;
-    border-radius: 8px;
-    background: #af52de;
-    color: #ffffff;
-}
-
-.coming-soon-icon svg {
-    width: 19px;
-    height: 19px;
-}
-
 .coming-soon-text {
     flex: 1;
     min-width: 0;
@@ -615,7 +499,7 @@ ol {
 }
 
 .coming-soon-title {
-    color: var(--color-text);
+    color: var(--text);
     font-size: 15px;
     font-weight: 500;
     letter-spacing: -0.24px;
@@ -637,8 +521,8 @@ ol {
     justify-content: center;
     border-radius: 50%;
     background: var(--fill-segment);
-    color: var(--color-text);
-    transition: background-color var(--duration) ease, transform var(--duration) ease;
+    color: var(--text);
+    transition: background-color var(--dur) ease, transform var(--dur) ease;
 }
 
 .topbar-icon-button:hover {
@@ -702,12 +586,6 @@ ol {
     outline: none;
 }
 
-/* Tela cheia: classe aplicada pelo JS após a confirmação do navegador. */
-.map-container.is-fullscreen {
-    width: 100vw;
-    height: 100vh;
-}
-
 .leaflet-container {
     background: var(--color-map-bg);
     font-family: inherit;
@@ -719,57 +597,12 @@ ol {
 }
 
 [data-theme="dark"] .leaflet-control-attribution {
-    background: var(--color-surface-strong);
+    background: var(--glass-bg);
     color: var(--color-text-subtle);
 }
 
 [data-theme="dark"] .leaflet-control-attribution a {
-    color: var(--color-text-muted);
-}
-
-.feature-popup .leaflet-popup-content-wrapper,
-.feature-popup .leaflet-popup-tip {
-    background: var(--color-popup);
-    color: var(--color-text);
-    box-shadow: var(--shadow-dropdown);
-}
-
-.feature-popup .leaflet-popup-content-wrapper {
-    padding: 0;
-    border: 0.5px solid var(--border-hairline);
-    border-radius: 16px;
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-}
-
-.feature-popup .leaflet-popup-content {
-    width: 300px !important;
-    max-width: calc(100vw - 48px);
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.feature-popup a.leaflet-popup-close-button {
-    top: 10px;
-    right: 10px;
-    width: 26px;
-    height: 26px;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--fill-segment);
-    color: var(--color-text-muted);
-    font-family: inherit;
-    font-size: 17px;
-    font-weight: 500;
-    line-height: 1;
-    transition: background-color var(--duration) ease, color var(--duration) ease;
-}
-
-.feature-popup a.leaflet-popup-close-button:hover {
-    background: var(--fill-segment-hover);
-    color: var(--color-text);
+    color: var(--text-muted);
 }
 
 .feature-popup-body {
@@ -795,7 +628,7 @@ ol {
 
 .feature-popup-title {
     margin-top: 2px;
-    color: var(--color-text);
+    color: var(--text);
     font-size: 17px;
     font-weight: 600;
     line-height: 1.25;
@@ -829,7 +662,7 @@ ol {
 
 .feature-highlight dt {
     overflow: hidden;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 11px;
     font-weight: 500;
     text-overflow: ellipsis;
@@ -838,7 +671,7 @@ ol {
 
 .feature-highlight dd {
     margin: 1px 0 0;
-    color: var(--color-text);
+    color: var(--text);
     font-size: 17px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -869,21 +702,21 @@ ol {
 }
 
 .feature-info dt {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 11px;
     font-weight: 500;
 }
 
 .feature-info dd {
     margin: 0;
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
     line-height: 1.35;
     overflow-wrap: anywhere;
 }
 
 .feature-info-empty {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 /* Atributos sem valor: recolhidos numa linha discreta. */
@@ -900,7 +733,7 @@ ol {
 }
 
 .feature-blank summary:hover {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .feature-blank-list {
@@ -930,7 +763,7 @@ ol {
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
-    transition: background-color var(--duration) ease, transform var(--duration) ease;
+    transition: background-color var(--dur) ease, transform var(--dur) ease;
 }
 
 .feature-popup-action:hover {
@@ -946,25 +779,168 @@ ol {
     height: 16px;
 }
 
-/* ---------- Cartão da feição (seleção com o Analytics aberto) ---------- */
+/*
+   ---------- Modo apresentação (Apresentar / F) ----------
+   Em tela cheia (#app.is-fullscreen, js/ui/map-controls.js) as
+   barras saem do fluxo: o mapa ocupa a tela inteira, com a busca e
+   os controles. Com o mouse na borda, a barra volta por cima do
+   mapa (.is-revealed) e some de novo quando o mouse sai.
+*/
+.app.is-fullscreen .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1300;
+    transform: translateY(-100%);
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.app.is-fullscreen .toolbar-left {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1290;
+    transform: translateX(-100%);
+    transition: transform var(--dur) var(--ease), width var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.app.is-fullscreen .topbar.is-revealed,
+.app.is-fullscreen .toolbar-left.is-revealed {
+    transform: none;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Com as duas à vista, a barra esquerda começa abaixo da superior. */
+.app.is-fullscreen .topbar.is-revealed ~ .workspace .toolbar-left.is-revealed {
+    top: var(--topbar-h);
+}
+
+/* Barra esquerda à vista: a janela aberta ao lado dela abre espaço, em vez de ficar coberta. */
+.app.is-fullscreen .side-panel-left {
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), left var(--dur) var(--ease), visibility 0s linear var(--dur);
+}
+
+.app.is-fullscreen .side-panel-left.is-open {
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), left var(--dur) var(--ease);
+}
+
+.app.present-left-open .side-panel-left {
+    left: 56px;
+}
+
+.app.present-left-open .toolbar-left.is-expanded ~ .map-container .side-panel-left {
+    left: 248px;
+}
+
+/* Puxadores: indicam onde as barras escondidas voltam; somem com a barra à vista. */
+.present-handle {
+    display: none;
+    position: fixed;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 1280;
+    transition: opacity var(--dur) var(--ease);
+}
+
+.present-handle-top {
+    top: 5px;
+    left: 50%;
+    width: 44px;
+    height: 4px;
+    transform: translateX(-50%);
+}
+
+.present-handle-left {
+    top: 50%;
+    left: 5px;
+    width: 4px;
+    height: 44px;
+    transform: translateY(-50%);
+}
+
+.app.is-fullscreen .present-handle {
+    display: block;
+}
+
+.app.present-top-open .present-handle-top,
+.app.present-left-open .present-handle-left {
+    opacity: 0;
+}
+
+/* Aviso ao entrar: pílula de vidro no alto, some sozinha. */
+.present-hint {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    background: var(--glass-bg-solid);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    color: var(--text);
+    font-size: 13px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1310;
+    animation: present-hint-in 260ms var(--ease);
+}
+
+.present-hint[hidden] {
+    display: none;
+}
+
+.present-hint kbd {
+    padding: 0 5px;
+    border: 1px solid var(--border-hairline);
+    border-radius: 4px;
+    font: inherit;
+    font-size: 12px;
+}
+
+@keyframes present-hint-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -6px);
+    }
+}
+
+/*
+   ---------- Cartão da feição (o pop-up) ----------
+   À direita do mapa: abaixo da caixa de busca (40px) e acima dos
+   controles (--map-controls-h); com o Analytics aberto, a busca vai
+   para ele e os controles sobem junto.
+*/
 
 .feature-card {
+    --card-top: calc(var(--gutter) + 50px);
     position: absolute;
-    top: var(--gutter);
-    left: calc(var(--gutter) + 52px);
-    width: 300px;
-    max-height: calc(100% - var(--dashboard-h) - var(--footer-h) - 2 * var(--gutter));
+    top: var(--card-top);
+    right: var(--gutter);
+    width: 340px;
+    max-height: calc(100% - var(--card-top) - var(--footer-h) - var(--gutter) - 8px - var(--map-controls-h) - 12px);
     display: flex;
     flex-direction: column;
     border: 0.5px solid var(--border-hairline);
     border-radius: 16px;
-    background: var(--color-popup);
-    color: var(--color-text);
-    box-shadow: var(--shadow-dropdown);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
+    background: var(--glass-bg-solid);
+    color: var(--text);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     z-index: 310;
     animation: feature-card-in 180ms ease-out;
+}
+
+.dashboard-open .feature-card {
+    --card-top: var(--gutter);
+    max-height: calc(100% - var(--card-top) - var(--dashboard-h) - var(--footer-h) - 16px - var(--map-controls-h) - 12px);
 }
 
 .feature-card[hidden],
@@ -1002,17 +978,13 @@ ol {
     place-items: center;
     border-radius: 50%;
     background: var(--fill-segment);
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     z-index: 1;
-}
-
-.feature-card-toggle {
-    display: none;
 }
 
 .feature-card-close:hover {
     background: var(--fill-segment-hover);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 .feature-card-close svg {
@@ -1022,9 +994,9 @@ ol {
 
 /* ---------- Pontos com ícone de imagem (ex.: usina) ---------- */
 
+/* Marcadores ilustrados já têm sombra própria: nada de filtro extra (js/map/marker-icons.js). */
 .feature-marker {
-    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
-    transition: filter var(--duration) ease;
+    transition: filter var(--dur) ease, opacity var(--dur) ease;
 }
 
 /* Busca ativa: os pontos que não casam esmaecem. */
@@ -1059,15 +1031,15 @@ ol {
     padding: 16px 18px;
     border: 1px solid var(--border-hairline);
     border-radius: 14px;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-dropdown);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
+    background: var(--glass-bg);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .loading-title {
     overflow: hidden;
-    color: var(--color-text);
+    color: var(--text);
     font-size: 14px;
     font-weight: 600;
     text-overflow: ellipsis;
@@ -1086,7 +1058,7 @@ ol {
     width: 0;
     height: 100%;
     border-radius: 3px;
-    background: var(--color-brand);
+    background: var(--accent);
     transition: width 200ms ease;
 }
 
@@ -1108,7 +1080,7 @@ ol {
 }
 
 .loading-detail {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
 }
@@ -1121,11 +1093,11 @@ ol {
     padding: 6px 11px;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    background: var(--color-surface);
+    background: var(--glass-bg);
     box-shadow: var(--shadow-toggle);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-    color: var(--color-text-muted);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    color: var(--text-muted);
     font-size: 12px;
     white-space: nowrap;
     z-index: 400;
@@ -1152,17 +1124,17 @@ ol {
     padding: 0 4px 0 0;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
+    background: var(--glass-bg);
     box-shadow: var(--shadow-toggle);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     z-index: 300;
-    transition: background-color var(--duration) ease, border-color var(--duration) ease;
+    transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
 
 .map-tools:has(.search-input:focus) {
     background: var(--color-surface-solid);
-    border-color: var(--focus-ring);
+    border-color: var(--accent);
 }
 
 .search-bar {
@@ -1218,7 +1190,7 @@ ol {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .search-clear svg {
@@ -1227,7 +1199,7 @@ ol {
 }
 
 .search-clear:hover {
-    color: var(--color-text);
+    color: var(--text);
     background: var(--hover-bg);
 }
 
@@ -1237,13 +1209,13 @@ ol {
     right: 0;
     max-width: 320px;
     padding: 6px 10px;
-    background: var(--color-surface);
+    background: var(--glass-bg);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-dropdown);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-    color: var(--color-text-muted);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    color: var(--text-muted);
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
@@ -1260,8 +1232,8 @@ ol {
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    color: var(--color-text-muted);
-    transition: background-color var(--duration) ease, color var(--duration) ease;
+    color: var(--text-muted);
+    transition: background-color var(--dur) ease, color var(--dur) ease;
 }
 
 .tool-button svg {
@@ -1271,12 +1243,12 @@ ol {
 
 .tool-button:hover {
     background: var(--hover-bg);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 .tool-button[aria-expanded="true"] {
     background: var(--fill-segment);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 .tool-button .badge {
@@ -1298,8 +1270,8 @@ ol {
     justify-content: center;
     padding: 0 5px;
     border-radius: 9px;
-    background: var(--color-brand);
-    color: var(--color-on-accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
     font-size: 11px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
@@ -1319,12 +1291,12 @@ ol {
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
-    transition: background-color var(--duration) ease, border-color var(--duration) ease;
+    transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
 
 .button:hover:not(:disabled) {
     background: var(--hover-bg);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 .button:disabled {
@@ -1333,15 +1305,15 @@ ol {
 
 /* Verde mais fechado que a marca: texto branco com contraste ≥ 4,5:1 (WCAG AA). */
 .button-primary {
-    border-color: var(--color-brand-strong);
-    background: var(--color-brand-strong);
-    color: var(--color-on-accent);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
     font-weight: 600;
 }
 
 .button-primary:hover:not(:disabled) {
-    background: var(--color-brand-strong);
-    color: var(--color-on-accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
     filter: brightness(1.06);
 }
 
@@ -1364,7 +1336,7 @@ ol {
 
 .icon-button:hover {
     background: var(--hover-bg);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 .field {
@@ -1395,7 +1367,7 @@ ol {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-sm);
     background: var(--color-surface-solid);
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
 }
 
@@ -1421,153 +1393,36 @@ ol {
 }
 
 .field-error {
-    color: var(--color-accent);
+    color: var(--danger-text);
     font-size: 12px;
 }
 
-.floating-panel,
 .dashboard {
-    background: var(--color-surface);
+    background: var(--glass-bg);
     border: 1px solid var(--border-hairline);
-    box-shadow: var(--shadow-panel);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     font-size: 13px;
 }
 
-.panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
 .panel-title {
-    color: var(--color-text);
+    color: var(--text);
     font-size: 14px;
     font-weight: 600;
     letter-spacing: -0.1px;
 }
 
 .panel-summary {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
 }
 
 
 /* ============================================================
-   6. SIDEBAR DE CAMADAS
+   6. PAINEL CAMADAS (conteúdo; a moldura é .side-panel, seção 10)
    ============================================================ */
-
-.sidebar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: var(--sidebar-w);
-    max-width: 100%;
-    /* Termina acima do rodapé, que fica sempre visível na largura toda. */
-    height: calc(100% - var(--footer-h));
-    display: flex;
-    flex-direction: column;
-    background: var(--color-surface);
-    border-right: 1px solid var(--border-hairline);
-    box-shadow: var(--shadow-panel);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-    transform: translateX(-100%);
-    visibility: hidden;
-    transition: transform var(--duration) ease, visibility 0s linear var(--duration);
-    z-index: 250;
-}
-
-.sidebar.is-open {
-    transform: translateX(0);
-    visibility: visible;
-    transition: transform var(--duration) ease;
-}
-
-/* Marca no topo da aba Camadas: só em tela cheia (a barra superior fica de fora). */
-.sidebar-brand {
-    display: none;
-    align-items: center;
-    gap: 9px;
-    flex-shrink: 0;
-    padding: 14px 18px 12px;
-    border-bottom: 1px solid var(--border-hairline);
-}
-
-.map-container.is-fullscreen .sidebar-brand {
-    display: flex;
-}
-
-.sidebar-header {
-    min-height: 56px;
-    display: flex;
-    align-items: center;
-    padding: 12px 18px 8px;
-    flex-shrink: 0;
-}
-
-/*
-   Fechar: botão de vidro preso à borda direita da aba, por fora e
-   no alto — na mesma altura do botão de camadas do mapa. Some junto
-   com a aba (a aba fechada fica com visibility: hidden).
-*/
-.sidebar-close {
-    position: absolute;
-    top: var(--gutter);
-    left: calc(100% + 8px);
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
-    color: var(--color-text);
-    box-shadow: var(--shadow-toggle);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-    transition: background-color var(--duration) ease, box-shadow var(--duration) ease;
-}
-
-.sidebar-close svg {
-    width: 18px;
-    height: 18px;
-}
-
-.sidebar-close:hover {
-    background: var(--color-surface-bright);
-    box-shadow: var(--shadow-toggle-hover);
-}
-
-.sidebar-close:active {
-    transform: scale(0.96);
-}
-
-/* Em telas estreitas a aba ocupa quase tudo: o botão entra no canto da própria aba. */
-@media (max-width: 400px) {
-    .sidebar-close {
-        left: auto;
-        right: 10px;
-    }
-}
-
-.sidebar-title {
-    color: var(--color-text);
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.sidebar-body {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 0 10px 16px;
-}
 
 .sidebar-section {
     margin-bottom: 18px;
@@ -1606,7 +1461,7 @@ ol {
     justify-content: center;
     border-radius: 7px;
     color: var(--color-text-subtle);
-    transition: color var(--duration) ease, background-color var(--duration) ease;
+    transition: color var(--dur) ease, background-color var(--dur) ease;
 }
 
 .layer-toggle svg {
@@ -1616,11 +1471,11 @@ ol {
 
 .layer-toggle:hover:not(:disabled) {
     background: var(--hover-bg);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 .layer-toggle[aria-pressed="true"] {
-    color: var(--color-brand);
+    color: var(--brand-green);
 }
 
 .layer-toggle:disabled {
@@ -1688,7 +1543,7 @@ ol {
 
 .layer-label-remove:hover {
     background: var(--hover-bg);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 .layer-label-add {
@@ -1703,11 +1558,228 @@ ol {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-sm);
     background: var(--color-surface-solid);
-    color: var(--color-text);
+    color: var(--text);
     font-size: 12px;
 }
 
 /* Legenda do tema por categoria: cor · valor · quantidade. */
+/* ---------- Tema: rampa de cores, inverter e classes (painel Estilos, js/ui/layer-tools.js) ---------- */
+
+/*
+   Grids e flex com conteúdo largo (seletor com textos longos,
+   campos de texto) só encolhem até a largura do cartão com
+   minmax(0, 1fr) e min-width: 0; sem isso, vazam para a direita.
+*/
+.theme-settings {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+
+.theme-settings > *,
+.theme-settings .settings-text {
+    min-width: 0;
+}
+
+.theme-settings .layer-label-field > .field-label {
+    flex: 0 0 86px;
+}
+
+.theme-settings .layer-label-field > select,
+.theme-settings .ramp-current {
+    width: 0;
+    flex: 1 1 auto;
+}
+
+.theme-settings .settings-row {
+    padding: 0;
+}
+
+.theme-settings > .settings-hint {
+    margin: -4px 0 0 92px;
+}
+
+.ramp-bar {
+    flex: none;
+    display: block;
+    width: 72px;
+    height: 14px;
+    border: 1px solid var(--border-hairline);
+    border-radius: 4px;
+}
+
+.ramp-current {
+    flex: 1;
+    min-width: 0;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ramp-current:hover {
+    background: var(--hover-bg);
+}
+
+.ramp-current:focus-visible,
+.ramp-option:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.ramp-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Seta (▾) desenhada com bordas; vira para cima com a lista aberta. */
+.ramp-chevron {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin: -3px 2px 0 0;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    color: var(--text-muted);
+    transform: rotate(45deg);
+    transition: transform var(--dur-fast) var(--ease);
+}
+
+.ramp-current[aria-expanded="true"] .ramp-chevron {
+    margin-top: 3px;
+    transform: rotate(-135deg);
+}
+
+.ramp-list {
+    display: grid;
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-solid);
+}
+
+.ramp-group {
+    display: grid;
+    gap: 4px;
+}
+
+.ramp-group-title {
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ramp-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.ramp-option {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 11px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ramp-option .ramp-bar {
+    width: 56px;
+    height: 12px;
+}
+
+.ramp-option:hover {
+    background: var(--hover-bg);
+    color: var(--text);
+}
+
+.ramp-option[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+/* Número de classes e limites digitados (faixas de valor). */
+.theme-classes-input,
+.theme-limit-input {
+    min-width: 0;
+    min-height: 28px;
+    padding: 3px 8px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.theme-classes-input {
+    flex: 0 0 72px;
+}
+
+.theme-limit-input {
+    width: 0;
+    flex: 1 1 0;
+    text-align: right;
+}
+
+.theme-classes-input:focus-visible,
+.theme-limit-input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.theme-limits {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 340px;
+    padding: 0 0 8px 0;
+}
+
+.theme-limits > * {
+    min-width: 0;
+}
+
+.theme-limit-row .legend-count {
+    flex: 0 0 44px;
+    text-align: right;
+}
+
+.theme-limit-dash {
+    flex: none;
+    color: var(--text-muted);
+}
+
+.theme-limits-hint {
+    padding: 0;
+}
+
+
 .legend {
     display: grid;
     gap: 2px;
@@ -1795,7 +1867,7 @@ ol {
 }
 
 .layer-name[aria-pressed="true"] {
-    color: var(--color-text);
+    color: var(--text);
     font-weight: 600;
 }
 
@@ -1857,7 +1929,7 @@ ol {
 }
 
 .sidebar-key strong {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-weight: 600;
 }
 
@@ -1888,7 +1960,7 @@ ol {
 
 .layer-meta.is-error,
 .layer-error {
-    color: var(--color-accent);
+    color: var(--danger-text);
 }
 
 .layer-error {
@@ -1908,7 +1980,7 @@ ol {
 
 .layer-remove:hover {
     background: var(--hover-bg);
-    color: var(--color-accent);
+    color: var(--danger-text);
 }
 
 /* Etiqueta de papel do atributo (usada na janela Identificar). */
@@ -1918,7 +1990,7 @@ ol {
     padding: 1px 7px;
     border-radius: 9px;
     background: var(--hover-bg);
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -1926,59 +1998,15 @@ ol {
 
 .attribute-role.role-measure,
 .attribute-role.role-integer {
-    background: var(--color-brand-soft);
-    color: var(--color-brand);
+    background: var(--accent-soft);
+    color: var(--accent);
 }
 
 .attribute-role.role-empty {
     opacity: 0.6;
 }
 
-
-/* ---------- Janela Identificar (dados da camada) ---------- */
-
-.layer-info {
-    width: min(680px, calc(100vw - 32px));
-    max-height: min(80vh, 720px);
-    margin: auto;
-    padding: 16px;
-    border: 1px solid var(--border-hairline);
-    border-radius: 14px;
-    background: var(--color-surface-opaque);
-    color: var(--color-text);
-    box-shadow: var(--shadow-dropdown);
-    font-size: 13px;
-    /* Telas baixas: a janela inteira rola em vez de esmagar a tabela. */
-    overflow-y: auto;
-}
-
-.layer-info[open] {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.layer-info::backdrop {
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-}
-
-.layer-info-header {
-    align-items: flex-start;
-}
-
-.layer-info-kicker {
-    color: var(--color-text-subtle);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.layer-info .panel-title {
-    font-size: 17px;
-}
+/* ---------- Propriedades e Campos da camada (painéis, js/ui/layer-info.js) ---------- */
 
 .layer-info-summary {
     display: grid;
@@ -2003,7 +2031,7 @@ ol {
 
 .layer-info-item dd {
     margin-top: 2px;
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -2024,15 +2052,6 @@ ol {
 
 .layer-info-meta[hidden] {
     display: none;
-}
-
-.layer-info-meta-title {
-    margin-bottom: 6px;
-    color: var(--color-text-subtle);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
 }
 
 .layer-info-meta-list {
@@ -2056,26 +2075,16 @@ ol {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 10px;
-    color: var(--color-text);
+    color: var(--text);
     font-size: 12px;
     line-height: 1.45;
     overflow-wrap: anywhere;
 }
 
 .layer-info-meta-row a {
-    color: var(--color-brand);
+    color: var(--accent);
 }
 
-@media (max-width: 520px) {
-    .layer-info-item.is-wide {
-        grid-column: 1 / -1;
-    }
-
-    .layer-info-meta-row {
-        grid-template-columns: 1fr;
-        gap: 2px;
-    }
-}
 
 .layer-info-table-scroll {
     /* Com cards e metadados, a lista de atributos rola sem sumir. */
@@ -2083,6 +2092,23 @@ ol {
     overflow: auto;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
+}
+
+.layer-info-fields {
+    display: grid;
+    gap: 8px;
+    flex: none;
+}
+
+.layer-info-fields-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.layer-info-fields .layer-info-table-scroll {
+    max-height: min(42vh, 360px);
 }
 
 .layer-info-table th {
@@ -2104,7 +2130,7 @@ ol {
 }
 
 .layer-info-name {
-    color: var(--color-text);
+    color: var(--text);
     font-weight: 600;
 }
 
@@ -2112,57 +2138,15 @@ ol {
     color: var(--color-text-subtle);
 }
 
-.sidebar-toggle {
-    position: absolute;
-    top: var(--gutter);
-    left: var(--gutter);
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
-    color: var(--color-text);
-    box-shadow: var(--shadow-toggle);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-    z-index: 300;
-    transition: background-color var(--duration) ease, box-shadow var(--duration) ease;
-}
-
-.sidebar-toggle svg {
-    width: 20px;
-    height: 20px;
-}
-
-.sidebar-toggle:hover {
-    background: var(--color-surface-bright);
-}
-
-/* Com a aba aberta o botão ficaria atrás dela: sai de cena; quem fecha é o "×" do cabeçalho. */
-.sidebar-toggle[aria-expanded="true"] {
-    visibility: hidden;
-}
-
-
 /* ============================================================
    7. PAINEL DE FILTROS
    ============================================================ */
 
-.filter-panel {
-    position: absolute;
-    top: calc(var(--gutter) + 48px);
-    right: var(--gutter);
-    width: 320px;
-    max-height: calc(100% - 140px);
-    overflow-y: auto;
+/* Posição e moldura vêm de .side-panel (seção 11); aqui só o miolo. */
+.filter-panel-body {
     display: grid;
+    align-content: start;
     gap: 10px;
-    padding: 12px;
-    border-radius: var(--radius-lg);
-    z-index: 320;
 }
 
 .filter-form {
@@ -2171,7 +2155,7 @@ ol {
     padding: 10px;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
+    background: var(--glass-bg);
 }
 
 .filter-chips {
@@ -2189,8 +2173,8 @@ ol {
     gap: 8px;
     padding: 5px 6px 5px 10px;
     border-radius: 8px;
-    background: var(--color-brand-soft);
-    color: var(--color-text);
+    background: var(--accent-soft);
+    color: var(--text);
     font-size: 12px;
 }
 
@@ -2204,18 +2188,18 @@ ol {
     height: 22px;
     flex-shrink: 0;
     border-radius: 50%;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 15px;
     line-height: 1;
 }
 
 .filter-chip-remove:hover {
     background: var(--hover-bg);
-    color: var(--color-accent);
+    color: var(--danger-text);
 }
 
 #filter-clear {
-    color: var(--color-accent);
+    color: var(--danger-text);
 }
 
 /* Entre dois chips, a palavra da combinação: "e" (todas) ou "ou" (qualquer uma). */
@@ -2264,7 +2248,7 @@ ol {
 
 .filter-mode-options .tab[aria-checked="true"] {
     background: var(--segment-selected);
-    color: var(--color-text);
+    color: var(--text);
     font-weight: 600;
     box-shadow: var(--shadow-segment);
 }
@@ -2287,7 +2271,7 @@ ol {
     padding: 10px;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
+    background: var(--glass-bg);
 }
 
 .filter-save-buttons {
@@ -2314,7 +2298,7 @@ ol {
     align-items: center;
     gap: 4px;
     border-radius: 8px;
-    transition: background-color var(--duration) ease;
+    transition: background-color var(--dur) ease;
 }
 
 .filter-saved-item:hover {
@@ -2333,7 +2317,7 @@ ol {
 
 .filter-saved-name {
     overflow: hidden;
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
     font-weight: 500;
     text-overflow: ellipsis;
@@ -2371,7 +2355,7 @@ ol {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-sm);
     background: var(--color-surface-solid);
-    color: var(--color-text);
+    color: var(--text);
     font-size: 14px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -2407,7 +2391,7 @@ ol {
     left: var(--from);
     right: calc(100% - var(--to));
     border-radius: 3px;
-    background: var(--color-brand);
+    background: var(--accent);
 }
 
 .range-slider input[type="range"] {
@@ -2465,11 +2449,11 @@ ol {
 }
 
 .range-slider input[type="range"]:focus-visible::-webkit-slider-thumb {
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--accent);
 }
 
 .range-slider input[type="range"]:focus-visible::-moz-range-thumb {
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--accent);
 }
 
 .range-slider input[type="range"]:disabled::-webkit-slider-thumb {
@@ -2486,7 +2470,7 @@ ol {
 }
 
 .range-summary {
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
     font-weight: 500;
 }
@@ -2508,12 +2492,7 @@ ol {
     flex-direction: column;
     border-width: 1px 0 0;
     z-index: 240;
-    transition: left var(--duration) ease;
-}
-
-/* Aba Camadas aberta com o dashboard: ele começa depois dela, sem ficar por baixo. */
-.layers-open .dashboard {
-    left: var(--sidebar-w);
+    transition: left var(--dur) ease;
 }
 
 /* Alça de altura: faixa invisível na borda superior, com um "grip" central (estilo iOS). */
@@ -2537,7 +2516,7 @@ ol {
     border-radius: 999px;
     background: var(--color-text-subtle);
     opacity: 0.45;
-    transition: opacity var(--duration) ease, width var(--duration) ease;
+    transition: opacity var(--dur) ease, width var(--dur) ease;
 }
 
 .dashboard-resizer:hover .dashboard-resizer-grip,
@@ -2601,7 +2580,7 @@ ol {
 
 .dashboard-context {
     overflow: hidden;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2632,11 +2611,11 @@ ol {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-sm);
     background: var(--color-surface-solid);
-    transition: border-color var(--duration) ease;
+    transition: border-color var(--dur) ease;
 }
 
 .dashboard-search .search-bar:focus-within {
-    border-color: var(--focus-ring);
+    border-color: var(--accent);
 }
 
 .dashboard-search .search-input {
@@ -2700,7 +2679,6 @@ ol {
 /* Maximizado não tem alça de altura, barra superior nem controles do mapa por cima. */
 .dashboard-maximized .topbar,
 .dashboard-maximized .dashboard-resizer,
-.dashboard-maximized .sidebar-toggle,
 .dashboard-maximized .map-controls {
     display: none;
 }
@@ -2725,14 +2703,14 @@ ol {
     padding: 32px 36px 22px;
     /* Opaco: as superfícies translúcidas do app ficariam cinza na imagem. */
     background: var(--color-bg);
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
     visibility: hidden;
     pointer-events: none;
 }
 
 .export-sheet-title {
-    color: var(--color-text);
+    color: var(--text);
     font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.3px;
@@ -2740,7 +2718,7 @@ ol {
 
 .export-sheet-subtitle {
     margin-top: 4px;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 14px;
 }
 
@@ -2772,14 +2750,14 @@ ol {
 .tab {
     padding: 5px 14px;
     border-radius: 7px;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 12px;
     font-weight: 500;
 }
 
 .tab[aria-selected="true"] {
     background: var(--color-surface-solid);
-    color: var(--color-text);
+    color: var(--text);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -2818,7 +2796,7 @@ ol {
     padding: 8px 12px;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
+    background: var(--glass-bg);
 }
 
 .summary-toolbar[hidden] {
@@ -2864,7 +2842,7 @@ ol {
 }
 
 .card-title {
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
     font-weight: 650;
     letter-spacing: -0.1px;
@@ -2954,7 +2932,7 @@ ol {
 
 .kpi-label {
     overflow: hidden;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 11px;
     font-weight: 500;
     text-overflow: ellipsis;
@@ -2968,7 +2946,7 @@ ol {
 }
 
 .kpi-value {
-    color: var(--color-text);
+    color: var(--text);
     font-size: 16px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -3018,7 +2996,7 @@ ol {
     padding: 10px 12px;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
+    background: var(--glass-bg);
 }
 
 .chart-area {
@@ -3035,7 +3013,7 @@ ol {
 }
 
 .chart-value {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 11px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -3158,7 +3136,7 @@ ol {
 }
 
 .chart-donut-total {
-    fill: var(--color-text);
+    fill: var(--text);
     font-size: 15px;
     font-weight: 700;
 }
@@ -3286,7 +3264,7 @@ ol {
     padding: 10px 12px;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
+    background: var(--glass-bg);
 }
 
 /*
@@ -3337,7 +3315,7 @@ ol {
     display: block;
     height: 100%;
     border-radius: 3px;
-    background: var(--color-brand);
+    background: var(--accent);
 }
 
 .group-sub-add {
@@ -3381,7 +3359,7 @@ ol {
 
 .group-list.has-sub .group-row:not(.group-subrow) .group-label,
 .group-list.has-sub .group-row:not(.group-subrow) .group-value {
-    color: var(--color-text);
+    color: var(--text);
     font-weight: 600;
 }
 
@@ -3462,7 +3440,7 @@ ol {
 
 .group-value {
     padding-right: 8px;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 11px;
     text-align: right;
     font-variant-numeric: tabular-nums;
@@ -3488,13 +3466,13 @@ ol {
 .summary-total-label {
     min-width: 0;
     overflow: hidden;
-    color: var(--color-text);
+    color: var(--text);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .summary-total-value {
-    color: var(--color-text);
+    color: var(--text);
     font-size: 11px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -3558,7 +3536,7 @@ ol {
     border-radius: 6px;
     color: var(--color-text-subtle);
     opacity: 0.55;
-    transition: opacity var(--duration) ease, background-color var(--duration) ease;
+    transition: opacity var(--dur) ease, background-color var(--dur) ease;
 }
 
 .table-filter svg {
@@ -3573,14 +3551,14 @@ ol {
 
 .table-filter:hover {
     background: var(--hover-bg);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 /* Filtro ativo na coluna: ícone na cor da marca, com fundo suave, sempre visível. */
 .table-filter.is-active {
     opacity: 1;
-    background: var(--color-brand-soft);
-    color: var(--color-brand);
+    background: var(--accent-soft);
+    color: var(--accent);
 }
 
 .table-sort {
@@ -3597,7 +3575,7 @@ ol {
 }
 
 .table-sort:hover {
-    color: var(--color-text);
+    color: var(--text);
 }
 
 th[aria-sort="ascending"] .table-sort::after {
@@ -3653,12 +3631,12 @@ th[aria-sort="descending"] .table-sort::after {
 
 .table-total-operator:hover {
     background: var(--hover-bg);
-    color: var(--color-text);
+    color: var(--text);
 }
 
 .table-total-operator option {
     background: var(--color-surface-opaque);
-    color: var(--color-text);
+    color: var(--text);
     text-transform: none;
 }
 
@@ -3674,7 +3652,7 @@ th[aria-sort="descending"] .table-sort::after {
 @media (hover: hover) {
     .data-table tfoot td.is-unset .table-total-operator {
         opacity: 0;
-        transition: opacity var(--duration) ease;
+        transition: opacity var(--dur) ease;
     }
 
     .data-table tfoot tr:hover td.is-unset .table-total-operator,
@@ -3685,7 +3663,7 @@ th[aria-sort="descending"] .table-sort::after {
 
 .table-total-value {
     padding: 0 4px 2px;
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -3710,7 +3688,7 @@ th[aria-sort="descending"] .table-sort::after {
 }
 
 .column-filter-title {
-    color: var(--color-text);
+    color: var(--text);
     font-size: 15px;
     font-weight: 600;
     letter-spacing: -0.24px;
@@ -3730,7 +3708,7 @@ th[aria-sort="descending"] .table-sort::after {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-sm);
     background: var(--color-surface-solid);
-    color: var(--color-text);
+    color: var(--text);
     font-size: 13px;
 }
 
@@ -3741,7 +3719,7 @@ th[aria-sort="descending"] .table-sort::after {
 
 .link-button {
     padding: 2px 0;
-    color: var(--color-brand);
+    color: var(--accent);
     font-size: 12px;
     font-weight: 500;
 }
@@ -3779,7 +3757,7 @@ th[aria-sort="descending"] .table-sort::after {
 
 .column-filter-option input {
     flex: none;
-    accent-color: var(--color-brand);
+    accent-color: var(--accent);
 }
 
 .column-filter-option-label {
@@ -3801,6 +3779,39 @@ th[aria-sort="descending"] .table-sort::after {
     font-variant-numeric: tabular-nums;
 }
 
+/* Pesquisa avançada: lista de campos com Todos/Nenhum no cabeçalho. */
+.search-fields-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0 4px 0;
+}
+
+.search-fields-head .column-filter-bulk {
+    gap: 12px;
+    margin: 0;
+}
+
+.search-field-list {
+    max-height: 300px;
+    margin: 0 -6px 8px -6px;
+}
+
+.search-status {
+    margin-bottom: 10px;
+}
+
+.search-reset {
+    margin-top: 10px;
+}
+
+.search-reset:disabled {
+    color: var(--text-disabled);
+    text-decoration: none;
+    cursor: default;
+}
+
 .column-filter-actions {
     display: flex;
     justify-content: flex-end;
@@ -3818,7 +3829,7 @@ th[aria-sort="descending"] .table-sort::after {
 }
 
 .data-table tbody tr.is-selected {
-    background: var(--color-brand-soft);
+    background: var(--accent-soft);
 }
 
 .data-table tbody tr:focus-visible {
@@ -3830,7 +3841,7 @@ th[aria-sort="descending"] .table-sort::after {
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
 }
@@ -3872,7 +3883,7 @@ th[aria-sort="descending"] .table-sort::after {
     align-items: flex-end;
     gap: 10px;
     z-index: 300;
-    transition: bottom var(--duration) ease;
+    transition: bottom var(--dur) ease;
 }
 
 /*
@@ -3885,10 +3896,10 @@ th[aria-sort="descending"] .table-sort::after {
     flex-direction: column;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    background: var(--color-surface-strong);
+    background: var(--glass-bg);
     box-shadow: var(--shadow-toggle);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .control-stack > button + button {
@@ -3914,14 +3925,14 @@ th[aria-sort="descending"] .table-sort::after {
     gap: 18px;
     padding: 0 14px;
     border-top: 0.5px solid var(--border-bar);
-    background: var(--color-bar);
-    backdrop-filter: var(--blur-bar);
-    -webkit-backdrop-filter: var(--blur-bar);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     color: var(--color-text-subtle);
     font-size: 11px;
     pointer-events: none;
     z-index: 245;
-    transition: left var(--duration) ease;
+    transition: left var(--dur) ease;
 }
 
 .map-footer-item {
@@ -3932,7 +3943,7 @@ th[aria-sort="descending"] .table-sort::after {
 }
 
 .map-footer strong {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-weight: 500;
     font-variant-numeric: tabular-nums;
 }
@@ -3945,8 +3956,8 @@ th[aria-sort="descending"] .table-sort::after {
     justify-content: center;
     border-radius: 0;
     background: transparent;
-    color: var(--color-text);
-    transition: background-color var(--duration) ease, color var(--duration) ease;
+    color: var(--text);
+    transition: background-color var(--dur) ease, color var(--dur) ease;
 }
 
 /* Cantos só nas pontas do bloco (o cartão já é arredondado). */
@@ -3978,300 +3989,1484 @@ th[aria-sort="descending"] .table-sort::after {
     opacity: 0.6;
 }
 
-.map-controls button[aria-pressed="true"],
-.map-controls .map-control-dashboard[aria-expanded="true"] {
-    background: var(--color-accent);
-    color: var(--color-on-accent);
+
+/* ============================================================
+   10. ESTRUTURA: BARRA SUPERIOR, BARRAS LATERAIS E PAINÉIS
+
+   Inspirada no ArcGIS Map Viewer: barra superior de 48 px, barra
+   de ferramentas à esquerda (aplicação) e à direita (camada ativa),
+   painéis de 320 px colados a elas e o mapa no meio. Material de
+   vidro fosco (tokens --glass-*), hierarquia pelo aninhamento.
+   ============================================================ */
+
+/* Ícones do sprite: <svg class="icon"><use href="#ic-…"/></svg>. */
+.icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    display: block;
 }
 
-.map-controls #basemap-button[aria-expanded="true"] {
+
+/* ---------- Barra superior ---------- */
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 10px 0 6px;
+    background: var(--glass-bg-solid);
+}
+
+.topbar-start {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.topbar .brand-logo {
+    width: 26px;
+    height: 26px;
+    margin: 0 4px 0 2px;
+    filter: none;
+}
+
+.module-menu-trigger {
+    height: 30px;
+    padding: 0 10px;
+    font-size: 14px;
+}
+
+.topbar-actions {
+    flex: none;
+    gap: 4px;
+}
+
+/* Botões da barra: só o ícone, fundo ao passar o mouse (estilo macOS). */
+.topbar-icon-button {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.topbar-icon-button:hover,
+.topbar-icon-button[aria-expanded="true"] {
+    background: var(--fill-segment);
+    color: var(--text);
+}
+
+.topbar-icon-button .icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Apresentar: a ação principal da barra, em pílula com rótulo na cor de acento. */
+.topbar-present-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    margin-left: 4px;
+    padding: 0 12px 0 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color var(--dur) ease, color var(--dur) ease, transform var(--dur) ease;
+}
+
+.topbar-present-button:hover,
+.topbar-present-button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.topbar-present-button:active {
+    transform: scale(0.96);
+}
+
+.topbar-present-button .icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Tema: lua no claro (ativa o escuro), sol no escuro (ativa o claro). */
+.theme-toggle .theme-icon-sun,
+[data-theme="dark"] .theme-toggle .theme-icon-moon {
+    display: none;
+}
+
+[data-theme="dark"] .theme-toggle .theme-icon-sun {
+    display: block;
+}
+
+/* Conta (pé da barra esquerda): o cartão abre ao lado da barra, alinhado pela base. */
+.toolbar-footer .toolbar-popover-anchor + .toolbar-item {
+    margin-top: 2px;
+}
+
+.account-card {
+    top: auto;
+    right: auto;
+    bottom: 0;
+    left: calc(100% + 12px);
+}
+
+.account-card-section {
+    margin-top: 6px;
+}
+
+/* Sininho de novidade no canto do ícone do usuário. */
+.toolbar-account-icon {
+    position: relative;
+    flex: none;
+    display: block;
+}
+
+.notify-badge {
+    position: absolute;
+    top: -6px;
+    right: -7px;
+    width: 15px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    box-shadow: 0 0 0 2px var(--glass-bg-solid);
+    animation: notify-ring 600ms var(--ease) 1;
+}
+
+.notify-badge[hidden] {
+    display: none;
+}
+
+.notify-badge svg {
+    width: 11px;
+    height: 11px;
+}
+
+@keyframes notify-ring {
+    0%, 100% { transform: rotate(0); }
+    20% { transform: rotate(14deg); }
+    40% { transform: rotate(-12deg); }
+    60% { transform: rotate(8deg); }
+    80% { transform: rotate(-4deg); }
+}
+
+/* Cartões (conta e notificações). */
+.topbar-card {
+    width: 300px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg-solid);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.topbar-card-title {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.topbar-card-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--glass-bg-strong);
+}
+
+.notification-list {
+    display: grid;
+    gap: 2px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: grid;
+    grid-template-columns: 8px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.notification-mark {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--info);
+}
+
+.notification-item.is-success .notification-mark {
+    background: var(--success);
+}
+
+.notification-item.is-error .notification-mark {
+    background: var(--danger);
+}
+
+.notification-time {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.notification-empty {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+
+/* ---------- Área de trabalho: barra | mapa ---------- */
+
+.workspace {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+}
+
+.workspace > .map-container {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+
+/* ---------- Barras laterais ---------- */
+
+.toolbar {
+    position: relative;
+    z-index: 120;
+    flex: none;
+    width: 48px;
+    display: flex;
+    flex-direction: column;
+    background: var(--glass-bg-solid);
+    color: var(--text-muted);
+    transition: width var(--dur) var(--ease), margin var(--dur) var(--ease);
+}
+
+.toolbar-left {
+    border-right: 1px solid var(--border-hairline);
+}
+
+.toolbar-left.is-expanded {
+    width: 240px;
+}
+
+.toolbar-scroll {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 6px;
+    scrollbar-width: none;
+}
+
+.toolbar-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/*
+   Blocos por função separados por divisória fina. Só com ícones, o
+   título fica para leitores de tela; com a barra expandida, aparece
+   pequeno acima do bloco (como as seções da barra lateral do macOS).
+*/
+.toolbar-group + .toolbar-group {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-hairline);
+}
+
+.toolbar-group-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.toolbar-left.is-expanded .toolbar-group-title {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: hidden;
+    clip: auto;
+    padding: 1px 8px 3px 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-overflow: ellipsis;
+}
+
+.toolbar-item {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
+}
+
+.toolbar-item + .toolbar-item {
+    margin-top: 2px;
+}
+
+.toolbar-item:hover:not(:disabled):not([data-soon]) {
+    background: var(--hover-bg);
+    color: var(--text);
+}
+
+.toolbar-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+/* Item ativo: ícone e rótulo na cor de acento sobre o indicador. */
+.toolbar-item[aria-expanded="true"]:not(.toolbar-expand),
+.toolbar-item[aria-pressed="true"] {
+    color: var(--accent-text);
+}
+
+.toolbar-item[data-soon],
+.toolbar-item:disabled {
+    color: var(--text-disabled);
+    cursor: default;
+}
+
+.toolbar-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    text-overflow: ellipsis;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease);
+}
+
+.toolbar-soon {
+    flex: none;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    background: var(--fill-segment);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease);
+}
+
+/* Rótulos aparecem depois que a barra já abriu um pouco (fade). */
+.toolbar-left.is-expanded .toolbar-label,
+.toolbar-left.is-expanded .toolbar-soon {
+    opacity: 1;
+    transition-delay: 90ms;
+}
+
+.toolbar-badge {
+    position: absolute;
+    top: 3px;
+    left: 22px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+}
+
+/* Indicador do item ativo: desliza entre os itens (js/ui/toolbar.js). */
+.toolbar-indicator {
+    position: absolute;
+    top: 0;
+    left: 6px;
+    right: 6px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform var(--dur) var(--ease), height var(--dur) var(--ease), opacity var(--dur-fast) var(--ease);
+    z-index: 0;
+}
+
+.toolbar-indicator::before {
+    content: "";
+    position: absolute;
+    top: 9px;
+    bottom: 9px;
+    width: 3px;
+    background: var(--accent);
+}
+
+.toolbar-left .toolbar-indicator::before {
+    left: -6px;
+    border-radius: 0 3px 3px 0;
+}
+
+.toolbar-indicator.is-visible {
+    opacity: 1;
+}
+
+.toolbar-footer {
+    flex: none;
+    padding: 6px;
+    border-top: 1px solid var(--border-hairline);
+}
+
+.toolbar-expand .icon-collapse,
+.toolbar-left.is-expanded .toolbar-expand .icon-expand {
+    display: none;
+}
+
+.toolbar-left.is-expanded .toolbar-expand .icon-collapse {
+    display: block;
+}
+
+/* Dica das barras (um elemento só, no <body>). */
+.toolbar-tooltip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3000;
+    padding: 5px 9px;
+    border: 0.5px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    background: var(--glass-bg-solid);
+    box-shadow: var(--shadow-sm);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.toolbar-tooltip[hidden] {
+    display: none;
+}
+
+
+/*
+   ---------- Janelas: flutuantes (ao lado da barra) e centrais ----------
+   Flutuantes: ferramentas que mudam o mapa; a altura acompanha o
+   conteúdo (até o rodapé) e o corpo rola quando passa disso.
+   Centrais (.side-panel-center): Configurações, Sobre, Propriedades
+   e Campos, sobre um fundo escurecido (js/main.js, CENTER_PANELS).
+*/
+
+.side-panel {
+    position: absolute;
+    top: 8px;
+    width: var(--sidebar-w);
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - var(--footer-h) - 16px);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    color: var(--text);
+    font-size: 13px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-12px);
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), visibility 0s linear var(--dur);
+    z-index: 330;
+}
+
+.side-panel-left {
+    left: 8px;
+}
+
+/* Mapa base: ao lado dos controles do mapa, alinhada pela base com eles. */
+.side-panel-basemap {
+    top: auto;
+    right: calc(var(--gutter) + 52px);
+    bottom: calc(var(--gutter) + 8px + var(--footer-h));
+    width: 300px;
+    max-height: calc(100% - var(--gutter) - var(--footer-h) - 24px);
+    transform: translateX(12px);
+    z-index: 340;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), bottom var(--dur) var(--ease), visibility 0s linear var(--dur);
+}
+
+.side-panel-basemap.is-open {
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), bottom var(--dur) var(--ease);
+}
+
+.dashboard-open .side-panel-basemap {
+    bottom: calc(var(--dashboard-h) + var(--footer-h) + 16px);
+    max-height: calc(100% - var(--dashboard-h) - var(--footer-h) - 32px);
+}
+
+.side-panel.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+/* Janela central: no meio da tela, um pouco mais larga, entra com leve zoom. */
+.side-panel-center {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(600px, calc(100vw - 48px));
+    max-width: none;
+    max-height: min(760px, calc(100vh - 96px));
+    background: var(--glass-bg-solid);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.2);
+    transform: translate(-50%, -48%) scale(0.97);
+    z-index: 1400;
+}
+
+.side-panel-center.is-open {
+    transform: translate(-50%, -50%);
+}
+
+.side-panel-center .side-panel-header {
+    padding: 18px 16px 12px 20px;
+}
+
+.side-panel-center .side-panel-body {
+    padding: 0 20px 20px;
+}
+
+.side-panel-center .side-panel-title {
+    font-size: 17px;
+}
+
+/* Fundo escurecido das janelas centrais (clique fecha). */
+.window-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.38);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--dur) var(--ease), visibility 0s linear var(--dur);
+    z-index: 1390;
+}
+
+.center-panel-open .window-scrim {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--dur) var(--ease);
+}
+
+.side-panel-header {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 12px 10px 16px;
+}
+
+.side-panel-icon {
+    color: var(--accent-text);
+}
+
+.side-panel-heading {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.side-panel-kicker {
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.side-panel-kicker:empty {
+    display: none;
+}
+
+.side-panel-title {
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+}
+
+.side-panel-close {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fill-segment);
+    color: var(--text-muted);
+    transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.side-panel-close:hover {
+    background: var(--fill-segment-hover);
+    color: var(--text);
+}
+
+.side-panel-close .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.side-panel-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 12px 14px;
+}
+
+/* Cartão de vidro dentro do painel de vidro: a hierarquia vem do aninhamento. */
+.glass-card {
+    min-width: 0;
+    padding: 2px 12px;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: var(--radius-md);
+    background: var(--glass-bg-strong);
+}
+
+.glass-card.panel-block {
+    padding: 12px;
+}
+
+.panel-empty {
+    padding: 4px 2px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* Com um painel aberto, Analytics, cartão da feição e controles abrem espaço. */
+.dashboard {
+    transition: left var(--dur) var(--ease), right var(--dur) var(--ease);
+}
+
+.left-panel-open .dashboard {
+    left: calc(var(--sidebar-w) + 16px);
+}
+
+.map-controls,
+.map-tools {
+    transition: right var(--dur) var(--ease), bottom var(--dur) var(--ease);
+}
+
+
+/* ---------- Configurações, Sobre ---------- */
+
+.settings-group {
+    display: grid;
+    gap: 6px;
+}
+
+.settings-title {
+    padding: 0 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.settings-row {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.settings-row + .settings-row {
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+.settings-text {
+    display: grid;
+    gap: 2px;
+}
+
+.settings-label {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.settings-hint {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    line-height: 1.35;
+}
+
+.segmented {
     background: var(--fill-segment);
 }
 
-/* Dashboard: um pouco afastado dos controles de navegação. */
-.control-stack:has(.map-control-dashboard) {
-    margin-bottom: 4px;
-}
-
-.map-control-group {
-    position: relative;
-}
-
-.basemap-menu {
-    position: absolute;
-    right: calc(100% + 8px);
-    bottom: 0;
-    width: 168px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 8px;
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-dropdown);
-    backdrop-filter: var(--blur-glass);
-    -webkit-backdrop-filter: var(--blur-glass);
-}
-
-.basemap-menu-title {
-    margin: 2px 6px 6px;
-    color: var(--color-text-subtle);
-    font-size: 11px;
+.segmented .tab[aria-checked="true"] {
+    background: var(--segment-selected);
+    color: var(--text);
     font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    box-shadow: var(--shadow-segment);
 }
 
-.basemap-option {
+/* Interruptor estilo iOS. */
+.switch {
+    position: relative;
+    flex: none;
+    width: 42px;
+    height: 26px;
+    border-radius: var(--radius-pill);
+    background: var(--fill-segment-hover);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: background-color var(--dur-fast) var(--ease);
+}
+
+.switch::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    transition: transform var(--dur-fast) var(--ease);
+}
+
+.switch:checked {
+    background: var(--accent);
+}
+
+.switch:checked::before {
+    transform: translateX(16px);
+}
+
+.switch:disabled {
+    cursor: default;
+    opacity: 0.4;
+}
+
+.shortcut-list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+}
+
+.shortcut-list > div + div {
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+.shortcut-list dt {
+    color: var(--text);
+    font-size: 13px;
+}
+
+.shortcut-list kbd {
+    min-width: 22px;
+    display: inline-block;
+    padding: 1px 6px;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: 6px;
+    background: var(--fill-segment);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.about-hero {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+.about-name .brand-name {
+    font-size: 22px;
+}
+
+.about-org {
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.about-text {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.about-help {
+    align-self: flex-start;
+    text-decoration: none;
+}
+
+.about-credits li {
+    padding: 8px 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.about-credits li + li {
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+
+/* ---------- Mapa base, Legenda, Propriedades ---------- */
+
+.basemap-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.basemap-card {
+    display: grid;
+    gap: 6px;
+    padding: 6px;
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg-strong);
+    cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease);
+}
+
+.basemap-card:hover {
+    border-color: var(--border-hairline);
+}
+
+.basemap-card:has(input:checked) {
+    border-color: var(--accent);
+}
+
+.basemap-card:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.basemap-thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    display: block;
+    border-radius: calc(var(--radius-md) - 6px);
+    background: var(--fill-segment);
+    object-fit: cover;
+}
+
+.basemap-card-name {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.basemap-card:has(input:checked) .basemap-card-name {
+    color: var(--accent-text);
+    font-weight: 600;
+}
+
+.legend-card {
+    display: grid;
+    gap: 8px;
+    padding: 10px 12px;
+}
+
+.legend-card-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 7px 8px;
-    border-radius: var(--radius-sm);
-    color: var(--color-text-label);
+}
+
+.legend-card-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text);
     font-size: 13px;
-    cursor: pointer;
-}
-
-.basemap-option:hover,
-.basemap-option:focus-within {
-    background: var(--hover-bg);
-}
-
-.basemap-option input {
-    accent-color: var(--color-brand);
-}
-
-.basemap-option input:checked + .basemap-option-label {
-    color: var(--color-text);
     font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.legend-card-field {
+    color: var(--text-muted);
+    font-size: 11.5px;
+}
+
+.legend-card .legend {
+    padding: 0;
+}
+
+.layer-info-filled {
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.side-panel .layer-info-table-scroll {
+    flex: 1 1 auto;
+}
+
+
+/* ---------- Rodapé: status · coordenadas · zoom ---------- */
+
+.map-footer {
+    color: var(--text-muted);
+}
+
+.map-footer-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.map-footer-status:empty {
+    display: none;
+}
+
+.map-footer-status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.map-footer-status.is-busy::before {
+    background: var(--warning);
+    animation: status-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+    50% {
+        opacity: 0.3;
+    }
+}
+
+
+/* ---------- Menus (estilo macOS Big Sur, js/ui/menu.js) ---------- */
+
+.menu-layer {
+    position: relative;
+    z-index: 2000;
+}
+
+.menu {
+    position: fixed;
+    min-width: 220px;
+    max-width: min(360px, calc(100vw - 16px));
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+    padding: 5px;
+    border: 0.5px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    background: var(--glass-bg-solid);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    color: var(--text);
+    animation: menu-in var(--dur-fast) var(--ease);
+    outline: none;
+}
+
+@keyframes menu-in {
+    from {
+        opacity: 0;
+        transform: translateY(-3px);
+    }
+}
+
+/* Linha: marcação · rótulo · atalho ou ›, 24 px, 13 px. */
+.menu-item {
+    width: 100%;
+    min-height: 24px;
+    display: grid;
+    grid-template-columns: 18px auto 1fr auto;
+    align-items: center;
+    gap: 0 6px;
+    padding: 2px 8px 2px 4px;
+    border-radius: 5px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 20px;
+    text-align: left;
+    white-space: nowrap;
+    outline: none;
+}
+
+/* Pílula de seleção (mouse ou teclado) na cor de acento. */
+.menu-item:not(.is-disabled):focus,
+.menu-item[aria-expanded="true"] {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.menu-item.is-disabled {
+    color: var(--text-disabled);
+    cursor: default;
+}
+
+.menu-check {
+    width: 18px;
+    display: grid;
+    place-items: center;
+}
+
+.menu-check-icon {
+    width: 13px;
+    height: 13px;
+}
+
+.menu-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.menu-label {
+    grid-column: 3;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.menu-trail {
+    grid-column: 4;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-left: 18px;
+}
+
+.menu-shortcut {
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+}
+
+.menu-chevron {
+    width: 12px;
+    height: 12px;
+    color: var(--text-muted);
+}
+
+.menu-item:not(.is-disabled):focus .menu-shortcut,
+.menu-item:not(.is-disabled):focus .menu-chevron,
+.menu-item[aria-expanded="true"] .menu-chevron {
+    color: inherit;
+}
+
+.menu-soon {
+    padding: 0 6px;
+    border-radius: var(--radius-pill);
+    background: var(--fill-segment);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.menu-separator {
+    height: 1px;
+    margin: 5px 8px;
+    background: var(--border-hairline);
+}
+
+.menu-heading {
+    overflow: hidden;
+    padding: 4px 8px 2px 28px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* ---------- Busca em pílula (sempre à vista; Ctrl+K leva o foco) ---------- */
+
+.map-tools {
+    height: 40px;
+    border-radius: var(--radius-pill);
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    box-shadow: var(--shadow-lg);
+    transition: background-color var(--dur) ease, border-color var(--dur) ease, right var(--dur) var(--ease);
+}
+
+.map-tools .search-bar {
+    padding-left: 14px;
+}
+
+.search-icon.icon {
+    width: 17px;
+    height: 17px;
+    color: var(--text-muted);
+}
+
+.search-clear .icon {
+    width: 14px;
+    height: 14px;
+}
+
+.map-tools .tool-button {
+    border-radius: var(--radius-pill);
+}
+
+.map-tools .tool-button .icon {
+    width: 18px;
+    height: 18px;
+}
+
+.map-tools .tool-button[aria-expanded="true"] {
+    background: var(--fill-segment);
+}
+
+
+/* ---------- Controles do mapa: uma coluna de vidro ---------- */
+
+.map-controls .control-stack {
+    border-color: var(--glass-border);
+    border-radius: var(--radius-md);
+    background: var(--glass-bg);
+    box-shadow: var(--shadow-lg);
+}
+
+.map-controls button {
+    color: var(--text);
+}
+
+.map-controls button .icon {
+    width: 20px;
+    height: 20px;
+}
+
+.map-controls .control-stack {
+    overflow: hidden;
+}
+
+/* Ligado (tela cheia, localização): destaque suave na cor de acento, não alerta. */
+.map-controls button[aria-pressed="true"],
+.map-controls button[aria-expanded="true"] {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+}
+
+#locate-button.is-busy .icon {
+    animation: status-pulse 1s ease-in-out infinite;
+}
+
+/* Minha localização: ponto azul com halo de precisão (Apple Maps). */
+.user-location-dot {
+    fill: var(--info);
+    fill-opacity: 1;
+    stroke: #ffffff;
+    stroke-width: 2.5;
+}
+
+.user-location-accuracy {
+    fill: var(--info);
+    fill-opacity: 0.12;
+    stroke: var(--info);
+    stroke-opacity: 0.4;
+    stroke-width: 1;
+}
+
+
+/* ---------- Pop-up (cartão da feição): atributos em duas colunas, mini-gráfico ---------- */
+
+/* Duas colunas: rótulo à esquerda (discreto), valor à direita. */
+.feature-info-row {
+    display: grid;
+    grid-template-columns: minmax(84px, 40%) 1fr;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.feature-info dt {
+    font-size: 12px;
+}
+
+.feature-info dd {
+    text-align: right;
+}
+
+.feature-info,
+.feature-highlight {
+    background: var(--glass-bg-strong);
+}
+
+/* Escala de cor (mini-gráficos, legendas contínuas como NDVI e produtividade). */
+.color-scale {
+    --scale: linear-gradient(90deg, var(--info), var(--accent), var(--warning));
+    position: relative;
+    height: 6px;
+    margin-top: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--scale);
+    opacity: 0.85;
+}
+
+.color-scale-marker {
+    position: absolute;
+    top: 50%;
+    left: var(--position, 50%);
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--glass-bg-solid);
+    border-radius: 50%;
+    background: var(--text);
+    box-shadow: var(--shadow-sm);
+    transform: translate(-50%, -50%);
+}
+
+
+/* ---------- Painel Gráficos ---------- */
+
+.charts-add {
+    align-self: stretch;
+    min-height: 36px;
+    border-radius: var(--radius-sm);
+}
+
+.charts-add .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.chart-types {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.chart-type-card {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 12px 6px 10px;
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg-strong);
+    color: var(--text);
+    transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
+}
+
+.chart-type-card:not([aria-disabled="true"]):hover {
+    border-color: var(--border-hairline);
+}
+
+.chart-type-card[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+.chart-type-card[aria-disabled="true"] {
+    color: var(--text-disabled);
+    cursor: default;
+}
+
+.chart-type-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.chart-type-name {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.chart-type-card .toolbar-soon {
+    opacity: 1;
+    font-size: 9px;
+}
+
+
+/* ---------- Carregamento e erros ---------- */
+
+.skeleton {
+    display: block;
+    border-radius: var(--radius-pill);
+    background: var(--fill-segment-hover);
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+    50% {
+        opacity: 0.45;
+    }
+}
+
+.skeleton-line {
+    height: 10px;
+}
+
+.layer-meta .skeleton-line {
+    display: inline-block;
+    height: 8px;
+    vertical-align: middle;
+}
+
+.skeleton-block {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg-strong);
+}
+
+.skeleton-caption {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.skeleton-row td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.error-state {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    border: 0.5px solid var(--danger);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.error-state-title {
+    color: var(--danger-text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.error-state-detail {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* Falha de carga sobre o mapa: cartão de vidro no topo, centralizado. */
+.map-notices {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    width: min(440px, calc(100% - 24px));
+    display: grid;
+    gap: 8px;
+    transform: translateX(-50%);
+    z-index: 420;
+    pointer-events: none;
+}
+
+.notice-card {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px 12px;
+    padding: 14px;
+    border: 0.5px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg-solid);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    pointer-events: auto;
+    animation: menu-in var(--dur) var(--ease);
+}
+
+.notice-mark {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--danger);
+    color: var(--danger-contrast);
+    font-weight: 700;
+}
+
+.notice-title {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.notice-detail {
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.notice-actions {
+    grid-column: 2;
+    display: flex;
+    gap: 8px;
+}
+
+.loading-card {
+    border-color: var(--glass-border);
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg-solid);
+    box-shadow: var(--shadow-lg);
 }
 
 
 /* ============================================================
-   10. RESPONSIVO E MOVIMENTO REDUZIDO
+   11. MOVIMENTO REDUZIDO
    ============================================================ */
 
-@media (max-width: 900px) {
-    #dashboard-summary:not([hidden]) {
-        grid-template-columns: 1fr;
-        grid-template-rows: none;
-        overflow: auto;
-    }
-
-    #dashboard-summary .group-list,
-    #dashboard-summary .chart-area {
-        overflow: visible;
-    }
-
-    /*
-       Empilhado, o painel rola por inteiro: cada card tem a altura
-       do conteúdo. Com min-height: 0 (da versão lado a lado), as
-       linhas encolhiam até a altura do painel e os cards se
-       sobrepunham.
-    */
-    #dashboard-summary:not([hidden]) {
-        grid-auto-rows: max-content;
-    }
-
-    #dashboard-summary .group-card,
-    #dashboard-summary .chart-card {
-        min-height: auto;
-    }
-
-    /* Empilhado: barra de agrupamento, dados e gráfico. */
-    #dashboard-summary .summary-toolbar,
-    #dashboard-summary .group-card,
-    #dashboard-summary .chart-card {
-        grid-column: 1;
-        grid-row: auto;
-    }
-
-    .summary-toolbar-divider {
-        display: none;
-    }
-
-    /* Indicadores numa linha própria da barra, dois por linha. */
-    .summary-kpis {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px 0;
-        margin-left: 0;
-        padding-top: 8px;
-        border-top: 0.5px solid var(--border-hairline);
-    }
-
-    .kpi,
-    .kpi:last-child {
-        max-width: none;
-        padding: 0 10px 0 0;
-    }
-
-    .kpi + .kpi {
-        border-left: 0;
-    }
-
-    .kpi-caption {
-        display: block;
-        margin-left: 0;
-    }
-}
-
-@media (max-width: 720px) {
-    :root {
-        --gutter: 12px;
-        --dashboard-h: 60%;
-    }
-
-    .topbar {
-        padding: 0 14px;
-    }
-
-    /*
-       Sem espaço para os quatro menus: um botão único, ao lado das
-       ações, abre todos numa folha de largura total (estilo iOS).
-    */
-    .topbar {
-        grid-template-columns: 1fr auto auto;
-        gap: 8px;
-    }
-
-    .module-menu-group:not(.module-menu-compact) {
-        display: none;
-    }
-
-    .module-menu-compact {
-        display: block;
-    }
-
-    .module-menu-sheet {
-        position: fixed;
-        top: calc(var(--topbar-h) + 8px);
-        right: 12px;
-        left: 12px;
-        width: auto;
-        max-height: calc(100dvh - var(--topbar-h) - 24px);
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        transform: none;
-        transform-origin: top right;
-        animation-name: module-sheet-in;
-    }
-
-    .filter-panel {
-        left: var(--gutter);
-        width: auto;
-    }
-
-    .dashboard-actions .button-ghost {
-        display: none;
-    }
-
-    .map-controls {
-        bottom: calc(var(--gutter) + var(--footer-h));
-        gap: 8px;
-    }
-
-    .layers-open .dashboard {
-        left: 0;
-    }
-
-    .map-controls button {
-        width: 36px;
-        height: 36px;
-    }
-
-    /*
-       Cabeçalho do Analytics compacto: título e ações na 1ª linha,
-       busca na 2ª, camada e abas na 3ª. Sobra altura para a tabela.
-    */
-    .dashboard-header {
-        gap: 8px;
-        padding: 8px 12px;
-    }
-
-    .dashboard-icon,
-    .dashboard-layer .field-label {
-        display: none;
-    }
-
-    .dashboard-heading {
-        flex: 1 1 auto;
-        order: 0;
-    }
-
-    .dashboard-actions {
-        order: 1;
-    }
-
-    .dashboard-search {
-        flex: 1 1 100%;
-        order: 2;
-    }
-
-    .dashboard-header .dashboard-layer {
-        flex: 1 1 0;
-        min-width: 0;
-        margin-left: 0;
-        order: 3;
-    }
-
-    .dashboard-layer select {
-        width: 100%;
-        max-width: none;
-    }
-
-    .dashboard-header .tabs {
-        order: 4;
-    }
-
-    /* Cartão da feição: largura total, recolhido até o usuário expandir. */
-    .feature-card {
-        right: var(--gutter);
-        width: auto;
-    }
-
-    .feature-card:not(.is-expanded) .feature-popup-scroll,
-    .feature-card:not(.is-expanded) .feature-popup-actions {
-        display: none;
-    }
-
-    .feature-card .feature-popup-header {
-        padding-right: 80px;
-    }
-
-    .feature-card-toggle {
-        position: absolute;
-        top: 10px;
-        right: 42px;
-        width: 26px;
-        height: 26px;
-        display: grid;
-        place-items: center;
-        border-radius: 50%;
-        background: var(--fill-segment);
-        color: var(--color-text-muted);
-        z-index: 1;
-    }
-
-    .feature-card-toggle svg {
-        width: 16px;
-        height: 16px;
-        transition: transform var(--duration) ease;
-    }
-
-    .feature-card.is-expanded .feature-card-toggle svg {
-        transform: rotate(180deg);
-    }
-
-    /* Sem altura para a pilha de controles acima do dashboard; ele tem seu próprio "×". */
-    .dashboard-open .map-controls {
-        display: none;
-    }
-
-}
 
 @media (prefers-reduced-motion: reduce) {
     *,

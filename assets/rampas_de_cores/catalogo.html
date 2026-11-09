@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catálogo de rampas e paletas</title>
+<style>
+:root{color-scheme:dark;--bg:#14161b;--glass-bg:rgba(30,33,40,.72);--glass-bg-strong:rgba(255,255,255,.05);--glass-border:rgba(255,255,255,.09);--text:#e8eaee;--text-muted:#9aa2ad;--accent:#5cb83f;--accent-contrast:#fff;--shadow-lg:0 12px 40px rgba(0,0,0,.35)}
+:root[data-theme="light"]{color-scheme:light;--bg:#eef1f4;--glass-bg:rgba(255,255,255,.78);--glass-bg-strong:rgba(0,0,0,.035);--glass-border:rgba(0,0,0,.08);--text:#1f2329;--text-muted:#5f6670;--accent:#3f9e2f;--shadow-lg:0 12px 40px rgba(20,30,40,.12)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:var(--bg);
+  background-image:radial-gradient(1200px 600px at 10% -10%,rgba(92,184,63,.18),transparent 60%),radial-gradient(900px 500px at 110% 10%,rgba(31,120,193,.18),transparent 60%)}
+header{position:sticky;top:0;z-index:5;margin:12px;padding:14px 16px;border-radius:20px;background:var(--glass-bg);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--glass-border);box-shadow:var(--shadow-lg);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+h1{font-size:16px;margin:0 8px 0 4px;font-weight:650}
+.abas{display:flex;gap:4px;padding:3px;border-radius:999px;background:var(--glass-bg-strong)}
+.abas button,.chip,.btn{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;color:var(--text-muted);font-size:13px}
+.abas button[aria-selected="true"],.chip.on{background:var(--accent);color:var(--accent-contrast)}
+.btn{border:1px solid var(--glass-border)} .btn:hover,.chip:hover{color:var(--text)}
+.chip{border:1px solid var(--glass-border)}
+input[type=search]{flex:1;min-width:180px;padding:8px 14px;border-radius:999px;border:1px solid var(--glass-border);background:var(--glass-bg-strong);color:var(--text);font:inherit}
+select{padding:6px 10px;border-radius:999px;border:1px solid var(--glass-border);background:var(--glass-bg-strong);color:var(--text);font:inherit}
+label{display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:13px}
+.linha2{display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%}
+.sp{flex:1}
+main{padding:4px 12px 40px}
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{border-radius:14px;padding:12px;background:var(--glass-bg);border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.card:hover{border-color:var(--accent)}
+.barra{height:34px;border-radius:8px;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.classes{display:flex;height:34px;border-radius:8px;overflow:hidden;cursor:pointer}
+.classes span{flex:1}
+.meta{display:flex;align-items:center;gap:8px;margin-top:8px}
+.nome{font-weight:600;font-size:13px}
+.tipo{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--glass-bg-strong);color:var(--text-muted)}
+.meta .sp+button{all:unset;cursor:pointer;font-size:12px;color:var(--text-muted);padding:3px 8px;border-radius:999px;border:1px solid var(--glass-border)}
+.meta button:hover{color:var(--accent);border-color:var(--accent)}
+.paleta{margin-bottom:22px}
+.paleta h2{font-size:14px;margin:8px 4px 10px}
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.sw div{border-radius:10px;overflow:hidden;cursor:pointer;background:var(--glass-bg);border:1px solid var(--glass-border)}
+.sw div:hover{border-color:var(--accent)}
+.sw i{display:block;height:46px}
+.sw b{display:block;font-weight:500;font-size:11.5px;padding:6px 8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sw small{display:block;font-size:11px;color:var(--text-muted);padding:0 8px 7px;font-family:ui-monospace,Consolas,monospace}
+.vazio{color:var(--text-muted);padding:40px;text-align:center}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);padding:8px 16px;border-radius:999px;background:var(--accent);color:var(--accent-contrast);font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.daltonismo-d main .barra,.daltonismo-d main .classes,.daltonismo-d main .sw i{filter:url(#deut)}
+.daltonismo-p main .barra,.daltonismo-p main .classes,.daltonismo-p main .sw i{filter:url(#prot)}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="deut"><feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter>
+  <filter id="prot"><feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/></filter>
+</svg>
+
+<header>
+  <h1>Cores do WebGIS</h1>
+  <div class="abas" role="tablist">
+    <button role="tab" aria-selected="true" data-aba="rampas">Rampas</button>
+    <button role="tab" aria-selected="false" data-aba="paletas">Paletas</button>
+  </div>
+  <input type="search" id="busca" placeholder="Buscar por nome, tag ou cor…">
+  <button class="btn" id="tema" title="Alternar tema">Tema</button>
+  <div class="linha2" id="opcoesRampas">
+    <span class="chip on" data-tipo="">Todas</span>
+    <span class="chip" data-tipo="sequencial">Sequenciais</span>
+    <span class="chip" data-tipo="divergente">Divergentes</span>
+    <span class="chip" data-tipo="multimatiz">Multimatiz</span>
+    <span class="chip" data-tipo="categorica">Categóricas</span>
+    <span class="chip" data-tipo="fav">★ Favoritas</span>
+    <span class="sp"></span>
+    <label><input type="checkbox" id="inverter"> Inverter</label>
+    <label>Exibir <select id="classes">
+      <option value="0">contínua</option>
+      <option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option>
+    </select></label>
+    <label>Simular <select id="dalt"><option value="">visão normal</option><option value="d">deuteranopia</option><option value="p">protanopia</option></select></label>
+  </div>
+</header>
+
+<main><div id="conteudo"></div></main>
+<div id="toast"></div>
+
+<script src="rampas.js"></script>
+<script src="rampas-utils.js"></script>
+<script>
+(function () {
+  const $ = s => document.querySelector(s);
+  const estado = { aba: 'rampas', tipo: '', busca: '', inverter: false, classes: 5 };
+  const rotTipo = { sequencial: 'Sequencial', divergente: 'Divergente', multimatiz: 'Multimatiz', categorica: 'Categórica' };
+  const hex = c => '#' + c.slice(0, 3).map(v => v.toString(16).padStart(2, '0')).join('');
+
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.style.opacity = 1; clearTimeout(t._h); t._h = setTimeout(() => t.style.opacity = 0, 1600); }
+  function copiar(txt, msg) {
+    const ok = () => toast(msg || 'Copiado');
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok, () => fallback(txt, ok));
+    else fallback(txt, ok);
+  }
+  function fallback(txt, ok) { const a = document.createElement('textarea'); a.value = txt; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); ok(); } catch (e) { prompt('Copie:', txt); } a.remove(); }
+
+  function desenharRampas() {
+    const f = estado.busca.toLowerCase();
+    const ids = Object.keys(RAMPAS).filter(id => {
+      const r = RAMPAS[id];
+      if (estado.tipo === 'fav' ? !r.favorita : estado.tipo && r.tipo !== estado.tipo) return false;
+      if (!f) return true;
+      return (id + ' ' + r.nome + ' ' + r.tipo + ' ' + (r.tags || []).join(' ') + ' ' + r.paradas.map(p => hex(p.cor)).join(' ')).toLowerCase().includes(f);
+    });
+    if (!ids.length) return '<div class="vazio">Nenhuma rampa encontrada.</div>';
+    const op = { inverter: estado.inverter };
+    return '<div class="grade">' + ids.map(id => {
+      const r = RAMPAS[id];
+      const vis = estado.classes
+        ? `<div class="classes" data-cod="${id}">${classesDaRampa(id, estado.classes, op).map(c => `<span style="background:${c}"></span>`).join('')}</div>`
+        : `<div class="barra" data-cod="${id}" style="background:${gradienteCSS(id, op)}"></div>`;
+      return `<div class="card">${vis}<div class="meta"><span class="nome">${r.favorita ? '★ ' : ''}${r.nome}</span><span class="tipo">${rotTipo[r.tipo] || r.tipo}${r.discreta ? ' · discreta' : ''}</span><span class="sp"></span><button data-css="${id}" title="Copiar gradiente CSS">CSS</button></div></div>`;
+    }).join('') + '</div>';
+  }
+
+  function desenharPaletas() {
+    const f = estado.busca.toLowerCase();
+    const blocos = Object.keys(PALETAS).map(pid => {
+      const p = PALETAS[pid];
+      const cores = p.cores.filter(c => !f || (c.nome + ' ' + hex(c.cor) + ' ' + c.cor.join(',')).toLowerCase().includes(f));
+      if (!cores.length) return '';
+      return `<section class="paleta"><h2>${p.nome} <span class="tipo">${cores.length} cores</span></h2><div class="sw">${cores.map(c =>
+        `<div data-hex="${hex(c.cor)}" data-nome="${c.nome}" title="${c.nome} — rgb(${c.cor.join(', ')})"><i style="background:${hex(c.cor)}"></i><b>${c.nome || '&nbsp;'}</b><small>${hex(c.cor)}</small></div>`).join('')}</div></section>`;
+    }).join('');
+    return blocos || '<div class="vazio">Nenhuma cor encontrada.</div>';
+  }
+
+  function render() {
+    $('#opcoesRampas').style.display = estado.aba === 'rampas' ? '' : 'none';
+    $('#conteudo').innerHTML = estado.aba === 'rampas' ? desenharRampas() : desenharPaletas();
+  }
+
+  document.querySelectorAll('.abas button').forEach(b => b.onclick = () => {
+    estado.aba = b.dataset.aba;
+    document.querySelectorAll('.abas button').forEach(x => x.setAttribute('aria-selected', x === b));
+    render();
+  });
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+    estado.tipo = c.dataset.tipo; document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c)); render();
+  });
+  $('#busca').oninput = e => { estado.busca = e.target.value.trim(); render(); };
+  $('#inverter').onchange = e => { estado.inverter = e.target.checked; render(); };
+  $('#classes').onchange = e => { estado.classes = +e.target.value; render(); };
+  $('#dalt').onchange = e => { document.body.className = e.target.value ? 'daltonismo-' + e.target.value : ''; };
+  $('#tema').onclick = () => {
+    const r = document.documentElement, novo = r.dataset.theme === 'light' ? 'dark' : 'light';
+    r.dataset.theme = novo; try { localStorage.setItem('tema-catalogo', novo); } catch (e) {}
+  };
+  try { const t = localStorage.getItem('tema-catalogo'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+
+  $('#conteudo').addEventListener('click', e => {
+    const inv = estado.inverter ? ', { inverter: true }' : '';
+    const cod = e.target.closest('[data-cod]'), cssB = e.target.closest('[data-css]'), sw = e.target.closest('[data-hex]');
+    if (cssB) copiar(gradienteCSS(cssB.dataset.css, { inverter: estado.inverter }), 'Gradiente CSS copiado');
+    else if (cod) {
+      const id = cod.dataset.cod;
+      copiar(estado.classes
+        ? `corDaClasse('${id}', valor, quebras(valores, ${estado.classes}, 'quantis')${inv})`
+        : `corDaRampa('${id}', valor, min, max${inv})`, 'Código copiado: ' + RAMPAS[id].nome);
+    } else if (sw) copiar(sw.dataset.hex, `Copiado ${sw.dataset.hex}${sw.dataset.nome ? ' — ' + sw.dataset.nome : ''}`);
+  });
+  render();
+})();
+</script>
+</body>
+</html>

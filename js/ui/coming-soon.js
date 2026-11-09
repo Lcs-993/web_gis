@@ -1,8 +1,8 @@
 /* ============================================================
    AVISO "EM BREVE"
 
-   Para botões de recursos ainda não implementados (ex.: assistente
-   de IA na barra superior). O botão aponta, por aria-controls, para
+   Para botões de recursos ainda não implementados (ex.: a Conta,
+   cujo cartão também traz as notificações). O botão aponta, por aria-controls, para
    um cartão que abre e fecha ao clicar; fecha com Esc ou ao clicar
    fora. Mesmo visual dos itens "Em breve" dos menus de módulos.
    ============================================================ */

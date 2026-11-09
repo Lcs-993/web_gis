@@ -22,7 +22,7 @@
    ============================================================ */
 
 import { el, byId } from "./dom.js";
-import { formatCount, formatNumber, formatValue } from "./format.js";
+import { formatCount, formatNumber, formatValue, themeClassLabel } from "./format.js";
 import { GROUP_OPERATORS, columnOperatorsFor, columnSummary, crossTab, groupBy } from "../data/stats.js";
 import { createColumnFilter } from "./column-filter.js";
 import { CHART_TYPES, PART_LIMIT, renderChart, renderSubgroupChart, seriesColors } from "./charts.js";
@@ -34,6 +34,7 @@ import { toKml } from "../data/kml-export.js";
 import { EMPTY_COLOR } from "../data/theme.js";
 import { TABLE_PAGE_SIZE } from "../config.js";
 import { exportCardPng } from "./export-png.js";
+import { layerPendingState, skeletonLine } from "./skeleton.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -62,7 +63,7 @@ const funnelIcon = () => {
     return svg;
 };
 
-export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
+export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect, onTabChange }) {
     const context = byId("dashboard-context");
     const chartType = byId("chart-type");
     const chartArea = byId("chart-area");
@@ -105,6 +106,8 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     let dirty = true;
     /* A tabela é a visão padrão ao abrir o dashboard; o HTML já nasce nela. */
     let activeTab = "table";
+    /* Tipo pedido pelo painel Gráficos antes de o seletor existir (1ª abertura do Resumo). */
+    let pendingChartType = null;
     let sort = { field: null, direction: 1 };
     let page = 0;
     let sortedCache = null;
@@ -152,7 +155,9 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         const selection = store.state.selection;
 
         if (selection && selection.layerId === layer.id && selection.uids.length > 1) {
-            parts.push(`${formatCount(selection.uids.length)} selecionadas`);
+            parts.push(selection.parts
+                ? `1 seleção em ${formatCount(selection.uids.length)} partes`
+                : `${formatCount(selection.uids.length)} selecionadas`);
         }
 
         if (layer.filters.length) {
@@ -258,7 +263,7 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
             ? GROUP_OPERATORS
             : GROUP_OPERATORS.filter((operator) => !operator.needsMetric);
 
-        fillSelect(groupOperator, operators.map((operator) => [operator.id, operator.label]), "count");
+        fillSelect(groupOperator, operators.map((operator) => [operator.id, operator.label]), numeric.length ? "sum" : "count");
 
         const operator = GROUP_OPERATORS.find((item) => item.id === groupOperator.value) || GROUP_OPERATORS[0];
 
@@ -566,7 +571,8 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         */
         const unavailable = (type) => Boolean(type && ((type.partToWhole && !additive) || (series && type.id === "donut")));
 
-        fillSelect(chartType, CHART_TYPES.map((type) => [type.id, type.label]), "bars");
+        fillSelect(chartType, CHART_TYPES.map((type) => [type.id, type.label]), pendingChartType || "bars");
+        pendingChartType = null;
 
         /* Opção indisponível diz o porquê no próprio nome (dica em option desabilitada não aparece). */
         Array.from(chartType.options).forEach((option) => {
@@ -929,6 +935,11 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         });
 
         render();
+
+        /* A barra esquerda destaca Tabela ou Gráficos conforme a aba. */
+        if (onTabChange) {
+            onTabChange(name);
+        }
     };
 
     tabs.forEach((tab, index) => {
@@ -1081,39 +1092,50 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
        tema (uma pasta por categoria, na ordem da legenda) ou a cor da
        camada; o atributo dos rótulos vira o nome de cada feição.
     */
-    const exportKml = () => {
-        const layer = store.getActiveLayer();
+    /*
+       Sem argumentos: a camada ativa como está (filtros, busca, ordem).
+       Com { layerId, uids, fileLabel }: só essas feições (menu de
+       contexto: "Exportar KML" de uma feição).
+    */
+    const exportKml = ({ layerId = null, uids: only = null, fileLabel = null } = {}) => {
+        const layer = layerId ? store.getLayer(layerId) : store.getActiveLayer();
 
         if (!ready(layer)) {
             store.setStatus("KML: nenhuma camada pronta para exportar.");
             return;
         }
 
-        if (!layer.view.considered.length) {
+        if (!only && !layer.view.considered.length) {
             store.setStatus(`KML: nada para exportar em ${layer.name} (os filtros não deixaram feições).`);
             return;
         }
 
-        const uids = sortedRows(layer).map((row) => row.uid);
+        const uids = only || sortedRows(layer).map((row) => row.uid);
         const theme = layer.theme.visible && layer.theme.legend ? layer.theme.legend : null;
         const item = (uid) => ({ feature: layer.features[uid], color: theme ? theme.colors[uid] : layer.color });
         let groups;
 
         if (theme) {
+            /* Uma pasta por classe do tema (valor ou faixa), na ordem da legenda. */
             const field = theme.field;
-            const byKey = new Map(theme.classes.map((entry) => [entry.key, []]));
+            const attribute = layer.schema.attributes.find((entry) => entry.name === field);
+            const buckets = theme.classes.map(() => []);
             const empties = [];
+            const outside = [];
 
             uids.forEach((uid) => {
-                const value = getAttribute(layer.features[uid], field);
-                const bucket = isEmpty(value) ? empties : byKey.get(String(value));
+                const index = theme.classIndex[uid];
 
-                (bucket || empties).push(item(uid));
+                (index >= 0 ? buckets[index] : index === -2 ? outside : empties).push(item(uid));
             });
 
             groups = theme.classes
-                .map((entry) => ({ name: `${field}: ${entry.key}`, items: byKey.get(entry.key) }))
+                .map((entry, index) => ({ name: `${field}: ${themeClassLabel(entry, attribute)}`, items: buckets[index] }))
                 .filter((group) => group.items.length);
+
+            if (outside.length) {
+                groups.push({ name: `${field}: (fora das classes)`, items: outside });
+            }
 
             if (empties.length) {
                 groups.push({ name: `${field}: (vazio)`, items: empties.map((entry) => ({ ...entry, color: EMPTY_COLOR })) });
@@ -1133,7 +1155,9 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
             exportedAt: new Date().toLocaleDateString("pt-BR")
         });
 
-        downloadText(kml, `${safeFileName(layer.name)}_${exportSuffix(layer)}.kml`, "application/vnd.google-earth.kml+xml");
+        const suffix = only ? safeFileName(fileLabel || "feicao") : exportSuffix(layer);
+
+        downloadText(kml, `${safeFileName(layer.name)}_${suffix}.kml`, "application/vnd.google-earth.kml+xml");
         store.setStatus(`KML exportado: ${layer.name}, ${formatCount(uids.length)} feições`);
     };
 
@@ -1266,15 +1290,26 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
         exportChartPngButton.disabled = !usable || !layer.view.considered.length;
 
         if (!usable) {
-            chartArea.replaceChildren();
+            const loading = Boolean(layer && layer.status === "loading");
+            const pending = layerPendingState(layer);
+
             groupBars.replaceChildren();
             tableHead.replaceChildren();
-            tableBody.replaceChildren();
             tableFoot.replaceChildren();
+
+            /* Carregando: linhas-esqueleto na tabela; falha: a mensagem no lugar do vazio. */
+            tableBody.replaceChildren(...(loading
+                ? Array.from({ length: 8 }, () => el("tr", { class: "skeleton-row", "aria-hidden": "true" },
+                    ["60%", "80%", "45%", "70%"].map((width) => el("td", {}, skeletonLine(width)))))
+                : []));
+            tableEmpty.replaceChildren(loading ? `Carregando ${layer.name}…` : pending || "Nenhuma feição no conjunto atual.");
             tableEmpty.hidden = false;
+            chartArea.replaceChildren(pending || "");
             dirty = false;
             return;
         }
+
+        tableEmpty.textContent = "Nenhuma feição no conjunto atual.";
 
         if (activeTab === "summary") {
             const features = consideredFeatures(layer);
@@ -1330,6 +1365,15 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     layerSelect.addEventListener("change", () => store.setActiveLayer(layerSelect.value));
 
     store.on("layers", renderLayerSelect);
+
+    /* A camada ativa terminou de carregar (ou falhou): sai o esqueleto. */
+    store.on("layers", () => {
+        const layer = store.getActiveLayer();
+
+        if (layer && layer.status !== "loading" && tableBody.querySelector(".skeleton-row")) {
+            invalidate();
+        }
+    });
     renderLayerSelect();
 
     store.on("active", () => {
@@ -1352,6 +1396,28 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect }) {
     return {
         /* Ferramentas › Exportar KML (barra superior). */
         exportKml,
+        /* Barra esquerda: Tabela de atributos (table) e Gráficos (summary). */
+        selectTab: (name) => {
+            if (name !== activeTab) {
+                selectTab(name);
+            }
+        },
+        getTab: () => activeTab,
+        /* Painel Gráficos: escolhe o tipo (barras, rosca…) do gráfico do Resumo. */
+        setChartType: (id) => {
+            if (!CHART_TYPES.some((type) => type.id === id)) {
+                return;
+            }
+
+            if (Array.from(chartType.options).some((option) => option.value === id)) {
+                chartType.value = id;
+            } else {
+                pendingChartType = id;
+            }
+
+            render();
+        },
+        getChartType: () => chartType.value || pendingChartType || "bars",
         onOpen: () => {
             if (dirty) {
                 render();

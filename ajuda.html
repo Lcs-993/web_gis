@@ -15,10 +15,10 @@
         content="default-src 'self'; script-src 'self' 'sha256-5VChX8X2tOFSpdbvpNxURqT/QXo24LC3D2YyUNdts7Y='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'"
     >
 
-    <link rel="icon" href="assets/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" href="assets/favcon_red_green.png">
+    <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="assets/png/favcon_red_green.png">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="css/style.css?v=20261108c">
+    <link rel="stylesheet" href="css/style.css?v=20261109n">
 
     <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
 
@@ -45,7 +45,7 @@
             padding: 0 14px;
             border-radius: 999px;
             background: transparent;
-            color: var(--color-text);
+            color: var(--text);
             font-size: 13px;
             font-weight: 500;
             text-decoration: none;
@@ -90,7 +90,7 @@
 
         .help-nav a:hover {
             background: var(--hover-bg);
-            color: var(--color-text);
+            color: var(--text);
         }
 
         .help-content {
@@ -101,14 +101,14 @@
 
         .help-content h1 {
             margin: 0 0 6px;
-            color: var(--color-text);
+            color: var(--text);
             font-size: 30px;
             letter-spacing: -0.6px;
         }
 
         .help-lead {
             margin: 0 0 28px;
-            color: var(--color-text-muted);
+            color: var(--text-muted);
             font-size: 16px;
         }
 
@@ -117,20 +117,20 @@
             padding: 20px 22px;
             border: 0.5px solid var(--border-hairline);
             border-radius: 14px;
-            background: var(--color-surface-strong);
+            background: var(--glass-bg);
             scroll-margin-top: calc(var(--topbar-h) + 16px);
         }
 
         .help-section h2 {
             margin: 0 0 10px;
-            color: var(--color-text);
+            color: var(--text);
             font-size: 19px;
             letter-spacing: -0.3px;
         }
 
         .help-section h3 {
             margin: 16px 0 6px;
-            color: var(--color-text);
+            color: var(--text);
             font-size: 15px;
         }
 
@@ -148,7 +148,7 @@
         }
 
         .help-section strong {
-            color: var(--color-text);
+            color: var(--text);
         }
 
         kbd {
@@ -159,7 +159,7 @@
             border-bottom-width: 2px;
             border-radius: 6px;
             background: var(--color-surface-solid);
-            color: var(--color-text);
+            color: var(--text);
             font-family: inherit;
             font-size: 12px;
             text-align: center;
@@ -180,7 +180,7 @@
         }
 
         .help-table th {
-            color: var(--color-text);
+            color: var(--text);
             font-weight: 600;
             white-space: nowrap;
         }
@@ -189,8 +189,8 @@
             margin-top: 10px;
             padding: 10px 14px;
             border-radius: 10px;
-            background: var(--color-brand-soft);
-            color: var(--color-text);
+            background: var(--accent-soft);
+            color: var(--text);
             font-size: 14px;
         }
 
@@ -215,7 +215,7 @@
 <body>
     <header class="topbar help-topbar">
         <div class="brand">
-            <img class="brand-logo" src="assets/favcon_red_green.png" alt="" width="28" height="28">
+            <img class="brand-logo" src="assets/png/favcon_red_green.png" alt="" width="28" height="28">
             <span class="brand-name">Web<span class="brand-accent">GIS</span></span><span class="brand-suffix">Ajuda</span>
         </div>
 
@@ -259,51 +259,63 @@
 
             <section class="help-section" id="visao-geral">
                 <h2>Visão geral</h2>
+                <p>O WebGIS é feito para <strong>computador</strong> (tela grande, mouse e teclado): é um painel para analisar e apresentar os dados. No celular, o uso será pelo <strong>aplicativo de campo</strong>, que envia os dados coletados no talhão para cá.</p>
                 <ul>
-                    <li><strong>Barra superior:</strong> menus dos módulos (Monitoramento, Operação, Análises, Ferramentas; no celular, reunidos no botão de quadradinhos), assistente de IA (em breve), esta ajuda e o tema claro/escuro.</li>
-                    <li><strong>Canto superior esquerdo do mapa:</strong> botão da aba <strong>Camadas</strong>.</li>
-                    <li><strong>Canto superior direito:</strong> barra de <strong>busca</strong> com o botão de <strong>filtros</strong>.</li>
-                    <li><strong>Canto inferior direito:</strong> Analytics, Enquadrar, Tela cheia, Zoom e Mapa base.</li>
-                    <li><strong>Rodapé:</strong> coordenadas do cursor (ou do centro do mapa) e o nível de zoom.</li>
+                    <li><strong>Apresentar</strong> (canto superior direito, ou <kbd>F</kbd>): tela cheia só com o mapa, a caixa de busca e os controles; as barras somem. Leve o mouse até o <strong>topo</strong> da tela para ver a barra superior, ou até a <strong>borda esquerda</strong> para a barra de ferramentas; elas somem de novo quando o mouse sai. Os pequenos traços claros no topo e na borda esquerda marcam esses lugares. Para sair: <kbd>Esc</kbd>, <kbd>F</kbd> ou <strong>Sair</strong> na barra superior.</li>
+                    <li><strong>Barra superior:</strong> ☰ (mostra os nomes na barra da esquerda), a marca WebGIS, os menus <strong>Monitoramento</strong>, <strong>Operação</strong>, <strong>Análises</strong>, <strong>Ferramentas</strong> e <strong>Ajuda</strong> e, à direita, tema claro/escuro e o botão <strong>Apresentar</strong>. As notificações ficam no cartão da <strong>Conta</strong> (pé da barra esquerda); um sininho no ícone do usuário avisa quando há novidade.</li>
+                    <li><strong>Barra da esquerda:</strong> todas as ferramentas, em blocos por função (com a barra expandida, cada bloco mostra o título):
+                        <strong>Mapa</strong> (camadas, adicionar camada, legenda);
+                        <strong>Consultar</strong> (<strong>Pesquisar</strong>, que abre a pesquisa avançada, e <strong>Filtro</strong>);
+                        <strong>Simbologia</strong> (<strong>Estilos</strong>, rótulos, pop-ups e efeitos);
+                        <strong>Analisar</strong> (tabela de atributos, campos e gráficos).
+                        No pé, a conta (com as notificações), as configurações e o sobre.</li>
+                    <li><strong>Desenho, salvar mapa, favoritos, compartilhar, incorporar, aplicativos e imprimir</strong> ficam no menu <strong>Ferramentas</strong>; análise espacial, no menu <strong>Análises</strong>.</li>
+                    <li><strong>Controles do mapa:</strong> minha localização, início e zoom, no canto inferior direito do mapa.</li>
+                    <li><strong>Rodapé:</strong> status (“Pronto”, “Carregando…”), coordenadas do cursor (ou do centro) e zoom. As fontes dos dados ficam no <strong>Sobre</strong>.</li>
                 </ul>
-                <p>Busca, filtros e Analytics trabalham sempre sobre a <strong>camada ativa</strong> (a que aparece em destaque na aba Camadas). Na abertura, a ativa é <strong>Talhões</strong>.</p>
+                <p>As ferramentas que mudam o mapa (camadas, legenda, gráficos, filtro, estilos, rótulos, pesquisa avançada) abrem numa janela flutuante ao lado da barra, para você ver o efeito no mapa. Configurações, Sobre, Campos e Propriedades abrem numa janela no centro da tela, com o fundo escurecido; clique no fundo para fechá-la. Clique de novo no ícone (ou no ×, ou <kbd>Esc</kbd>) para fechar. Itens com <strong>Em breve</strong> ainda não funcionam. Busca, filtros, estilos, rótulos, campos e Analytics trabalham sempre sobre a <strong>camada ativa</strong>: para trocá-la, clique no nome da camada no painel <strong>Camadas</strong>. Na abertura, a ativa é <strong>Talhões</strong>.</p>
             </section>
 
             <section class="help-section" id="camadas">
                 <h2>Camadas</h2>
-                <p>Abra a aba pelo botão de camadas no canto superior esquerdo; feche pelo <strong>×</strong> preso à borda da aba. Cada camada mostra o símbolo (cor e tipo de geometria), o nome, a quantidade de feições entre parênteses e os botões (resumidos também no pé da aba):</p>
+                <p>Abra pelo ícone <strong>Camadas</strong> na barra da esquerda. Cada camada mostra o símbolo (cor e tipo de geometria), o nome, a quantidade de feições entre parênteses e os botões (resumidos também no pé do painel):</p>
                 <table class="help-table">
                     <tr><th>Olho</th><td>Mostra ou oculta a camada no mapa.</td></tr>
                     <tr><th>Paleta</th><td>Liga o tema por categoria (cores por valor de um atributo).</td></tr>
                     <tr><th>T</th><td>Liga os rótulos.</td></tr>
-                    <tr><th>i</th><td>Identificar: feições, tipo de geometria, origem e a lista de atributos com seus tipos.</td></tr>
+                    <tr><th>i</th><td>Torna a camada ativa e abre as <strong>Propriedades</strong> no lugar do painel Camadas: feições, geometria, sistema de coordenadas, extensão e metadados. Em <strong>Campos</strong>, a lista de atributos com o tipo e quanto está preenchido.</td></tr>
                 </table>
                 <p>Clique no <strong>nome</strong> da camada para torná-la a camada ativa. <strong>Fazendas</strong> é só referência visual: aparece como contorno, não recebe clique e mostra o número da fazenda a partir do zoom 13. <strong>Talhões</strong> fica sempre por último na lista.</p>
-                <p>Em tela cheia, a aba mostra no topo o logo e o nome WebGIS.</p>
+                <p>A <strong>Legenda</strong> (barra da esquerda) mostra as camadas ligadas, com as cores do tema quando ele está ligado. O <strong>Mapa base</strong> fica nos controles do mapa, no canto inferior direito (o botão acima dos de localização e zoom): escolha entre Satélite e Ruas pelas miniaturas; clique fora da janela para fechá-la.</p>
             </section>
 
             <section class="help-section" id="rotulos-tema">
                 <h2>Rótulos e tema</h2>
                 <h3>Rótulos</h3>
                 <ul>
-                    <li>Ligue pelo <strong>T</strong> e escolha o atributo no seletor <strong>Rótulo</strong>. Só uma camada fica rotulada por vez: ligar os rótulos de uma desliga os da outra.</li>
+                    <li>Ligue pelo <strong>T</strong> (ou em <strong>Rótulos</strong>, na barra da esquerda) e escolha o atributo no seletor <strong>Rótulo</strong>. Só uma camada fica rotulada por vez: ligar os rótulos de uma desliga os da outra.</li>
                     <li><strong>+ Adicionar linha</strong> combina até 4 atributos, um por linha (ex.: Fazenda, Variedade, Área (ha.)). O <strong>×</strong> remove a linha.</li>
                     <li>Rótulos que se sobreporiam são omitidos e aparecem ao aproximar o zoom. Feições escondidas por filtro ou esmaecidas pela busca ficam sem rótulo.</li>
                 </ul>
-                <h3>Tema por categoria</h3>
+                <h3>Tema</h3>
                 <ul>
-                    <li>Ligue pela <strong>paleta</strong> e escolha o atributo. Só atributos do tipo categoria (ex.: Variedade) podem virar tema.</li>
-                    <li>A legenda mostra cada valor com sua cor e quantidade; valores vazios ficam em cinza.</li>
+                    <li>Ligue pela <strong>paleta</strong> (ou em <strong>Estilos</strong>, na barra da esquerda) e escolha o atributo.</li>
+                    <li><strong>Categorias</strong> (ex.: Variedade): uma cor para cada valor.</li>
+                    <li><strong>Valores numéricos</strong> (ex.: Área (ha.)): as feições são divididas em faixas, da cor do menor valor à do maior.</li>
+                    <li>Em <strong>Estilos</strong> você personaliza: <strong>Cores</strong> (escolha uma rampa na lista), <strong>Inverter cores</strong> e, nos números, a <strong>Classificação</strong> (quebras naturais, quantis, intervalos iguais ou manual) e o número de <strong>Classes</strong> (digite de 1 a 32).</li>
+                    <li>Nos números, a lista <strong>Classes</strong> mostra o limite inferior e o superior de cada faixa: digite um novo valor e tecle <kbd>Enter</kbd>. A classificação passa para <strong>Manual</strong>; a classe vizinha acompanha o limite que elas dividem. Valores que ficarem fora de todas as faixas aparecem como “fora das classes”.</li>
+                    <li>A legenda mostra cada valor ou faixa com a cor e a quantidade; valores vazios ficam em cinza.</li>
                 </ul>
             </section>
 
             <section class="help-section" id="busca">
                 <h2>Busca</h2>
                 <ul>
-                    <li>Digite um ou mais termos: todos precisam aparecer na feição, em qualquer atributo.</li>
+                    <li>A caixa de busca fica sempre no canto superior direito do mapa; <kbd>Ctrl</kbd> + <kbd>K</kbd> leva o cursor até ela. Digite um ou mais termos: por padrão, todos precisam aparecer na feição, em qualquer atributo.</li>
+                    <li><strong>Pesquisa avançada:</strong> o botão <strong>Pesquisar</strong> da barra da esquerda (ou Ferramentas › Pesquisa avançada…) abre os ajustes da busca na camada ativa: <strong>Correspondência</strong> (contém, começa com ou valor exato), <strong>Termos</strong> (todos — E — ou qualquer um — OU; “22 23” com OU acha os dois), <strong>Campos pesquisados</strong> (marque só onde procurar) e <strong>Enquadrar os resultados</strong>. O painel mostra quantos resultados o termo dá; “Restaurar o padrão” desfaz os ajustes.</li>
                     <li>Acentos, maiúsculas e pontuação são ignorados. Números casam por inteiro: <kbd>22</kbd> acha 22, não 122.</li>
                     <li>No mapa, os resultados ficam <strong>mais intensos</strong> e o resto da camada <strong>quase some</strong> (sem rótulo). As outras camadas, como Fazendas e Unidade Industrial, também esmaecem enquanto a busca está ativa. A quantidade de resultados aparece abaixo da barra.</li>
-                    <li><kbd>Esc</kbd> ou o <strong>×</strong> limpa a busca.</li>
+                    <li><kbd>Esc</kbd> ou o <strong>×</strong> limpa a busca; com o campo vazio, <kbd>Esc</kbd> tira o cursor da caixa.</li>
                 </ul>
                 <p>Com o Analytics aberto, a busca vai para o centro do cabeçalho do Analytics.</p>
             </section>
@@ -313,7 +325,8 @@
                 <p>Há duas formas de filtrar, e as duas criam os mesmos filtros (valem para mapa, tabela e exportação):</p>
                 <h3>Painel Filtros</h3>
                 <ul>
-                    <li>Abra pelo funil na barra de busca, escolha o atributo e a condição.</li>
+                    <li>Abra pelo ícone <strong>Filtro</strong> na barra da esquerda, escolha o atributo e a condição.</li>
+                    <li>O <strong>funil</strong> da barra de busca abre um menu rápido: abrir o painel, ver e remover os filtros ativos, trocar entre “todas” e “qualquer uma”, aplicar um filtro salvo e limpar.</li>
                     <li>Números usam uma <strong>barra de intervalo</strong> com De/Até; juntar os dois marcadores significa “igual a”.</li>
                     <li>Os filtros ativos aparecem como etiquetas; o número no funil mostra quantos são.</li>
                     <li>Com duas ou mais condições, escolha <strong>todas</strong> (a feição precisa atender a todas) ou <strong>qualquer uma</strong> (basta uma). Entre as etiquetas aparece “e” ou “ou”.</li>
@@ -332,20 +345,21 @@
                 <ul>
                     <li>Clique numa feição no mapa ou numa linha da tabela.</li>
                     <li>A seleção é um nível acima da busca: as selecionadas ganham <strong>contorno branco forte</strong> e cor mais intensa (a do tema, se houver). As outras feições não mudam; só a busca esmaece o que não casa com ela.</li>
-                    <li>Com o Analytics fechado, abre o popup: no topo, o nome da feição; depois as medidas em destaque e os demais atributos (os vazios ficam recolhidos). <strong>Aproximar</strong> enquadra a feição e <strong>Ver na tabela</strong> abre o Analytics na linha dela; com ele aberto, a tabela vai até a página da feição e a linha aparece destacada <strong>no topo da tabela</strong>, sem precisar procurar.</li>
+                    <li>A feição aparece num <strong>cartão à direita do mapa</strong>, abaixo da busca (ele não cobre a feição, e o mapa a enquadra fora do cartão): no topo, o nome da feição; depois as medidas em destaque e os demais atributos (os vazios ficam recolhidos). <strong>Aproximar</strong> enquadra a feição e <strong>Ver na tabela</strong> abre o Analytics na linha dela; com ele aberto, a tabela vai até a página da feição e a linha aparece destacada <strong>no topo da tabela</strong>, sem precisar procurar.</li>
                     <li><strong>Várias linhas na tabela:</strong> <kbd>Ctrl</kbd> (ou <kbd>⌘</kbd>) + clique acrescenta ou retira uma linha; <kbd>Shift</kbd> + clique seleciona o intervalo desde a última linha clicada, na ordem atual da tabela (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> soma o intervalo ao que já estava). O mapa enquadra todas as selecionadas e o Analytics mostra quantas são.</li>
-                    <li>Clique num lugar vazio do mapa ou feche o popup para limpar a seleção.</li>
+                    <li><strong>Talhão em várias partes:</strong> com uma busca ativa, clicar numa parte seleciona todas as partes achadas do mesmo talhão (mesma fazenda e mesmo talhão). O cartão mostra a parte clicada.</li>
+                    <li>Clique num lugar vazio do mapa ou feche o cartão (× ou <kbd>Esc</kbd>) para limpar a seleção. Com o Analytics aberto, o × só esconde o cartão e a linha continua selecionada.</li>
                 </ul>
             </section>
 
             <section class="help-section" id="dashboard">
                 <h2>Analytics</h2>
-                <p>Abra pelo botão de barras nos controles do mapa. Ele mostra a camada ativa, já com filtros e busca aplicados.</p>
+                <p>Abra por <strong>Tabela de atributos</strong> ou <strong>Gráficos</strong> na barra da esquerda (ou pelo menu <strong>Análises</strong>). Ele mostra a camada ativa, já com filtros e busca aplicados. No painel <strong>Gráficos</strong>, escolha o tipo (barras ou pizza) e o gráfico abre no Resumo.</p>
                 <h3>Tabela</h3>
                 <ul>
                     <li>Clique no nome da coluna para <strong>ordenar</strong> (de novo inverte).</li>
                     <li>O <strong>rodapé de totais</strong> calcula sobre todo o conjunto filtrado, não só a página. Escolha por coluna: Soma, Média, Mediana, Mínimo, Máximo, Desvio padrão, Preenchidos ou Distintos. Nas colunas sem total, o seletor aparece ao passar o mouse sobre o rodapé.</li>
-                    <li>Ao selecionar uma linha, um <strong>cartão</strong> no canto do mapa mostra a feição inteira, com <strong>Aproximar</strong>. No celular ele aparece recolhido: toque na seta para ver os atributos.</li>
+                    <li>Ao selecionar uma linha, o mesmo <strong>cartão</strong> à direita do mapa mostra a feição inteira, com <strong>Aproximar</strong>.</li>
                     <li>50 linhas por página, com setas para navegar.</li>
                 </ul>
                 <h3>Resumo</h3>
@@ -366,7 +380,7 @@
                 <h2>Exportar</h2>
                 <table class="help-table">
                     <tr><th>Exportar CSV</th><td>No rodapé da Tabela. A tabela como está: com filtro ou busca, só as feições filtradas, na ordem atual; sem filtro, todos os dados. Abre no Excel/LibreOffice.</td></tr>
-                    <tr><th>Exportar KML</th><td>Em <strong>Ferramentas › Exportar KML</strong>, na barra superior. A camada ativa como está no mapa, para Google Earth ou QGIS: mesmas feições do CSV, com as cores do tema e uma pasta por categoria. O rótulo vira o nome de cada feição; ao clicar numa feição no Google Earth, abre um balão com os atributos organizados.</td></tr>
+                    <tr><th>Exportar KML</th><td>Em <strong>Ferramentas › Exportar KML</strong>, na barra superior. Para uma feição só, clique nela com o botão direito e escolha <strong>Exportar KML</strong>. A camada ativa como está no mapa, para Google Earth ou QGIS: mesmas feições do CSV, com as cores do tema e uma pasta por categoria. O rótulo vira o nome de cada feição; ao clicar numa feição no Google Earth, abre um balão com os atributos organizados.</td></tr>
                 </table>
                 <p>O nome do arquivo termina em <strong>_filtrado</strong> ou <strong>_completo</strong>.</p>
             </section>
@@ -374,33 +388,45 @@
             <section class="help-section" id="mapa">
                 <h2>Controles do mapa</h2>
                 <table class="help-table">
-                    <tr><th>Analytics</th><td>Abre e fecha o Analytics (fecha a aba Camadas).</td></tr>
-                    <tr><th>Enquadrar</th><td>Volta à extensão total das camadas ligadas.</td></tr>
-                    <tr><th>Tela cheia</th><td>Usa o modo nativo do navegador para ocupar a tela inteira; a notificação inicial é exibida pelo navegador. Pressione <kbd>Esc</kbd> ou o botão para sair.</td></tr>
-                    <tr><th>+ / −</th><td>Zoom (também com a roda do mouse).</td></tr>
-                    <tr><th>Mapa base</th><td>Alterna entre Satélite e Ruas.</td></tr>
+                                        <tr><th>Minha localização</th><td>Mostra onde você está (o navegador pede permissão) e aproxima. Clique de novo para tirar o ponto.</td></tr>
+                                        <tr><th>Início</th><td>Volta à extensão total das camadas ligadas.</td></tr>
+                    <tr><th>+ / −</th><td>Zoom (também com a roda do mouse ou as teclas <kbd>+</kbd> e <kbd>−</kbd>).</td></tr>
                 </table>
+                <h3>Botão direito</h3>
+                <ul>
+                    <li>No mapa: <strong>Copiar coordenadas</strong> (latitude, longitude) e <strong>Centralizar aqui</strong>.</li>
+                    <li>Sobre uma feição: <strong>Informações</strong>, <strong>Aproximar</strong> e <strong>Exportar KML</strong> só dela.</li>
+                </ul>
+                <p class="help-tip">Se uma camada não carregar, um cartão no alto do mapa diz qual e por quê, com o botão <strong>Tentar de novo</strong>.</p>
             </section>
 
             <section class="help-section" id="arquivos">
                 <h2>Abrir arquivos</h2>
-                <p>Em <strong>Ferramentas › Adicionar dados</strong>, abra arquivos <strong>GeoJSON</strong>, <strong>KML</strong> ou <strong>KMZ</strong> do computador. O arquivo é lido só no navegador; nada é enviado. Ele vira uma camada como as outras e pode ser removido da lista.</p>
+                <p>Em <strong>Adicionar camada</strong> (barra da esquerda), abra arquivos <strong>GeoJSON</strong>, <strong>KML</strong> ou <strong>KMZ</strong> do computador. O arquivo é lido só no navegador; nada é enviado. Ele vira uma camada como as outras e pode ser removido da lista.</p>
                 <p class="help-tip">Os arquivos precisam estar em WGS84 (coordenadas em graus). Cores e ícones do KML não são usados: vale a simbologia da camada.</p>
             </section>
 
             <section class="help-section" id="modulos">
                 <h2>Módulos</h2>
-                <p>Os menus da barra superior reúnem os módulos. Os marcados como <strong>Em breve</strong> ainda estão em implementação: queimadas, clima, pragas, vigor da vegetação, safra e colheita, plantio, aplicações, logística (frota em tempo real), produtividade, raio de abrangência, medir e imprimir. O mesmo vale para o <strong>Assistente de IA</strong>.</p>
+                <p>Os menus da barra superior reúnem os módulos. Os marcados como <strong>Em breve</strong> ainda estão em implementação: queimadas, clima, pragas, vigor da vegetação, safra e colheita, plantio, aplicações, logística (frota em tempo real), produtividade, raio de abrangência, medir e imprimir. O mesmo vale para favoritos, salvar, compartilhar, incorporar, efeitos, pop-ups, desenho, registrar ocorrência, aplicativos e conta.</p>
+                <p>Em <strong>Configurações</strong> (pé da barra esquerda ou menu Ferramentas) escolha o tema e ligue <strong>Reduzir transparência</strong> se o mapa ficar lento sob os painéis. No tema claro ele já vem ligado; a escolha fica guardada separadamente para cada tema. Ao trocar o tema, o mapa de fundo acompanha: <strong>claro</strong> abre em Ruas e <strong>escuro</strong> em Satélite (depois dá para trocar em <strong>Mapa base</strong>).</p>
             </section>
 
             <section class="help-section" id="teclado">
                 <h2>Teclado</h2>
                 <table class="help-table">
-                    <tr><th><kbd>Esc</kbd></th><td>Fecha o painel ou menu aberto mais recente; na busca, limpa o termo.</td></tr>
+                    <tr><th><kbd>Ctrl</kbd> + <kbd>K</kbd></th><td>Leva o cursor à caixa de busca.</td></tr>
+                    <tr><th><kbd>F</kbd></th><td>Apresentar: tela cheia sem as barras (entra e sai).</td></tr>
+                    <tr><th><kbd>+</kbd> <kbd>−</kbd></th><td>Zoom.</td></tr>
+                    <tr><th><kbd>[</kbd></th><td>Mostra ou esconde os nomes na barra da esquerda.</td></tr>
+                    <tr><th><kbd>Esc</kbd></th><td>Fecha o menu ou painel aberto mais recente; na busca, limpa o termo.</td></tr>
                     <tr><th><kbd>Enter</kbd></th><td>Na busca, busca na hora; numa linha da tabela, seleciona a feição.</td></tr>
-                    <tr><th><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></th><td>Navegam nos menus dos módulos; na alça do Analytics, ajustam a altura.</td></tr>
+                    <tr><th><kbd>↑</kbd> <kbd>↓</kbd></th><td>Percorrem os itens das barras e dos menus; na alça do Analytics, ajustam a altura.</td></tr>
+                    <tr><th><kbd>→</kbd> <kbd>←</kbd></th><td>Nos menus, abrem e fecham submenus e passam ao menu vizinho.</td></tr>
+                    <tr><th><kbd>Shift</kbd> + <kbd>F10</kbd></th><td>Com o mapa em foco, abre o menu do botão direito.</td></tr>
                     <tr><th><kbd>Tab</kbd></th><td>Percorre botões e campos.</td></tr>
                 </table>
+                <p>As teclas de uma letra não valem enquanto você digita num campo.</p>
             </section>
         </main>
     </div>

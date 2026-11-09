@@ -24,3 +24,9 @@ Geodatabase/
 # Saídas de build e testes locais
 _site/
 .tmp-test/
+
+# Inicializador local do servidor
+iniciar-servidor.bat
+
+# Referências visuais locais (contém executável e cópias de ícones)
+Reference_Web_Design/

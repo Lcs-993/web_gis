@@ -1,0 +1,623 @@
+<qgis_style version="2">
+  <symbols/>
+  <colorramps>
+    <colorramp type="gradient" name="Arcmap_1_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,204,255,255" name="color1"/>
+        <Option type="QString" value="199,0,199,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="255,204,255,255" k="color1"/>
+      <prop v="199,0,199,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_10_raster">
+      <Option type="Map">
+        <Option type="QString" value="250,215,246,255" name="color1"/>
+        <Option type="QString" value="143,17,57,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="250,215,246,255" k="color1"/>
+      <prop v="143,17,57,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_11_raster">
+      <Option type="Map">
+        <Option type="QString" value="236,252,204,255" name="color1"/>
+        <Option type="QString" value="157,204,16,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="236,252,204,255" k="color1"/>
+      <prop v="157,204,16,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_12_raster">
+      <Option type="Map">
+        <Option type="QString" value="77,32,150,255" name="color1"/>
+        <Option type="QString" value="20,122,11,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;255,255,191,255" name="stops"/>
+      </Option>
+      <prop v="77,32,150,255" k="color1"/>
+      <prop v="20,122,11,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;255,255,191,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_13_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,255,127,255" name="color1"/>
+        <Option type="QString" value="12,16,120,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.333333;56,224,9,255:0.666667;26,147,171,255" name="stops"/>
+      </Option>
+      <prop v="255,255,127,255" k="color1"/>
+      <prop v="12,16,120,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.333333;56,224,9,255:0.666667;26,147,171,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_14_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,224,224,255" name="color1"/>
+        <Option type="QString" value="143,10,10,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="255,224,224,255" k="color1"/>
+      <prop v="143,10,10,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_15_raster">
+      <Option type="Map">
+        <Option type="QString" value="40,146,199,255" name="color1"/>
+        <Option type="QString" value="232,16,20,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;250,250,100,255" name="stops"/>
+      </Option>
+      <prop v="40,146,199,255" k="color1"/>
+      <prop v="232,16,20,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;250,250,100,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_16_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,204,204,255" name="color1"/>
+        <Option type="QString" value="219,0,0,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="255,204,204,255" k="color1"/>
+      <prop v="219,0,0,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_17_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,0,0,255" name="color1"/>
+        <Option type="QString" value="0,0,255,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.333333;255,255,0,255:0.666667;0,255,255,255" name="stops"/>
+      </Option>
+      <prop v="255,0,0,255" k="color1"/>
+      <prop v="0,0,255,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.333333;255,255,0,255:0.666667;0,255,255,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_18_raster">
+      <Option type="Map">
+        <Option type="QString" value="245,245,0,255" name="color1"/>
+        <Option type="QString" value="245,0,0,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="245,245,0,255" k="color1"/>
+      <prop v="245,0,0,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_19_raster">
+      <Option type="Map">
+        <Option type="QString" value="67,14,89,255" name="color1"/>
+        <Option type="QString" value="24,79,15,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;204,204,102,255" name="stops"/>
+      </Option>
+      <prop v="67,14,89,255" k="color1"/>
+      <prop v="24,79,15,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;204,204,102,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_2_raster">
+      <Option type="Map">
+        <Option type="QString" value="158,30,113,255" name="color1"/>
+        <Option type="QString" value="99,110,45,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;255,255,191,255" name="stops"/>
+      </Option>
+      <prop v="158,30,113,255" k="color1"/>
+      <prop v="99,110,45,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;255,255,191,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_20_raster">
+      <Option type="Map">
+        <Option type="QString" value="229,213,242,255" name="color1"/>
+        <Option type="QString" value="93,44,112,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="229,213,242,255" k="color1"/>
+      <prop v="93,44,112,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_21_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,255,127,255" name="color1"/>
+        <Option type="QString" value="107,0,0,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;242,167,46,255" name="stops"/>
+      </Option>
+      <prop v="255,255,127,255" k="color1"/>
+      <prop v="107,0,0,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;242,167,46,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_22_raster">
+      <Option type="Map">
+        <Option type="QString" value="107,13,13,255" name="color1"/>
+        <Option type="QString" value="13,53,97,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;204,204,102,255" name="stops"/>
+      </Option>
+      <prop v="107,13,13,255" k="color1"/>
+      <prop v="13,53,97,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;204,204,102,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_23_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,255,255,255" name="color1"/>
+        <Option type="QString" value="0,0,0,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="255,255,255,255" k="color1"/>
+      <prop v="0,0,0,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_24_raster">
+      <Option type="Map">
+        <Option type="QString" value="112,153,89,255" name="color1"/>
+        <Option type="QString" value="255,242,255,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.25;242,238,162,255:0.5;242,206,133,255:0.75;194,140,124,255" name="stops"/>
+      </Option>
+      <prop v="112,153,89,255" k="color1"/>
+      <prop v="255,242,255,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.25;242,238,162,255:0.5;242,206,133,255:0.75;194,140,124,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_25_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,252,255,255" name="color1"/>
+        <Option type="QString" value="128,0,0,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.142857;255,0,255,255:0.285714;0,0,255,255:0.428571;0,255,255,255:0.571429;0,255,0,255:0.714286;255,255,0,255:0.857143;255,128,0,255" name="stops"/>
+      </Option>
+      <prop v="255,252,255,255" k="color1"/>
+      <prop v="128,0,0,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.142857;255,0,255,255:0.285714;0,0,255,255:0.428571;0,255,255,255:0.571429;0,255,0,255:0.714286;255,255,0,255:0.857143;255,128,0,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_26_raster">
+      <Option type="Map">
+        <Option type="QString" value="196,69,57,255" name="color1"/>
+        <Option type="QString" value="48,95,207,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;255,255,191,255" name="stops"/>
+      </Option>
+      <prop v="196,69,57,255" k="color1"/>
+      <prop v="48,95,207,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;255,255,191,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_27_raster">
+      <Option type="Map">
+        <Option type="QString" value="215,240,175,255" name="color1"/>
+        <Option type="QString" value="96,107,45,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="215,240,175,255" k="color1"/>
+      <prop v="96,107,45,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_3_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,153,153,255" name="color1"/>
+        <Option type="QString" value="153,153,255,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.333333;255,255,153,255:0.666667;153,255,255,255" name="stops"/>
+      </Option>
+      <prop v="255,153,153,255" k="color1"/>
+      <prop v="153,153,255,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.333333;255,255,153,255:0.666667;153,255,255,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_4_raster">
+      <Option type="Map">
+        <Option type="QString" value="153,0,0,255" name="color1"/>
+        <Option type="QString" value="0,0,153,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.333333;153,153,0,255:0.666667;0,153,153,255" name="stops"/>
+      </Option>
+      <prop v="153,0,0,255" k="color1"/>
+      <prop v="0,0,153,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.333333;153,153,0,255:0.666667;0,153,153,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_5_raster">
+      <Option type="Map">
+        <Option type="QString" value="194,82,60,255" name="color1"/>
+        <Option type="QString" value="11,44,122,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.2;237,161,19,255:0.4;255,255,0,255:0.6;0,219,0,255:0.8;32,153,143,255" name="stops"/>
+      </Option>
+      <prop v="194,82,60,255" k="color1"/>
+      <prop v="11,44,122,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.2;237,161,19,255:0.4;255,255,0,255:0.6;0,219,0,255:0.8;32,153,143,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_6_raster">
+      <Option type="Map">
+        <Option type="QString" value="245,0,0,255" name="color1"/>
+        <Option type="QString" value="0,245,0,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;245,245,0,255" name="stops"/>
+      </Option>
+      <prop v="245,0,0,255" k="color1"/>
+      <prop v="0,245,0,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;245,245,0,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_7_raster">
+      <Option type="Map">
+        <Option type="QString" value="97,47,73,255" name="color1"/>
+        <Option type="QString" value="22,59,15,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+        <Option type="QString" value="0.5;204,204,102,255" name="stops"/>
+      </Option>
+      <prop v="97,47,73,255" k="color1"/>
+      <prop v="22,59,15,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+      <prop v="0.5;204,204,102,255" k="stops"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_8_raster">
+      <Option type="Map">
+        <Option type="QString" value="255,204,225,255" name="color1"/>
+        <Option type="QString" value="199,0,99,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="255,204,225,255" k="color1"/>
+      <prop v="199,0,99,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp type="gradient" name="Arcmap_9_raster">
+      <Option type="Map">
+        <Option type="QString" value="223,184,230,255" name="color1"/>
+        <Option type="QString" value="112,12,242,255" name="color2"/>
+        <Option type="QString" value="0" name="discrete"/>
+        <Option type="QString" value="gradient" name="rampType"/>
+      </Option>
+      <prop v="223,184,230,255" k="color1"/>
+      <prop v="112,12,242,255" k="color2"/>
+      <prop v="0" k="discrete"/>
+      <prop v="gradient" k="rampType"/>
+    </colorramp>
+    <colorramp name="Arcmap_28_raster" type="gradient">
+      <Option type="Map">
+        <Option value="69,117,181,255" name="color1" type="QString"/>
+        <Option value="214,47,39,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.5;255,255,191,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="69,117,181,255"/>
+      <prop k="color2" v="214,47,39,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.5;255,255,191,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_29_raster" type="gradient">
+      <Option type="Map">
+        <Option value="156,85,31,255" name="color1" type="QString"/>
+        <Option value="33,130,145,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.5;255,255,191,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="156,85,31,255"/>
+      <prop k="color2" v="33,130,145,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.5;255,255,191,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_30_raster" type="gradient">
+      <Option type="Map">
+        <Option value="204,204,255,255" name="color1" type="QString"/>
+        <Option value="0,0,224,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="204,204,255,255"/>
+      <prop k="color2" v="0,0,224,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+    <colorramp name="Arcmap_31_raster" type="gradient">
+      <Option type="Map">
+        <Option value="0,245,245,255" name="color1" type="QString"/>
+        <Option value="245,0,245,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.5;0,0,245,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="0,245,245,255"/>
+      <prop k="color2" v="245,0,245,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.5;0,0,245,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_32_raster" type="gradient">
+      <Option type="Map">
+        <Option value="118,219,211,255" name="color1" type="QString"/>
+        <Option value="255,252,255,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.142857;255,255,199,255:0.285714;255,255,127,255:0.428571;217,194,121,255:0.571429;135,96,38,255:0.714286;150,150,181,255:0.857143;181,150,181,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="118,219,211,255"/>
+      <prop k="color2" v="255,252,255,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.142857;255,255,199,255:0.285714;255,255,127,255:0.428571;217,194,121,255:0.571429;135,96,38,255:0.714286;150,150,181,255:0.857143;181,150,181,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_33_raster" type="gradient">
+      <Option type="Map">
+        <Option value="216,242,237,255" name="color1" type="QString"/>
+        <Option value="21,79,74,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="216,242,237,255"/>
+      <prop k="color2" v="21,79,74,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+    <colorramp name="Arcmap_34_raster" type="gradient">
+      <Option type="Map">
+        <Option value="242,241,162,255" name="color1" type="QString"/>
+        <Option value="7,29,173,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.25;255,255,0,255:0.5;255,0,0,255:0.5;252,0,69,255:0.75;176,7,237,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="242,241,162,255"/>
+      <prop k="color2" v="7,29,173,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.25;255,255,0,255:0.5;255,0,0,255:0.5;252,0,69,255:0.75;176,7,237,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_35_raster" type="gradient">
+      <Option type="Map">
+        <Option value="135,38,38,255" name="color1" type="QString"/>
+        <Option value="39,32,122,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.25;240,149,12,255:0.5;255,255,191,255:0.75;74,80,181,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="135,38,38,255"/>
+      <prop k="color2" v="39,32,122,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.25;240,149,12,255:0.5;255,255,191,255:0.75;74,80,181,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_36_raster" type="gradient">
+      <Option type="Map">
+        <Option value="203,245,234,255" name="color1" type="QString"/>
+        <Option value="48,207,146,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="203,245,234,255"/>
+      <prop k="color2" v="48,207,146,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+    <colorramp name="Arcmap_37_raster" type="gradient">
+      <Option type="Map">
+        <Option value="176,176,176,255" name="color1" type="QString"/>
+        <Option value="255,0,0,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.111111;255,0,0,255:0.222222;255,166,0,255:0.333333;255,255,0,255:0.444444;0,255,0,255:0.555556;255,255,0,255:0.555556;0,255,255,255:0.666667;0,166,255,255:0.777778;0,0,255,255:0.888889;255,0,255,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="176,176,176,255"/>
+      <prop k="color2" v="255,0,0,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.111111;255,0,0,255:0.222222;255,166,0,255:0.333333;255,255,0,255:0.444444;0,255,0,255:0.555556;255,255,0,255:0.555556;0,255,255,255:0.666667;0,166,255,255:0.777778;0,0,255,255:0.888889;255,0,255,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_38_raster" type="gradient">
+      <Option type="Map">
+        <Option value="255,200,0,255" name="color1" type="QString"/>
+        <Option value="0,0,255,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="255,200,0,255"/>
+      <prop k="color2" v="0,0,255,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+    <colorramp name="Arcmap_39_raster" type="gradient">
+      <Option type="Map">
+        <Option value="110,70,45,255" name="color1" type="QString"/>
+        <Option value="48,100,102,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.5;204,204,102,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="110,70,45,255"/>
+      <prop k="color2" v="48,100,102,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.5;204,204,102,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_40_raster" type="gradient">
+      <Option type="Map">
+        <Option value="255,235,214,255" name="color1" type="QString"/>
+        <Option value="196,10,10,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="255,235,214,255"/>
+      <prop k="color2" v="196,10,10,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+    <colorramp name="Arcmap_41_raster" type="gradient">
+      <Option type="Map">
+        <Option value="0,97,0,255" name="color1" type="QString"/>
+        <Option value="255,34,0,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.5;255,255,0,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="0,97,0,255"/>
+      <prop k="color2" v="255,34,0,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.5;255,255,0,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_42_raster" type="gradient">
+      <Option type="Map">
+        <Option value="240,236,170,255" name="color1" type="QString"/>
+        <Option value="102,72,48,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="240,236,170,255"/>
+      <prop k="color2" v="102,72,48,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+    <colorramp name="Arcmap_43_raster" type="gradient">
+      <Option type="Map">
+        <Option value="0,0,0,255" name="color1" type="QString"/>
+        <Option value="255,255,255,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="0,0,0,255"/>
+      <prop k="color2" v="255,255,255,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+    <colorramp name="Arcmap_44_raster" type="gradient">
+      <Option type="Map">
+        <Option value="214,214,255,255" name="color1" type="QString"/>
+        <Option value="0,57,148,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="214,214,255,255"/>
+      <prop k="color2" v="0,57,148,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+    <colorramp name="Arcmap_45_raster" type="gradient">
+      <Option type="Map">
+        <Option value="175,240,233,255" name="color1" type="QString"/>
+        <Option value="255,252,255,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.142857;255,255,178,255:0.285714;0,128,64,255:0.428571;252,186,0,255:0.571429;128,0,0,255:0.571429;120,0,0,255:0.714286;105,48,13,255:0.857143;171,171,171,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="175,240,233,255"/>
+      <prop k="color2" v="255,252,255,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.142857;255,255,178,255:0.285714;0,128,64,255:0.428571;252,186,0,255:0.571429;128,0,0,255:0.571429;120,0,0,255:0.714286;105,48,13,255:0.857143;171,171,171,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_46_raster" type="gradient">
+      <Option type="Map">
+        <Option value="115,77,42,255" name="color1" type="QString"/>
+        <Option value="81,13,97,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+        <Option value="0.25;201,137,52,255:0.5;255,255,191,255:0.75;92,63,176,255" name="stops" type="QString"/>
+      </Option>
+      <prop k="color1" v="115,77,42,255"/>
+      <prop k="color2" v="81,13,97,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+      <prop k="stops" v="0.25;201,137,52,255:0.5;255,255,191,255:0.75;92,63,176,255"/>
+    </colorramp>
+    <colorramp name="Arcmap_47_raster" type="gradient">
+      <Option type="Map">
+        <Option value="211,229,232,255" name="color1" type="QString"/>
+        <Option value="46,100,140,255" name="color2" type="QString"/>
+        <Option value="0" name="discrete" type="QString"/>
+        <Option value="gradient" name="rampType" type="QString"/>
+      </Option>
+      <prop k="color1" v="211,229,232,255"/>
+      <prop k="color2" v="46,100,140,255"/>
+      <prop k="discrete" v="0"/>
+      <prop k="rampType" v="gradient"/>
+    </colorramp>
+  </colorramps>
+</qgis_style>

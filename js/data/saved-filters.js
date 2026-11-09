@@ -66,3 +66,24 @@ export function deleteFilterSet(layerId, name) {
 
     return writeAll(data);
 }
+
+
+/*
+   Aplica um conjunto salvo na camada. Só entram condições cujos
+   atributos existem na camada como está agora (o arquivo pode ter
+   mudado desde que o conjunto foi salvo).
+*/
+export function applyFilterSet(store, layer, set) {
+    if (!layer || layer.status !== "ready") {
+        return;
+    }
+
+    const names = new Set(layer.schema.attributes.map((attribute) => attribute.name));
+    const usable = set.filters.filter((filter) => filter && names.has(filter.field));
+    const dropped = set.filters.length - usable.length;
+
+    store.setFilters(layer.id, usable, set.mode);
+    store.setStatus(dropped
+        ? `“${set.name}” aplicado; ${dropped} condição(ões) ignorada(s): atributo inexistente`
+        : `“${set.name}” aplicado`);
+}

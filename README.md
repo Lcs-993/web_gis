@@ -4,11 +4,29 @@ Visualização interativa de dados geográficos no navegador: mapa, busca,
 filtros, dashboard e tabela de atributos para **qualquer** camada GeoJSON.
 
 A aplicação é orientada aos dados. Nenhum nome de atributo está no código:
-popup, busca, filtros, dashboard, tabela e exportação são construídos a partir
+cartão da feição, busca, filtros, dashboard, tabela e exportação são construídos a partir
 do schema descoberto em cada camada no momento da carga.
 
 HTML, CSS e JavaScript (ES modules), sem build e sem npm. A única dependência
 de código é o **Leaflet 1.9.4**, via CDN com verificação de integridade (SRI).
+
+---
+
+## Plataforma: só desktop
+
+O WebGIS é uma ferramenta **exclusivamente para desktop**: telas grandes,
+mouse e teclado. Funciona como um **painel** para analisar e **apresentar
+dados** (reuniões, telões, monitores de acompanhamento), não como site
+responsivo.
+
+- **Responsividade não é requisito.** Layout, densidade de informação e novas
+  funções são pensados para telas largas (referência: 1366 px de largura ou
+  mais). Não é preciso adaptar novas telas para celular ou tablet.
+- O código não tem regras de tela estreita (a gaveta, o menu compacto e os
+  ajustes de celular foram removidos em 08/11/2026). Não as reintroduza.
+- **O uso no celular será outro produto:** um **aplicativo de campo**, que
+  coleta e consulta dados no talhão e se integra a este WebGIS (os dados do
+  campo chegam aqui para análise e apresentação).
 
 ---
 
@@ -27,23 +45,83 @@ Depois acesse `http://127.0.0.1:8899`. Não há instalação nem build.
 
 ## Uso
 
+A tela segue o ArcGIS Map Viewer: barra superior, barra de ferramentas à
+esquerda (todas as ferramentas, inclusive as da camada ativa) e o mapa
+ocupando o resto, com os controles flutuando no canto inferior direito. As
+ferramentas que mudam o mapa (Camadas, Legenda, Gráficos, Filtro, Estilos, Rótulos,
+Pesquisa avançada) abrem em **janelas flutuantes** ao lado da barra, uma de cada vez,
+com a altura do conteúdo, para o efeito ficar à vista; o **Mapa base** abre ao lado
+dos controles do mapa. **Configurações, Sobre,
+Propriedades e Campos** abrem numa **janela central** sobre o fundo escurecido
+(o resto da tela fica bloqueado; ×, `Esc` ou clique no fundo fecham, e a janela
+flutuante que estava aberta continua lá). Clicar de novo no ícone fecha.
+Itens marcados **Em breve** ainda não têm função e ficam desabilitados.
+
 | Onde | O quê |
 | --- | --- |
-| **Camadas** (botão no canto superior esquerdo do mapa; em tela cheia, a aba mostra no topo o logo e "WebGIS", já que a barra superior fica de fora; fecha pelo **×** preso à borda direita da aba, no alto) | Mostra/oculta camadas (ícone de olho), tematiza por categoria (ícone de paleta), liga rótulos (ícone **T**) escolhendo o atributo exibido e escolhe a **camada ativa** |
-| Ícone **i** na linha da camada (Identificar) | Abre uma janela com os dados da camada: feições, geometria, origem e cada atributo com seu tipo |
-| **Busca** (barra no canto superior direito) | Procura na camada ativa, respeitando os filtros |
-| **Filtros** (funil dentro da barra de busca) | Monta condições por atributo; o contador mostra quantos filtros estão ativos |
-| **Dashboard** (botão de gráfico nos controles do mapa) | Resumo (indicadores do conjunto atual na barra do topo: feições, soma e média da medida e quantidade de grupos; distribuição por valor) e tabela ordenável e paginada; exportação CSV e KML. Com ele aberto, a feição selecionada aparece num cartão no canto do mapa (no celular, recolhido até ser expandido) |
-| Clique numa feição | Seleciona e abre o popup (título da feição, medidas em destaque, demais atributos agrupados, vazios recolhidos e os botões **Aproximar** e **Ver na tabela**); com o dashboard aberto, a tabela vai até a página da feição e a linha aparece destacada no topo da tabela |
-| Clique numa linha da tabela | Seleciona e enquadra a feição no mapa. **Ctrl** (⌘) + clique acrescenta/retira linhas; **Shift** + clique seleciona o intervalo desde a última linha clicada (Ctrl + Shift soma ao que já estava). Com várias selecionadas: todas ganham o destaque de seleção, o mapa enquadra todas, não há popup e o dashboard mostra "N selecionadas" |
-| Controles do mapa (canto inferior direito) | Blocos agrupados, de cima para baixo: **Dashboard**; **Enquadrar** + **Tela cheia**; **Zoom** + / −; **Mapa base**. **Tela cheia** usa o modo nativo do navegador; pressione `Esc` ou o botão para sair |
-| Botão **casa** (controles do mapa) | Repõe o enquadramento total das camadas ligadas, com todas as feições, mesmo que filtros ou busca estejam ativos |
-| `Esc` | Fecha o painel aberto mais recente; na busca, limpa o termo |
-| Rodapé (base do mapa) | Faixa translúcida com as coordenadas do cursor (ou do centro, com o cursor fora do mapa) e o nível de zoom; fica visível também com o dashboard aberto |
-| Botão **?** (Ajuda) | Abre `ajuda.html`, o guia de uso para o usuário, numa nova aba |
+| **Barra superior** | ☰ (expande/recolhe a barra esquerda), a marca (logo + **WebGIS**) e os menus **Monitoramento**, **Operação**, **Análises**, **Ferramentas** e **Ajuda**. À direita: tema claro/escuro e o botão **Apresentar** (tecla F): tela cheia **sem as barras** — ficam só o mapa, a caixa de busca e os controles. Levar o mouse até o topo ou a borda esquerda traz a barra de volta por cima do mapa, e ela some de novo quando o mouse sai (fica enquanto um menu dela está aberto). Puxadores discretos no topo e na borda esquerda mostram onde as barras estão, um aviso rápido explica isso ao entrar, e a janela aberta à esquerda abre espaço quando a barra aparece. Para sair: Esc, F ou "Sair" na barra superior |
+| **Menus** (estilo macOS Big Sur) | Linhas compactas com ✓ à esquerda e o atalho (ou › de submenu) à direita. Análises inclui também Análise espacial. Ferramentas reúne Buscar (Ctrl+K), Pesquisa avançada…, Medir, Desenho, Outras ferramentas, Mapa base ›, Favoritos, Aparência › (tema e "Reduzir transparência"), Barra lateral expandida ( `[` ), Apresentar (F), Configurações…, Salvar mapa, Exportar KML, Imprimir mapa, Compartilhar, Incorporar e Aplicativos. Teclado: ↑ ↓ percorrem, → abre o submenu, ← volta, Esc fecha |
+| **Barra esquerda** | Blocos por função, separados por divisória (com a barra expandida, cada um mostra o título). *Mapa:* **Camadas**, Adicionar camada e **Legenda**. *Consultar:* **Pesquisar** (abre a **Pesquisa avançada**) e **Filtro** (com o número de filtros). *Simbologia:* **Estilos** (tema por categoria ou por faixas de valor, rampa de cores, classes e legenda), **Rótulos**, Pop-ups e Efeitos. *Analisar:* **Tabela de atributos**, **Campos** (atributos, tipo e % preenchido) e **Gráficos** (Analytics). A camada ativa se escolhe clicando no nome dela no painel **Camadas**. Os itens da camada ficam desabilitados sem camada pronta. No pé, **Conta** (o cartão abre ao lado da barra e traz as **notificações**; um sininho na cor de acento aparece no canto do ícone quando há novidade e some ao abrir o cartão), **Configurações** e **Sobre**. O botão » do rodapé (ou a tecla `[`) mostra os rótulos; a escolha fica salva. As ferramentas do mapa abrem em janelas flutuantes ao lado dela; Configurações, Sobre, Campos e Propriedades, em janela central. **Propriedades** (feições, geometria, CRS, extensão, metadados) abrem pelo **i** da camada no painel Camadas |
+| **Sem barra direita** | Removida: os controles do mapa flutuam sobre ele. Desenho, Análise, Salvar mapa, Favoritos, Compartilhar, Incorporar, Aplicativos e Imprimir ficam nos menus **Análises** e **Ferramentas** |
+| **Camadas** (painel) | Mostra/oculta camadas (olho), tematiza (paleta; por categoria ou faixas de valor), liga rótulos (**T**), abre as Propriedades (**i**) e escolhe a **camada ativa** (clique no nome) |
+| **Controles do mapa** (canto inferior direito do mapa) | **Mapa base** (bloco próprio, no topo: abre ao lado as miniaturas Satélite e Ruas; clique fora fecha), **Minha localização**, **Início** (extensão total das camadas ligadas, mesmo com filtros) e **Zoom** + / − (teclas + e −), num bloco de vidro; sobem junto quando o Analytics abre |
+| **Busca** | Pílula **sempre à vista** no canto superior direito do mapa; Ctrl+K leva o foco até ela. O botão **Pesquisar** da barra esquerda abre a **Pesquisa avançada** (campos, correspondência, E/OU, enquadrar). O funil abre o menu de filtros: painel de filtros, filtros ativos (clique remove), "todas"/"qualquer uma", filtros salvos e limpar |
+| **Botão direito** no mapa | No vazio: copiar coordenadas, centralizar aqui, medir (Em breve). Sobre uma feição: informações, aproximar, exportar só ela em KML e registrar ocorrência › (Em breve). Pelo teclado: Shift+F10 com o mapa em foco |
+| **Analytics** (Tabela de atributos ou Gráficos) | Resumo (indicadores do conjunto atual, distribuição por valor e gráfico) e tabela ordenável e paginada; exportação CSV e KML. Com ele aberto, a feição selecionada aparece no mesmo cartão à direita do mapa |
+| **Gráficos** (painel) | "Adicionar gráfico" e os tipos (Barras, Pizza; Linhas, Histograma, Dispersão e Box plot em breve). Abre o Resumo do Analytics com o tipo escolhido |
+| Clique numa feição | Seleciona e mostra a feição no **cartão à direita do mapa** (abaixo da busca e acima dos controles; não cobre mais a feição, e o mapa enquadra fora dele): título, medidas em destaque com mini-gráfico da posição entre o mínimo e o máximo da camada, atributos em duas colunas, vazios recolhidos e os botões **Aproximar** e **Ver na tabela**. O × (ou Esc) fecha e limpa a seleção; com o Analytics aberto, a tabela vai até a linha da feição e o × só esconde o cartão |
+| Clique numa linha da tabela | Seleciona e enquadra a feição no mapa. **Ctrl** (⌘) + clique acrescenta/retira linhas; **Shift** + clique seleciona o intervalo desde a última linha clicada (Ctrl + Shift soma ao que já estava). Com várias selecionadas: todas ganham o destaque de seleção, o mapa enquadra todas, o cartão da feição não aparece e o Analytics mostra "N selecionadas" |
+| Feição em várias partes | Com busca ativa, clicar numa parte de um talhão seleciona todas as partes achadas com a mesma Fazenda e o mesmo Talhão (`partFields` da camada em `js/config.js`); o cartão mostra a parte clicada |
+| **Configurações** | Tema (o mapa base acompanha: claro → Ruas, escuro → Satélite), "Reduzir transparência" (vidro sem desfoque, mais leve; ligado por padrão no tema claro, guardado por tema) e lista de atalhos |
+| `Esc` | Fecha o menu ou o painel aberto mais recente; na busca, limpa o termo (com o campo vazio, sai do campo) |
+| **Rodapé** | Status (ponto na cor de sucesso; laranja pulsando enquanto carrega), coordenadas do cursor (ou do centro) e zoom, à direita. As fontes dos dados ficam no **Sobre** |
+| Carregamento | Esqueletos (blocos pulsando) em painéis, lista de camadas e tabela; se uma camada falha, um cartão sobre o mapa diz qual e por quê, com **Tentar de novo** |
 
-Busca, filtros e dashboard operam sobre a **camada ativa**. O mapa mostra
-todas as camadas ligadas.
+Busca, filtros, estilos, rótulos, campos e Analytics operam sobre a **camada ativa** (escolhida pelo nome no painel Camadas).
+O mapa mostra todas as camadas ligadas.
+
+### Atalhos de teclado
+
+| Tecla | Ação |
+| --- | --- |
+| `Ctrl` + `K` (⌘K) | Leva o foco à caixa de busca |
+| `F` | Apresentar: tela cheia sem as barras (entra e sai) |
+| `+` / `−` | Zoom |
+| `[` | Expande/recolhe a barra esquerda |
+| `Esc` | Fecha o menu ou o painel aberto |
+| `Shift` + `F10` | Menu de contexto do mapa (com o mapa em foco) |
+| ↑ ↓ / Home End | Navegam nas barras e nos menus; → e ← entram e saem dos submenus |
+
+Os atalhos de uma letra não valem enquanto se digita num campo.
+
+### Aparência
+
+Tokens de design em `css/style.css` (seção 0): vidro fosco (`--glass-*`),
+texto, acento, alertas, raios (20/14/8 px e pílula), ícones e movimento.
+O tema escuro é o padrão; no escuro o acento é o verde Bambuí (`#5cb83f`, texto
+escuro por cima) e no claro é azul (`#0071e3`). As cores das camadas não
+dependem do tema. O **mapa base acompanha o tema**: claro abre em Ruas e escuro em
+Satélite (`THEME_BASEMAPS` em `js/config.js`); depois o usuário pode trocar em
+Mapa base. **Reduzir transparência** (Configurações) tira o desfoque do
+vidro. A escolha é guardada **por tema**: no claro vem **ligado** por padrão
+(o vidro claro desfocado sobre o mapa perde contraste) e no escuro, desligado;
+trocar de tema aplica a escolha do tema novo (chaves `webgis-sem-blur-claro` e
+`webgis-sem-blur` no `localStorage`, com "1" ou "0"). O mesmo modo liga sozinho
+em navegadores sem `backdrop-filter`.
+
+### Ícones
+
+Ícones da interface em `assets/icons/ui/` (`sprite.svg` e os `ic-*.svg`
+avulsos), usados com `<svg class="icon"><use href="#ic-camadas-ui"/></svg>`.
+O sprite fica embutido no `index.html` (funciona sem requisição extra); depois
+de editar o `sprite.svg`, rode `python tools/embutir_sprite.py`. A linha usa
+`currentColor`; o preenchimento claro, `--icon-fill`; o fundo interno,
+`--icon-bg`.
+
+Marcadores ilustrados do mapa (usina, daninhas, pragas, fogo, chuva, vento):
+`criarIconeMapa(nome, altura)` em `js/map/marker-icons.js` calcula tamanho e
+âncora a partir do PNG (arquivos em `assets/png/`; a usina, em `assets/sgv/`). Ao
+trocar uma imagem, atualize a largura e a altura na tabela do arquivo.
 
 ### Busca
 
@@ -53,6 +131,18 @@ todas as camadas ligadas.
 - Acento, caixa e pontuação são ignorados (`olhos d'água` = `OLHOS DAGUA`).
 - Sem resultado exato, uma segunda passada compara o termo sem espaços.
 - `Enter` busca na hora; a digitação tem *debounce* de 160 ms.
+- **Pesquisa avançada** (botão Pesquisar da barra esquerda, ou Ferramentas ›
+  Pesquisa avançada…), por camada, para a mesma caixa de busca:
+  - **Correspondência:** *Contém* (padrão, as regras acima), *Começa com*
+    (alguma palavra do valor começa com o termo) ou *Valor exato* (o valor
+    inteiro de um campo é igual ao termo).
+  - **Termos:** *Todos (E)* ou *Qualquer um (OU)*: `22 23` com OU acha os dois.
+    No valor exato com OU, cada termo é um valor.
+  - **Campos pesquisados:** marque só os atributos onde procurar (Todos/Nenhum).
+  - **Enquadrar os resultados:** desligue para o mapa não se mover a cada busca.
+  - O painel mostra o termo atual e quantos resultados ele dá com os ajustes;
+    "Restaurar o padrão" volta a contém, E, todos os campos e enquadrar.
+  - A passada tolerante (sem espaços) só vale no *Contém* com *Todos (E)*.
 - No mapa, os achados ficam mais intensos e o resto da camada quase some (só um
   vestígio da forma, sem rótulo). Nenhum realce de cor: funciona com qualquer tema.
 
@@ -149,8 +239,8 @@ havendo busca, que casam com ela. O dashboard abre na aba **Tabela**.
   UTF-8 com BOM. Textos que começam com `=`, `+`, `-` ou `@` recebem um
   apóstrofo para não serem executados como fórmula na planilha.
 - **Exportar KML** exporta o mapa como está, para abrir no Google Earth ou no
-  QGIS: as mesmas feições do CSV, com as cores do tema por categoria (uma pasta
-  por categoria, na ordem e com as cores da legenda) ou a cor da camada; o
+  QGIS: as mesmas feições do CSV, com as cores do tema (uma pasta por valor ou
+  faixa, na ordem e com as cores da legenda) ou a cor da camada; o
   atributo dos rótulos vira o nome de cada feição e todos os atributos vão em
   `ExtendedData` (para o QGIS) e num balão HTML legível no Google Earth
   (título, camada, faixa na cor da feição e tabela de atributos, sem os links
@@ -172,7 +262,7 @@ Na carga, cada atributo recebe um **tipo** e um **papel**:
 | `text` | texto livre | busca e filtro |
 | `boolean` | `true`/`false` | filtro |
 | `date` | data ISO (`AAAA-MM-DD…`) | filtro por data |
-| `empty` | nenhum valor preenchido | fica fora de popup, tabela e filtros |
+| `empty` | nenhum valor preenchido | fica fora do cartão da feição, da tabela e dos filtros |
 
 Strings numéricas (`"125"`, `"3.5"`) são tratadas como números; com zero à
 esquerda (`"0012"`), como texto.
@@ -196,18 +286,15 @@ As camadas carregadas na abertura ficam em `js/config.js` (`LAYERS`):
     style: "outline",         // opcional: só contorno, sem preenchimento
     labels: { visible: true, fields: ["Fazenda"], minZoom: 13 }, // opcional: rótulo (uma linha por atributo)
     keepLast: true,           // opcional: sempre a última da lista
-    interactive: false,       // opcional: camada ignora cliques (sem popup/seleção)
-    icon: {                   // opcional, só para pontos: imagem no lugar do círculo
-        url: "assets/icone.png",
-        size: [40, 56],       // tamanho exibido
-        anchor: [20, 52]      // pixel que fica sobre a coordenada (a ponta do alfinete)
-    }
+    interactive: false,       // opcional: camada ignora cliques (sem cartão/seleção)
+    icon: especificacaoIcone("usina", 56), // opcional, só para pontos: marcador ilustrado
+    // ou outra imagem: { url: "assets/png/minha.png", size: [40, 56], anchor: [20, 52] }
 }
 ```
 
 O catálogo atual tem três camadas, nesta ordem no painel: **Unidade
 Industrial** (um ponto em lat −20,0868, lon −46,0424, desenhado com
-`assets/icone_usina_canavieira.png`); **Fazendas**, só referência visual dos
+`assets/sgv/icone_usina_canavieira.png`); **Fazendas**, só referência visual dos
 limites: contorno branco fino sobre um halo escuro, sem preenchimento e sem clique
 (`style: "outline"`, `interactive: false`), sempre desenhado por cima dos
 talhões sem atrapalhar a seleção deles, com o número da fazenda como rótulo
@@ -231,18 +318,52 @@ que é lento e só guarda cache por 5 minutos. Para atualizar o dado, use
 continuam aceitas; prefira fixá-las em um commit ou tag, porque branches como
 `main` mudam sem aviso.
 
-### Tema por categoria
+### Tema (por categoria ou por faixas de valor)
 
-O ícone de **paleta** na linha da camada colore as feições pelos valores de um
-atributo do tipo **categoria** (só esse tipo pode virar tema). Abaixo da camada
-aparecem a escolha do atributo e a legenda (cor, valor e quantidade).
+O ícone de **paleta** na linha da camada (ou o interruptor **Tema** em
+**Estilos**) colore as feições por um atributo. O tipo do atributo decide:
 
-Cada valor distinto recebe a sua própria cor; nenhum valor é agrupado ou
-resumido. Os 12 mais frequentes usam uma paleta fixa de alto contraste; os
-seguintes recebem cores geradas pelo ângulo de ouro no matiz, alternando
-saturação e luminosidade. Vazios ficam em cinza escuro. Busca e seleção
-mantêm as cores do tema: os realces mexem só em contorno e opacidade. O botão fica desabilitado
-em camadas sem atributo de categoria.
+- **Categoria** (ex.: Variedade): cada valor distinto recebe a sua própria cor;
+  nenhum valor é agrupado ou resumido. Na **paleta padrão**, os 12 mais
+  frequentes usam cores fixas de alto contraste e os seguintes recebem cores
+  geradas pelo ângulo de ouro no matiz. Com uma **rampa**, as cores seguem a
+  ordem natural dos valores, da primeira à última cor da rampa.
+- **Número** (ex.: Área (ha.), produtividade): os valores são divididos em
+  **classes** (o usuário digita quantas, de 1 a 32) por **quebras naturais
+  (Jenks)**, **quantis** (o mesmo número de feições em cada classe),
+  **intervalos iguais** ou **manual**, e cada classe recebe uma cor da rampa,
+  do menor ao maior valor. Dados com muitos valores iguais podem gerar menos
+  classes que o pedido (o painel avisa). Acima de 4.000 feições, o Jenks usa
+  uma amostra regular dos valores ordenados.
+- **Limites digitados (manual):** em Estilos, cada classe mostra o limite
+  inferior e o superior em campos editáveis (aceitam vírgula decimal; Enter
+  confirma). Digitar um limite passa a classificação para **Manual**, partindo
+  das classes que estavam na tela. Se o limite era compartilhado com a classe
+  vizinha, ela acompanha (as classes seguem contíguas); valores que não caem
+  em nenhuma classe aparecem como **(fora das classes)**, em cinza claro. Um
+  valor igual a um limite compartilhado fica na classe de baixo. Mudar o
+  número de classes no manual refaz classes de mesma largura entre o menor e o
+  maior limite. Os limites valem só para o atributo em que foram digitados;
+  escolher outro método volta ao cálculo automático.
+
+No painel **Estilos** ficam a personalização: atributo (separado em
+"Categorias" e "Valores numéricos"), **Cores** (lista de rampas com amostra,
+agrupadas em sequenciais, divergentes e multimatiz), **Inverter cores** e, nos
+números, **Classificação**, **Classes** (digitado) e os **limites** de cada classe. Cada tipo guarda as próprias escolhas:
+trocar de atributo e voltar mantém a rampa. Os valores iniciais ficam em
+`THEME_DEFAULTS` (`js/config.js`): categorias na paleta padrão; números na rampa
+41 invertida (vermelho no menor, verde no maior), 5 classes por Jenks.
+
+A legenda (Estilos, painel Camadas e painel Legenda) mostra cada valor ou faixa
+com a cor e a quantidade. Vazios ficam em cinza escuro. Busca e seleção mantêm
+as cores do tema: os realces mexem só em contorno e opacidade. O botão fica
+desabilitado em camadas sem atributo de categoria nem numérico.
+
+As rampas vêm de `assets/rampas_de_cores/rampas.js` (rampas do ArcMap
+convertidas pelo `converter_rampas.py` da mesma pasta; ver o README dela), que
+o `index.html` carrega antes do app. Para acrescentar rampas, coloque o `.xml`
+do QGIS em `fontes/` e rode o conversor: elas aparecem no seletor sem mexer no
+código (`js/data/ramps.js` lê `window.RAMPAS`).
 
 ### Rótulos
 
@@ -272,8 +393,8 @@ ao mesmo tempo, indica quantas faltam.
 
 ### Arquivos locais
 
-**Ferramentas › Adicionar dados** (menu da barra superior) carrega um ou mais
-arquivos do computador: **GeoJSON** (`.geojson`, `.json`), **KML** e **KMZ**.
+**Adicionar camada** (barra esquerda) carrega um ou mais arquivos do
+computador: **GeoJSON** (`.geojson`, `.json`), **KML** e **KMZ**.
 Eles são lidos no navegador e nada é enviado. Arquivos locais podem ser
 removidos da lista.
 
@@ -300,6 +421,9 @@ ajuda.html                 guia de uso (botão Ajuda)
 css/style.css
 geojson/                   dados servidos pelo site (versões otimizadas)
 tools/otimizar_geojson.py  gera as versões otimizadas (não é publicado)
+tools/embutir_sprite.py    embute assets/icons/ui/sprite.svg no index.html
+assets/icons/ui/           ícones da interface (sprite.svg e ic-*.svg)
+assets/rampas_de_cores/    rampas de cores do tema (rampas.js, conversor e fontes)
 js/
 ├── config.js              mapa base, catálogo de camadas, constantes
 ├── main.js                inicialização e ligações entre módulos
@@ -311,30 +435,43 @@ js/
 │   ├── geojson-provider.js  carga e validação (URL ou arquivo)
 │   ├── schema.js            descoberta de tipos e papéis
 │   ├── filters.js           operadores e avaliação de filtros
-│   ├── search.js            índice e busca textual
+│   ├── search.js            índice e busca textual (padrão e pesquisa avançada)
 │   ├── kml.js               KML → GeoJSON
 │   ├── kml-export.js        gera KML tematizado (exportação)
 │   ├── kmz.js               extrai o KML de dentro do KMZ (ZIP)
 │   ├── stats.js             resumo e agrupamento
-│   ├── theme.js             classificação do tema por categoria
+│   ├── theme.js             tema do mapa: por categoria ou por faixas de valor
+│   ├── ramps.js             rampas de cores (cores, amostra e quebras de classe)
 │   ├── csv.js               exportação
 │   └── values.js            normalização de valores
 ├── map/
-│   ├── leaflet-view.js    único adaptador do Leaflet (feições e rótulos)
+│   ├── leaflet-view.js    único adaptador do Leaflet (feições, rótulos, cliques e botão direito)
+│   ├── marker-icons.js    criarIconeMapa(): marcadores ilustrados (usina, ocorrências, clima)
 │   └── label-anchor.js    ponto interno para rótulos (geometria pura)
 └── ui/
     ├── panels.js          abrir/fechar painéis, Esc, clique fora
-    ├── layer-panel.js     sidebar de camadas
-    ├── layer-info.js      janela Identificar (dados da camada)
+    ├── toolbar.js         barra esquerda (expandir, indicador, dicas)
+    ├── layer-panel.js     painel Camadas (+ blocos de rótulo, tema e símbolo)
+    ├── layer-tools.js     painéis Estilos e Rótulos da camada ativa
+    ├── layer-info.js      painéis Propriedades e Campos da camada ativa
+    ├── legend-panel.js    painel Legenda
+    ├── charts-panel.js    painel Gráficos
+    ├── app-panels.js      Configurações, créditos do Sobre, notificações (sininho da Conta)
+    ├── menu.js            componente de menu (estilo macOS Big Sur)
+    ├── context-menu.js    botão direito no mapa
+    ├── filter-menu.js     menu do funil da busca
+    ├── skeleton.js        esqueletos de carregamento e estados de erro
     ├── filter-panel.js
-    ├── search-box.js
+    ├── search-box.js      caixa de busca sempre à vista (Ctrl+K leva o foco)
     ├── dashboard.js       resumo, tabela e exportação
+    ├── export-png.js      exporta um card do Analytics como PNG
     ├── column-filter.js   filtro por coluna da tabela
     ├── dashboard-resize.js  alça de altura do dashboard
-    ├── map-controls.js    enquadrar, zoom, tela cheia, mapa base
-    ├── popup.js
-    ├── module-menu.js     menus de módulos da barra superior
-    ├── coming-soon.js     aviso "Em breve" de botões ainda sem recurso (IA)
+    ├── map-controls.js    Mapa base, localização, início, zoom e modo Apresentar
+    ├── feature-card.js    cartão da feição, à direita do mapa
+    ├── popup.js           conteúdo do cartão da feição (título, medidas, atributos)
+    ├── module-menu.js     barra de menus da barra superior
+    ├── coming-soon.js     cartões "Em breve" (como o Entrar da Conta)
     ├── status.js          mensagens de status (região oculta p/ leitores de tela)
     ├── loading.js         cartão de progresso da carga
     ├── charts.js          gráficos do dashboard (barras, colunas, segmentada, rosca)
@@ -401,27 +538,18 @@ cada push na `main`. No GitHub: **Settings → Pages → Source: GitHub Actions*
 - O tema **escuro é o padrão**. O botão de tema na barra superior alterna para
   o claro; a escolha fica em `localStorage` (`webgis-theme`) e é aplicada antes
   da primeira pintura. A preferência do sistema operacional não é seguida.
-- A barra superior segue o padrão do iOS: material translúcido, marca à
-  esquerda e botões redondos para **Assistente de IA** (ainda "Em breve": o
-  clique só mostra o aviso), Ajuda e tema à direita. No centro ficam os
-  menus suspensos dos módulos (**Monitoramento**, **Operação**, **Análises** e
-  **Ferramentas**; em telas estreitas, um botão único abre todos numa folha), definidos em `MODULE_MENUS` (`js/config.js`) e gerados por
-  `js/ui/module-menu.js`. Item sem `action` aparece como "Em breve"; hoje só
-  **Ferramentas › Adicionar dados** funciona (abre um GeoJSON local). Para ligar
-  um módulo: implementá-lo em `js/modules/`, tratar a action em
-  `MODULE_ACTIONS` (`js/main.js`) e pôr a action no item. Os menus abrem por
-  clique ou teclado (↓, ↑, ←, →, Esc) e ficam ocultos em telas de até 720 px.
-  Os menus são botões de texto (estilo barra de navegação do iOS): o aberto fica
-  com fundo suave e texto na cor de destaque.
-  Camadas, Filtros e Dashboard abrem só pelos botões sobre o mapa. Com o
-  dashboard aberto, abrir a aba Camadas desloca o dashboard para depois dela
-  (os dois ficam lado a lado, sem sobreposição).
+- Barras e menus: ver **Uso**. Os menus vêm de `MODULE_MENUS` (`js/config.js`)
+  e usam o componente `js/ui/menu.js`. Item sem `action` nem submenu aparece
+  como "Em breve". Para ligar um módulo: implementá-lo em `js/modules/`, tratar
+  a action em `MODULE_ACTIONS` (`js/main.js`) e pôr a action no item.
 - **Ajuda:** `ajuda.html` é o guia de uso (camadas, rótulos e tema, busca,
   filtros, seleção, dashboard, exportação, controles, arquivos, módulos e
   teclado), com o mesmo visual e tema do mapa. Este README é a documentação
   técnica. Ao mudar um comportamento, atualize os dois.
 - Painéis fechados ficam `inert`; gatilhos mantêm `aria-expanded`; abas,
   ordenação da tabela (`aria-sort`) e status (`aria-live`) são anunciados.
+- Botões só com ícone têm `aria-label`; nas barras, a dica aparece também com o
+  foco do teclado. Foco visível na cor de acento. Contraste AA nos dois temas.
 - Linhas da tabela são focáveis e acionáveis com `Enter`.
 - Respeita `prefers-reduced-motion`.
 
@@ -434,7 +562,7 @@ cada push na `main`. No GitHub: **Settings → Pages → Source: GitHub Actions*
   migrar para vector tiles.
 - Só há suporte a WGS84; outros CRS precisam ser reprojetados antes.
 - Os tiles da Esri (mapa base) exigem internet.
-- Os créditos do mapa base e das camadas não aparecem no mapa (decisão do
-  produto). Os termos de uso da Esri pedem atribuição visível; os textos
+- Os créditos do mapa base e das camadas não aparecem no mapa nem no rodapé
+  (decisão do produto); ficam no **Sobre**. Os termos de uso da Esri pedem atribuição visível; os textos
   continuam em `js/config.js` caso seja preciso exibi-los de novo
   (`attributionControl: true` em `js/map/leaflet-view.js`).

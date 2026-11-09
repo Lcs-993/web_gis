@@ -9,10 +9,10 @@
    Eventos:
      layers     lista, status ou visibilidade de camadas mudou
      active     camada ativa mudou
-     view       filtros/busca de uma camada mudaram (payload: layer)
+     view       filtros/busca (termo ou opções) de uma camada mudaram (payload: layer)
      selection  feature selecionada mudou
      labels     rótulos de uma camada mudaram (payload: layer)
-     theme      tema por categoria de uma camada mudou (payload: layer)
+     theme      tema (categoria ou faixas) de uma camada mudou (payload: layer)
      basemap    mapa base mudou
      status     mensagem de status (payload: string)
 
@@ -20,7 +20,7 @@
      { id, name, color, url, attribution, source, visible,
        status: "loading" | "ready" | "error", error,
        features, schema, geometryTypes, filters, filterMode,
-       search: { term },
+       search: { term, options: { fields, match, combine, fit } },
        view: { filtered, filteredSet, matches, matchSet, considered },
        index }
    ============================================================ */
@@ -28,8 +28,10 @@
 import { createEmitter } from "./events.js";
 import { applyFilters } from "../data/filters.js";
 import { inferSchema } from "../data/schema.js";
-import { buildCategoryTheme, isThemeable } from "../data/theme.js";
-import { buildSearchIndex, search } from "../data/search.js";
+import { buildTheme, isThemeable, themeKind } from "../data/theme.js";
+import { THEME_DEFAULTS } from "../config.js";
+import { DEFAULT_SEARCH_OPTIONS, buildSearchIndex, search } from "../data/search.js";
+import { getAttribute, isEmpty, normalizeText } from "../data/values.js";
 
 const EMPTY_VIEW = Object.freeze({
     filtered: [],
@@ -63,7 +65,7 @@ export function createStore() {
 
         const filtered = applyFilters(layer.features, layer.filters, layer.filterMode);
         const term = layer.search.term;
-        const matches = term ? search(layer.index, term, filtered) : null;
+        const matches = term ? search(layer.index, term, filtered, layer.search.options) : null;
         const considered = matches || filtered;
 
         layer.view = {
@@ -82,7 +84,12 @@ export function createStore() {
 
             if (kept.length !== selection.uids.length) {
                 state.selection = kept.length
-                    ? { layerId: layer.id, uid: kept.includes(selection.uid) ? selection.uid : kept[kept.length - 1], uids: kept }
+                    ? {
+                        layerId: layer.id,
+                        uid: kept.includes(selection.uid) ? selection.uid : kept[kept.length - 1],
+                        uids: kept,
+                        parts: Boolean(selection.parts) && kept.length > 1
+                    }
                     : null;
                 emitter.emit("selection", state.selection);
             }
@@ -135,8 +142,19 @@ export function createStore() {
             },
             /* Fixa a camada no fim da lista do painel, mesmo com camadas adicionadas depois. */
             keepLast: Boolean(definition.keepLast),
-            theme: { visible: false, field: null, legend: null },
-            search: { term: "" },
+            /* Atributos que juntam as partes de uma mesma unidade (config.js). */
+            partFields: Array.isArray(definition.partFields) ? definition.partFields : [],
+            /* Tema: atributo, legenda calculada e as opções de cada tipo (rampa, classes…). */
+            theme: {
+                visible: false,
+                field: null,
+                legend: null,
+                options: {
+                    category: { ...THEME_DEFAULTS.category },
+                    numeric: { ...THEME_DEFAULTS.numeric }
+                }
+            },
+            search: { term: "", options: { ...DEFAULT_SEARCH_OPTIONS } },
             view: EMPTY_VIEW,
             index: []
         };
@@ -300,12 +318,16 @@ export function createStore() {
     };
 
 
-    /* ---------------- tema por categoria ---------------- */
+    /* ---------------- tema (por categoria ou por faixas de valor) ---------------- */
 
     /*
-       Liga/desliga o tema e escolhe o atributo. Sem campo definido,
-       usa o primeiro atributo do tipo categoria. A legenda (classes, cores
-       e cor por uid) é calculada aqui, uma vez por mudança.
+       Liga/desliga o tema, escolhe o atributo e ajusta as opções do
+       tipo dele: patch = { visible?, field?, ramp?, invert?, method?,
+       classes? }. Sem campo definido, usa o primeiro atributo de
+       categoria (ou, sem nenhum, o primeiro numérico). Cada tipo
+       guarda as próprias opções: trocar de atributo e voltar mantém
+       a rampa escolhida. A legenda (classes, cores e cor por uid) é
+       calculada aqui, uma vez por mudança.
     */
     const setTheme = (id, patch) => {
         const layer = getLayer(id);
@@ -314,17 +336,33 @@ export function createStore() {
             return;
         }
 
-        const next = { ...layer.theme, ...patch };
-        const categories = layer.schema.attributes.filter(isThemeable);
+        const { visible, field, ...options } = patch;
+        const next = { ...layer.theme, options: { ...layer.theme.options } };
+        const themeable = layer.schema.attributes.filter(isThemeable);
 
-        if (!categories.some((attribute) => attribute.name === next.field)) {
-            next.field = categories.length ? categories[0].name : null;
+        if (visible !== undefined) {
+            next.visible = visible;
         }
 
-        const attribute = categories.find((item) => item.name === next.field);
+        if (field !== undefined) {
+            next.field = field;
+        }
+
+        if (!themeable.some((attribute) => attribute.name === next.field)) {
+            const first = themeable.find((attribute) => themeKind(attribute) === "category") || themeable[0];
+
+            next.field = first ? first.name : null;
+        }
+
+        const attribute = themeable.find((item) => item.name === next.field);
+        const kind = attribute ? themeKind(attribute) : null;
+
+        if (kind && Object.keys(options).length) {
+            next.options[kind] = { ...next.options[kind], ...options };
+        }
 
         next.legend = next.visible && attribute
-            ? buildCategoryTheme(layer.features, attribute)
+            ? buildTheme(layer.features, attribute, next.options[kind])
             : null;
 
         if (!next.legend) {
@@ -430,7 +468,26 @@ export function createStore() {
             return;
         }
 
-        layer.search = { term: normalized };
+        layer.search = { ...layer.search, term: normalized };
+        emitView(layer);
+    };
+
+    /*
+       Pesquisa avançada: campos, correspondência, E/OU e enquadrar.
+       `null` em vez de um objeto volta ao padrão.
+    */
+    const setSearchOptions = (layerId, partial) => {
+        const layer = getLayer(layerId);
+
+        if (!layer) {
+            return;
+        }
+
+        const options = partial === null
+            ? { ...DEFAULT_SEARCH_OPTIONS }
+            : { ...layer.search.options, ...partial };
+
+        layer.search = { ...layer.search, options };
         emitView(layer);
     };
 
@@ -451,11 +508,55 @@ export function createStore() {
         emitter.emit("selection", next);
     };
 
-    /* Seleção simples (uma feição) ou limpar (null). */
+    /*
+       Unidade dividida em várias feições (ex.: talhão multipartes).
+       Com uma busca ativa, clicar numa parte seleciona todas as partes
+       achadas com os mesmos valores nos atributos de partFields
+       (config.js). Nenhum nome de atributo aqui: sem partFields, ou
+       com um deles ausente no arquivo, vale só a feição clicada.
+    */
+    const multipartSelection = (layer, uid) => {
+        if (!layer.partFields.length || !layer.search.term || !layer.view.matchSet || !layer.view.matchSet.has(uid)) {
+            return [uid];
+        }
+
+        const names = new Set(layer.schema.attributes.map((attribute) => attribute.name));
+
+        if (!layer.partFields.every((field) => names.has(field))) {
+            return [uid];
+        }
+
+        const keyOf = (target) => layer.partFields
+            .map((field) => {
+                const value = getAttribute(layer.features[target], field);
+
+                return isEmpty(value) ? null : normalizeText(value);
+            });
+
+        const key = keyOf(uid);
+
+        if (key.some((part) => part === null)) {
+            return [uid];
+        }
+
+        const wanted = key.join("\u0000");
+
+        return layer.view.matches.filter((candidate) => keyOf(candidate).join("\u0000") === wanted);
+    };
+
+    /* Seleção simples (ou de todas as partes do talhão) ou limpar (null). */
     const select = (layerId, uid) => {
-        setSelection(layerId === null || uid === null || uid === undefined
-            ? null
-            : { layerId, uid, uids: [uid] });
+        const layer = getLayer(layerId);
+
+        if (layerId === null || uid === null || uid === undefined) {
+            setSelection(null);
+            return;
+        }
+
+        const uids = layer ? multipartSelection(layer, uid) : [uid];
+
+        /* parts: várias feições, mas uma unidade só (o pop-up continua valendo). */
+        setSelection({ layerId, uid, uids, parts: uids.length > 1 });
     };
 
     /*
@@ -517,6 +618,7 @@ export function createStore() {
         setFilters,
         clearFilters,
         setSearch,
+        setSearchOptions,
         select,
         setBasemap,
         setStatus

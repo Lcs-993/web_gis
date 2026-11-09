@@ -1,38 +1,39 @@
 /* ============================================================
-   CARTÃO DA FEIÇÃO (seleção com o Analytics aberto)
+   CARTÃO DA FEIÇÃO (o "pop-up" do WebGIS)
 
-   Com o Analytics aberto, a seleção aparece na tabela e o popup
-   não abre (cobriria o mapa sobre a própria feição). A tabela,
-   porém, mostra poucas colunas em telas estreitas e corta textos
-   longos. O cartão mostra a feição inteira num canto do mapa,
-   com o mesmo conteúdo do popup (js/ui/popup.js).
+   A feição clicada aparece num cartão fixo no canto superior
+   direito do mapa, abaixo da caixa de busca e acima dos controles,
+   e não mais num balão sobre a própria feição (que cobria a área
+   em análise). Mesmo conteúdo de sempre (js/ui/popup.js).
 
-   × só esconde o cartão; a seleção continua na tabela e no mapa.
-   Em telas estreitas ele começa recolhido (só o título).
+   Enquanto o cartão está à vista, o mapa enquadra fora dele
+   (onVisibilityChange → insets do mapa, em js/main.js).
+
+   × ou Esc: onDismiss decide (sem o Analytics, desfaz a seleção;
+   com ele, só esconde o cartão e a linha continua na tabela).
    ============================================================ */
 
 import { byId } from "./dom.js";
 
-export function createFeatureCard() {
+export function createFeatureCard({ onDismiss, onVisibilityChange } = {}) {
     const card = byId("feature-card");
     const body = byId("feature-card-body");
     const closeButton = byId("feature-card-close");
-    const toggleButton = byId("feature-card-toggle");
-
-    /* Em telas estreitas o cartão começa recolhido: o mapa continua visível. */
-    const setExpanded = (expanded) => {
-        card.classList.toggle("is-expanded", expanded);
-        toggleButton.setAttribute("aria-expanded", String(expanded));
-        toggleButton.setAttribute("aria-label", expanded ? "Recolher os atributos" : "Mostrar todos os atributos");
-        toggleButton.title = expanded ? "Recolher" : "Mostrar atributos";
-    };
-
-    toggleButton.addEventListener("click", () => setExpanded(!card.classList.contains("is-expanded")));
 
     let key = null;
 
+    const setVisible = (visible) => {
+        const changed = card.hidden === visible;
+
+        card.hidden = !visible;
+
+        if (changed && onVisibilityChange) {
+            onVisibilityChange(visible, card);
+        }
+    };
+
     const hide = () => {
-        card.hidden = true;
+        setVisible(false);
         body.replaceChildren();
         key = null;
     };
@@ -45,7 +46,7 @@ export function createFeatureCard() {
     const show = (selectionKey, content, { reveal = false } = {}) => {
         if (key === selectionKey) {
             if (reveal) {
-                card.hidden = false;
+                setVisible(true);
             }
 
             return;
@@ -53,21 +54,27 @@ export function createFeatureCard() {
 
         key = selectionKey;
         body.replaceChildren(content);
-        setExpanded(false);
-        card.hidden = false;
+        body.scrollTop = 0;
+        setVisible(true);
     };
 
-    closeButton.addEventListener("click", () => {
-        card.hidden = true;
-    });
+    const dismiss = () => {
+        setVisible(false);
+
+        if (onDismiss) {
+            onDismiss();
+        }
+    };
+
+    closeButton.addEventListener("click", dismiss);
 
     card.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             event.preventDefault();
             event.stopPropagation();
-            card.hidden = true;
+            dismiss();
         }
     });
 
-    return { show, hide };
+    return { show, hide, isVisible: () => !card.hidden };
 }
