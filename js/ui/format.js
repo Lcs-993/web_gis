@@ -64,3 +64,18 @@ export function formatValue(value, attribute) {
 
     return String(value);
 }
+
+/*
+   Rótulo de uma classe do tema (legenda, painel Camadas, KML):
+   o valor, na categoria; "mín – máx", nas faixas de valor, com
+   as casas decimais do dado (no máximo 2).
+*/
+export function themeClassLabel(item, attribute) {
+    if (item.min === undefined) {
+        return formatValue(item.key, attribute);
+    }
+
+    const decimals = Math.min(2, attribute && attribute.range ? attribute.range.decimals : 2);
+
+    return `${formatNumber(item.min, decimals)} – ${formatNumber(item.max, decimals)}`;
+}

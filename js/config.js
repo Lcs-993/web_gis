@@ -7,9 +7,11 @@
    schema de cada camada em tempo de execução.
    ============================================================ */
 
+import { especificacaoIcone } from "./map/marker-icons.js";
+
 export const MAP_OPTIONS = {
-    center: [-14.235, -51.925],
-    zoom: 4,
+    center: [-20.0868, -46.0424],
+    zoom: 17,
     minZoom: 4,
     maxZoom: 18,
     fitMaxZoom: 16
@@ -36,6 +38,16 @@ export const BASEMAPS = [
 ];
 
 /*
+   Mapa base de cada tema: trocar o tema (claro/escuro) troca o
+   fundo junto. Ruas combina com o claro; satélite, com o escuro.
+   Depois disso o usuário pode escolher outro em Mapa base.
+*/
+export const THEME_BASEMAPS = {
+    light: "ruas",
+    dark: "satelite"
+};
+
+/*
    Catálogo de camadas carregadas na abertura.
 
    - url: GeoJSON FeatureCollection em WGS84 (CRS84 / EPSG:4326).
@@ -58,9 +70,15 @@ export const BASEMAPS = [
      arquivo cai no primeiro atributo com valores.
    - keepLast: opcional; fixa a camada no fim da lista do painel,
      mesmo com camadas adicionadas depois.
+   - partFields: opcional; atributos que identificam uma mesma
+     unidade dividida em várias feições (ex.: talhão em várias
+     partes). Com busca ativa, clicar numa parte seleciona todas as
+     partes com os mesmos valores nesses atributos.
    - icon: opcional, só para pontos. Desenha cada ponto com uma
-     imagem em vez de um círculo:
-       { url, size: [largura, altura], anchor: [x, y] }
+     imagem em vez de um círculo. Para os marcadores ilustrados
+     (usina, daninhas, pragas, fogo, chuva, vento):
+       especificacaoIcone("nome", alturaEmPx)
+     ou, para outra imagem: { url, size: [largura, altura], anchor: [x, y] }
      anchor é o pixel da imagem (já no tamanho exibido) que fica
      sobre a coordenada — a ponta, num ícone de alfinete.
 
@@ -76,12 +94,8 @@ export const LAYERS = [
         url: "geojson/usina.geojson",
         color: "#3cb44b",
         visible: true,
-        /* Imagem 443 × 620 exibida a 40 × 56; a ponta do alfinete fica em (20, 52). */
-        icon: {
-            url: "assets/icone_usina_canavieira.png",
-            size: [40, 56],
-            anchor: [20, 52]
-        }
+        /* Marcador ilustrado (js/map/marker-icons.js) com 56 px de altura; a ponta do alfinete fica sobre o ponto. */
+        icon: especificacaoIcone("usina", 56)
     },
     {
         id: "pol_fazendas",
@@ -118,7 +132,9 @@ export const LAYERS = [
         /* Camada ativa na abertura (busca, filtros e dashboard). */
         active: true,
         /* Sempre a última da lista, mesmo com arquivos adicionados depois. */
-        keepLast: true
+        keepLast: true,
+        /* Um talhão pode vir em várias feições: Fazenda + Talhão identificam o talhão inteiro. */
+        partFields: ["Fazenda", "Talhão"]
     }
 ];
 
@@ -127,63 +143,121 @@ export const LAYER_PALETTE = [
     "#f4c95d", "#4dd0e1", "#ff8a65", "#ba68c8", "#81c784", "#f06292"
 ];
 
+/*
+   Tema do mapa (painel Estilos): valores iniciais de cada tipo.
+   As rampas são as de assets/rampas_de_cores/rampas.js (o id é a
+   chave do arquivo, ex.: "arcmap-41-raster"); null = paleta padrão
+   de alto contraste.
+   - category: atributos de categoria (uma cor por valor).
+   - numeric: atributos numéricos (faixas de valor). method:
+     "jenks" | "quantis" | "intervalos-iguais" | "manual"; classes:
+     1 a 32 (o usuário digita no painel). "manual" usa limits,
+     pares [mín, máx] digitados no painel (não precisa vir aqui).
+     A rampa 41 invertida vai do vermelho (menor) ao verde (maior),
+     a leitura usual de produtividade e vigor.
+*/
+export const THEME_DEFAULTS = {
+    category: { ramp: null, invert: false },
+    numeric: { ramp: "arcmap-41-raster", invert: true, method: "jenks", classes: 5, limits: null, limitsField: null }
+};
+
 export const TABLE_PAGE_SIZE = 50;
 export const SEARCH_DEBOUNCE_MS = 160;
 
 
 /*
-   MENUS DE MÓDULOS (centro da barra superior)
+   MENUS DA BARRA SUPERIOR (estilo macOS Big Sur, js/ui/menu.js)
 
-   Cada menu agrupa módulos e tem uma cor (tone) para os ícones
-   dos itens: orange, green, blue ou gray. Um item é:
-     { id, icon, label, description, action? }
-   - icon: nome de um ícone de js/ui/module-menu.js (ICONS).
-   - action: identificador tratado em main.js. Item sem action
-     aparece como "Em breve" (desabilitado) até o módulo existir.
+   Um item é:
+     { id, label, description?, action?, shortcut?, checked?, items? }
+   - action: identificador tratado em main.js (MODULE_ACTIONS). Com
+     parâmetro: "tema:claro" chama a ação "tema" com "claro". Item
+     sem action nem items aparece como "Em breve" (desabilitado).
+   - checked: chave de estado resolvida em main.js na hora de abrir
+     o menu (ex.: "tema:escuro"); mostra ✓ quando verdadeira.
+   - shortcut: atalho exibido em cinza (só atalhos que funcionam).
+   - items: submenu em cascata. "basemaps" é preenchido em main.js
+     com os mapas de BASEMAPS.
+   - { separator: true }: filete entre grupos.
+   - description: dica ao passar o mouse.
    Para ligar um módulo novo: implementar em js/modules/, tratar a
    action em main.js e acrescentar a action ao item aqui.
 */
 export const MODULE_MENUS = [
     {
         id: "monitoramento",
-        tone: "orange",
         label: "Monitoramento",
         items: [
-            { id: "queimadas", icon: "flame", label: "Queimadas", description: "Focos de calor do INPE próximos aos talhões e à usina" },
-            { id: "clima", icon: "cloud", label: "Clima", description: "Previsão, chuva acumulada e dias sem chuva" },
-            { id: "pragas", icon: "bug", label: "Pragas", description: "Armadilhas e ocorrências por talhão" },
-            { id: "ndvi", icon: "leaf", label: "Vigor da vegetação", description: "NDVI do Sentinel-2: falhas e estresse no canavial" }
+            { id: "queimadas", label: "Queimadas", description: "Focos de calor do INPE próximos aos talhões e à usina" },
+            { id: "clima", label: "Clima", description: "Previsão, chuva acumulada e dias sem chuva" },
+            { id: "pragas", label: "Pragas", description: "Armadilhas e ocorrências por talhão" },
+            { id: "ndvi", label: "Vigor da vegetação", description: "NDVI do Sentinel-2: falhas e estresse no canavial" }
         ]
     },
     {
         id: "operacao",
-        tone: "green",
         label: "Operação",
         items: [
-            { id: "safra", icon: "calendar", label: "Safra e colheita", description: "Estágio de corte, idade do canavial e frentes" },
-            { id: "plantio", icon: "sprout", label: "Plantio e reforma", description: "Áreas previstas e realizadas" },
-            { id: "aplicacoes", icon: "droplet", label: "Aplicações", description: "Vinhaça, defensivos e adubação por talhão" },
-            { id: "logistica", icon: "truck", label: "Logística", description: "Frota do transporte de cana em tempo real" }
+            { id: "safra", label: "Safra e colheita", description: "Estágio de corte, idade do canavial e frentes" },
+            { id: "plantio", label: "Plantio e reforma", description: "Áreas previstas e realizadas" },
+            { id: "aplicacoes", label: "Aplicações", description: "Vinhaça, defensivos e adubação por talhão" },
+            { id: "logistica", label: "Logística", description: "Frota do transporte de cana em tempo real" }
         ]
     },
     {
         id: "analises",
-        tone: "blue",
         label: "Análises",
         items: [
-            { id: "produtividade", icon: "trend", label: "Produtividade", description: "TCH e ATR por talhão e comparação entre safras" },
-            { id: "raio", icon: "radius", label: "Raio de abrangência", description: "Feições a até X km de um ponto" }
+            { id: "tabela", label: "Tabela de atributos", description: "Analytics: tabela da camada ativa", action: "analytics:table", checked: "analytics:table" },
+            { id: "graficos", label: "Resumo e gráficos", description: "Analytics: agrupamentos e gráfico da camada ativa", action: "analytics:summary", checked: "analytics:summary" },
+            { separator: true },
+            { id: "produtividade", label: "Produtividade", description: "TCH e ATR por talhão e comparação entre safras" },
+            { id: "raio", label: "Raio de abrangência", description: "Feições a até X km de um ponto" },
+            { id: "analise", label: "Análise espacial", description: "Sobreposição, área de influência e estatísticas por região" }
         ]
     },
     {
         id: "ferramentas",
-        tone: "gray",
         label: "Ferramentas",
         items: [
-            { id: "medir", icon: "ruler", label: "Medir", description: "Distância e área no mapa" },
-            { id: "imprimir", icon: "printer", label: "Imprimir mapa", description: "PDF ou imagem com legenda" },
-            { id: "adicionar-dados", icon: "file-plus", label: "Adicionar dados", description: "GeoJSON, KML ou KMZ (lido só no navegador)", action: "open-file" },
-            { id: "exportar-kml", icon: "map-pin", label: "Exportar KML", description: "Camada ativa como está no mapa (filtros e cores) para o Google Earth", action: "export-kml" }
+            { id: "buscar", label: "Buscar", description: "Leva à caixa de busca do mapa", action: "search", shortcut: "Ctrl K" },
+            { id: "pesquisa-avancada", label: "Pesquisa avançada…", description: "Campos, correspondência e E/OU da busca", action: "open-search" },
+            { id: "medir", label: "Medir", description: "Distância e área no mapa" },
+            { id: "desenho", label: "Desenho", description: "Pontos, linhas, polígonos e textos sobre o mapa" },
+            { id: "caixa-ferramentas", label: "Outras ferramentas", description: "Recortar, unir, dissolver e converter camadas" },
+            { separator: true },
+            { id: "mapa-base", label: "Mapa base", items: "basemaps" },
+            { id: "favoritos", label: "Favoritos", description: "Enquadramentos, camadas e filtros salvos" },
+            {
+                id: "aparencia",
+                label: "Aparência",
+                items: [
+                    { id: "tema-escuro", label: "Escuro", action: "tema:dark", checked: "tema:dark" },
+                    { id: "tema-claro", label: "Claro", action: "tema:light", checked: "tema:light" },
+                    { separator: true },
+                    { id: "sem-blur", label: "Reduzir transparência", action: "sem-blur", checked: "sem-blur" }
+                ]
+            },
+            { id: "barra", label: "Barra lateral expandida", action: "toolbar", checked: "toolbar", shortcut: "[" },
+            { id: "apresentar", label: "Apresentar", description: "Tela cheia para apresentações", action: "fullscreen", checked: "fullscreen", shortcut: "F" },
+            { id: "configuracoes", label: "Configurações…", description: "Tema, transparência e atalhos", action: "open-settings" },
+            { separator: true },
+            { id: "salvar", label: "Salvar mapa", description: "Camadas, filtros, estilos e enquadramento atuais" },
+            { id: "exportar-kml", label: "Exportar KML", description: "Camada ativa como está no mapa (filtros e cores) para o Google Earth", action: "export-kml" },
+            { id: "imprimir", label: "Imprimir mapa", description: "PDF ou imagem com legenda" },
+            { id: "compartilhar", label: "Compartilhar", description: "Link do mapa como está (camadas, filtros e enquadramento)" },
+            { id: "incorporar", label: "Incorporar", description: "Código para colocar o mapa em outro site" },
+            { id: "aplicativos", label: "Aplicativos", description: "Painéis e apps feitos a partir deste mapa" }
+        ]
+    },
+    {
+        id: "ajuda",
+        label: "Ajuda",
+        items: [
+            { id: "guia", label: "Guia do usuário", description: "Como usar camadas, busca, filtros e Analytics (abre em nova aba)", action: "open-help" },
+            { id: "atalhos", label: "Atalhos de teclado", description: "Teclas para barras, painéis e menus", action: "open-shortcuts" },
+            { separator: true },
+            { id: "sobre", label: "Sobre o WebGIS", description: "Fontes dos dados e créditos", action: "open-about" }
         ]
     }
 ];

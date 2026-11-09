@@ -23,8 +23,8 @@
         content="default-src 'self'; script-src 'self' https://unpkg.com 'sha256-5VChX8X2tOFSpdbvpNxURqT/QXo24LC3D2YyUNdts7Y='; style-src 'self' https://unpkg.com 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'none'"
     >
 
-    <link rel="icon" href="assets/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" href="assets/favcon_red_green.png">
+    <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="assets/png/favcon_red_green.png">
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
     <link rel="manifest" href="manifest.webmanifest">
 
@@ -35,7 +35,7 @@
         crossorigin=""
     >
 
-    <link rel="stylesheet" href="css/style.css?v=20261108j">
+    <link rel="stylesheet" href="css/style.css?v=20261109n">
 
     <!-- Tema escuro por padrão; o claro só vale se o usuário o escolheu. Aplicado antes da primeira pintura. O hash na CSP corresponde a este bloco. -->
     <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
@@ -43,184 +43,296 @@
 
 <body>
 
-    <div class="app">
+    <!--
+        Ícones da interface (assets/icons/ui/sprite.svg), embutidos aqui
+        para funcionarem sem fetch. Para atualizar depois de editar o
+        sprite: python tools/embutir_sprite.py
+    -->
+    <!-- SPRITE:INICIO -->
+    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:none">
+<symbol id="ic-mapa-base" viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"> <rect x="8" y="8" width="36" height="36" style="fill:var(--icon-fill,#e6f0f9)"/> <rect x="16" y="15" width="5" height="5"/><rect x="31" y="26" width="5" height="5"/><rect x="17" y="33" width="4" height="4"/> <rect x="52" y="8" width="36" height="36" style="fill:var(--icon-bg,#ffffff)"/> <path d="M68 8 C65 13 71 16 68 21 C65 26 73 28 75 33 C77 38 83 37 88 40 L88 8 Z" style="fill:var(--icon-fill,#e6f0f9)"/> <rect x="8" y="52" width="36" height="36" style="fill:var(--icon-bg,#ffffff)"/> <path d="M8 74 C14 72 15 66 21 68 C27 70 29 62 35 64 C40 66 39 74 44 77 L44 88 L8 88 Z" style="fill:var(--icon-fill,#e6f0f9)"/> <rect x="52" y="52" width="36" height="36" style="fill:var(--icon-fill,#e6f0f9)"/> <path d="M75 52 L70 69 L52 75 M70 69 L80 88"/></symbol>
+<symbol id="ic-camadas" viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M48 51 L82 66 L48 81 L14 66 Z" style="fill:var(--icon-fill,#e6f0f9)"/><path d="M48 34 L82 49 L48 64 L14 49 Z" style="fill:var(--icon-fill,#e6f0f9)"/><path d="M48 17 L82 32 L48 47 L14 32 Z" style="fill:var(--icon-fill,#e6f0f9)"/></symbol>
+<symbol id="ic-estilos" viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"> <path d="M44 22 C24 22 9 34 9 50 C9 64 23 73 40 73 C49 73 51 66 47 62 C43 58 46 51 53 53 C61 55 71 55 73 45 C76 31 62 22 44 22 Z" style="fill:var(--icon-bg,#ffffff)"/> <circle cx="31" cy="37" r="5"/><circle cx="24" cy="53" r="5"/><circle cx="46" cy="33" r="4"/> <g transform="translate(48 70) rotate(-51.3)" style="fill:var(--icon-bg,#ffffff)"> <path d="M0 0 C2 -4 6 -5 10 -4 L10 4 C6 5 2 4 0 0 Z" style="fill:var(--icon-fill,#e6f0f9)"/> <rect x="10" y="-4" width="8" height="8"/> <path d="M18 -3 L62 -2 A2 2 0 0 1 62 2 L18 3 Z"/> </g></symbol>
+<symbol id="ic-popups" viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"> <path d="M8 14 H66 V54 H26 L15 65 V54 H8 Z" style="fill:var(--icon-bg,#ffffff)"/> <path d="M17 25 H57 M17 33 H57 M17 41 H42"/> <path d="M79.7 63.4 L83.9 63.9 L83.9 68.1 L79.7 68.6 L78.1 72.4 L80.7 75.8 L77.8 78.7 L74.4 76.1 L70.6 77.7 L70.1 81.9 L65.9 81.9 L65.4 77.7 L61.6 76.1 L58.2 78.7 L55.3 75.8 L57.9 72.4 L56.3 68.6 L52.1 68.1 L52.1 63.9 L56.3 63.4 L57.9 59.6 L55.3 56.2 L58.2 53.3 L61.6 55.9 L65.4 54.3 L65.9 50.1 L70.1 50.1 L70.6 54.3 L74.4 55.9 L77.8 53.3 L80.7 56.2 L78.1 59.6 Z" style="fill:var(--icon-bg,#ffffff)"/><circle cx="68" cy="66" r="5" style="fill:var(--icon-fill,#e6f0f9)"/></symbol>
+<symbol id="ic-salvar-mapa" viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"> <path d="M26 8 H82 V66"/> <rect x="16" y="18" width="56" height="62" style="fill:var(--icon-bg,#ffffff)"/> <path d="M50 18 C46 26 54 30 48 36 C42 42 52 48 46 54 C41 60 47 66 41 71 C38 74 39 78 38 80 L72 80 L72 18 Z" style="fill:var(--icon-fill,#e6f0f9)"/> <path d="M16 66 C22 62 24 68 29 66 C33 64 32 73 34 80 L16 80 Z" style="fill:var(--icon-fill,#e6f0f9)"/> <path d="M72 50 H80 V72 H88 L76 87 L64 72 H72 Z" style="fill:var(--icon-bg,#ffffff)"/></symbol>
+<symbol id="ic-zoom-mais" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 L20 20"/><path d="M10.5 7.8 V13.2 M7.8 10.5 H13.2"/></symbol>
+<symbol id="ic-zoom-menos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 L20 20"/><path d="M7.8 10.5 H13.2"/></symbol>
+<symbol id="ic-apresentar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="11.5" rx="1.5"/><path d="M12 16 V19.5 M8.5 19.5 H15.5"/><path d="M10.5 8 L14 10.25 L10.5 12.5 Z"/></symbol>
+<symbol id="ic-grafico-barras" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4 V20 H20"/><rect x="7" y="11" width="2.6" height="9"/><rect x="11.5" y="6" width="2.6" height="14"/><rect x="16" y="13" width="2.6" height="7"/></symbol>
+<symbol id="ic-grafico-linhas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4 V20 H20"/><path d="M6.5 16 L9.5 11 L12.5 14 L15.5 7.5 L19.5 12"/></symbol>
+<symbol id="ic-grafico-pizza" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 12 V4 M12 12 H20 M12 12 L8.6 19.2"/></symbol>
+<symbol id="ic-histograma" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4 V20 H20"/><path d="M6.5 20 V15 H9 V10 H11.5 V6.5 H14 V9 H16.5 V13 H19 V20"/><path d="M9 20 V15 M11.5 20 V10 M14 20 V9 M16.5 20 V13" stroke-width="1.1"/></symbol>
+<symbol id="ic-dispersao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4 V20 H20"/><circle cx="7" cy="16" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="17" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="13" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ic-boxplot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4 V8 M8 16 V20 M6.5 4 H9.5 M6.5 20 H9.5"/><rect x="5.5" y="8" width="5" height="8" rx="0.5"/><path d="M5.5 11.5 H10.5"/><path d="M16 6 V9.5 M16 16.5 V19 M14.5 6 H17.5 M14.5 19 H17.5"/><rect x="13.5" y="9.5" width="5" height="7" rx="0.5"/><path d="M13.5 13.5 H18.5"/></symbol>
+<symbol id="ic-adicionar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V19 M5 12 H19"/></symbol>
+<symbol id="ic-fechar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></symbol>
+<symbol id="ic-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 H20 M4 12 H20 M4 17 H20"/></symbol>
+<symbol id="ic-editar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5 L5.3 15.7 L15.4 5.6 a1.9 1.9 0 0 1 2.7 0 l.3 .3 a1.9 1.9 0 0 1 0 2.7 L8.3 18.7 Z"/><path d="M13.6 7.4 L16.6 10.4"/></symbol>
+<symbol id="ic-notificacoes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 16.5 V11 a5.5 5.5 0 0 1 11 0 V16.5 L19 18 H5 Z"/><path d="M10 20.5 a2.2 2.2 0 0 0 4 0"/></symbol>
+<symbol id="ic-usuario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="10" r="3"/><path d="M6.6 18.2 c1.2 -2.3 3.1 -3.5 5.4 -3.5 s4.2 1.2 5.4 3.5"/></symbol>
+<symbol id="ic-tema-claro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.8"/><path d="M12 3.5 V5.5 M12 18.5 V20.5 M3.5 12 H5.5 M18.5 12 H20.5 M6 6 L7.4 7.4 M16.6 16.6 L18 18 M6 18 L7.4 16.6 M16.6 7.4 L18 6"/></symbol>
+<symbol id="ic-tema-escuro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 14.6 A7.8 7.8 0 1 1 9.4 4.5 A6.2 6.2 0 0 0 19.5 14.6 Z"/></symbol>
+<symbol id="ic-adicionar-camada" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4 L18.5 7.8 L11 11.6 L3.5 7.8 Z"/><path d="M3.5 12 L11 15.8 L12.6 15"/><path d="M3.5 16.2 L11 20 L12.6 19.2"/><path d="M18 13.5 V20.5 M14.5 17 H21.5"/></symbol>
+<symbol id="ic-camadas-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 L20 8 L12 12 L4 8 Z"/><path d="M4 12 L12 16 L20 12"/><path d="M4 16 L12 20 L20 16"/></symbol>
+<symbol id="ic-tabela" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 9.5 H20 M4 14.2 H20 M10 9.5 V19"/></symbol>
+<symbol id="ic-mapa-base-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 L9 4.5 L15 6.5 L20 4.5 V17.5 L15 19.5 L9 17.5 L4 19.5 Z"/><path d="M9 4.5 V17.5 M15 6.5 V19.5"/></symbol>
+<symbol id="ic-legenda" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="4" height="4" rx="1"/><rect x="4" y="10" width="4" height="4" rx="1"/><rect x="4" y="15" width="4" height="4" rx="1"/><path d="M11 7 H20 M11 12 H20 M11 17 H17"/></symbol>
+<symbol id="ic-favoritos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2 L14.4 9 L19.6 9.7 L15.8 13.4 L16.7 18.6 L12 16.1 L7.3 18.6 L8.2 13.4 L4.4 9.7 L9.6 9 Z"/></symbol>
+<symbol id="ic-salvar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5 H15.5 L19.5 8.5 V19 a.5 .5 0 0 1 -.5 .5 H5 a.5 .5 0 0 1 -.5 -.5 V5 a.5 .5 0 0 1 .5 -.5 Z"/><path d="M8 4.5 V9 H14.5 V4.5"/><rect x="7.5" y="13" width="9" height="6.5"/></symbol>
+<symbol id="ic-configuracoes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.00 3.80 L13.60 3.96 L14.45 6.09 L15.56 6.68 L17.80 6.20 L18.82 7.44 L17.91 9.55 L18.28 10.75 L20.20 12.00 L20.04 13.60 L17.91 14.45 L17.32 15.56 L17.80 17.80 L16.56 18.82 L14.45 17.91 L13.25 18.28 L12.00 20.20 L10.40 20.04 L9.55 17.91 L8.44 17.32 L6.20 17.80 L5.18 16.56 L6.09 14.45 L5.72 13.25 L3.80 12.00 L3.96 10.40 L6.09 9.55 L6.68 8.44 L6.20 6.20 L7.44 5.18 L9.55 6.09 L10.75 5.72 Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+<symbol id="ic-compartilhar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.8 V14 M8.5 7.3 L12 3.8 L15.5 7.3"/><path d="M8.5 10.5 H6.5 a1 1 0 0 0 -1 1 V19 a1 1 0 0 0 1 1 H17.5 a1 1 0 0 0 1 -1 V11.5 a1 1 0 0 0 -1 -1 H15.5"/></symbol>
+<symbol id="ic-incorporar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 7.5 L4 12 L8.5 16.5 M15.5 7.5 L20 12 L15.5 16.5 M13.5 5.5 L10.5 18.5"/></symbol>
+<symbol id="ic-imprimir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9 V4.5 H17 V9"/><rect x="4" y="9" width="16" height="7.5" rx="1.5"/><path d="M7 14 H17 V19.5 H7 Z"/></symbol>
+<symbol id="ic-informacao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5 M12 7.9 V8"/></symbol>
+<symbol id="ic-expandir-painel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7 L11 12 L6 17 M13 7 L18 12 L13 17"/></symbol>
+<symbol id="ic-recolher-painel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7 L13 12 L18 17 M11 7 L6 12 L11 17"/></symbol>
+<symbol id="ic-propriedades" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 H13.5 M17.5 7 H20 M4 12 H7.5 M11.5 12 H20 M4 17 H11.5 M15.5 17 H20"/><circle cx="15.5" cy="7" r="2"/><circle cx="9.5" cy="12" r="2"/><circle cx="13.5" cy="17" r="2"/></symbol>
+<symbol id="ic-estilos-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 C7.6 4 4 7.4 4 11.6 C4 15.6 7.3 19 11.2 19 c1.4 0 2 -.9 1.6 -2 c-.4 -1.2 .4 -2.4 1.7 -2.4 H17 c1.7 0 3 -1.3 3 -3 C20 7.2 16.4 4 12 4 Z"/><circle cx="8.5" cy="11" r="1"/><circle cx="11" cy="7.8" r="1"/><circle cx="15" cy="8.5" r="1"/></symbol>
+<symbol id="ic-filtro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5 H20 L14 12.5 V18.5 L10 20 V12.5 Z"/></symbol>
+<symbol id="ic-efeitos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4 L11.5 8.5 L16 10 L11.5 11.5 L10 16 L8.5 11.5 L4 10 L8.5 8.5 Z"/><path d="M17 14 L17.8 16.2 L20 17 L17.8 17.8 L17 20 L16.2 17.8 L14 17 L16.2 16.2 Z"/></symbol>
+<symbol id="ic-popups-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5 H19 a1 1 0 0 1 1 1 V15 a1 1 0 0 1 -1 1 H10 L6 19.5 V16 H5 a1 1 0 0 1 -1 -1 V6 a1 1 0 0 1 1 -1 Z"/><path d="M8 9 H16 M8 12.5 H13"/></symbol>
+<symbol id="ic-rotulos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 7 V5 H18.5 V7 M12 5 V19 M9 19 H15"/></symbol>
+<symbol id="ic-campos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="5.5" rx="1.2"/><rect x="4" y="13.5" width="16" height="5.5" rx="1.2"/><path d="M7 7.75 H11 M7 16.25 H11"/></symbol>
+<symbol id="ic-desenho" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18.5 C7 18.5 7 14.5 10 14.5 S13 18.5 16 17.5"/><path d="M14.3 9.7 L18 6 a1.4 1.4 0 0 1 2 2 L16.3 11.7 L13.8 12.2 Z"/></symbol>
+<symbol id="ic-analise" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 L20 20"/><path d="M7.5 12.2 L9.5 10.2 L11.2 11.7 L13.5 9"/></symbol>
+<symbol id="ic-ferramentas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.6 4.3 a4.2 4.2 0 0 0 -4.9 5.6 L4.6 15 a1.9 1.9 0 0 0 2.7 2.7 L12.4 12.6 a4.2 4.2 0 0 0 5.6 -4.9 L15.6 10.1 L13.9 10.1 L13.9 8.4 Z"/></symbol>
+<symbol id="ic-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 L20 20"/></symbol>
+<symbol id="ic-localizacao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 4.5 L4.5 11 L11 13 L13 19.5 Z"/></symbol>
+<symbol id="ic-inicio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 11 L12 4.5 L19.5 11"/><path d="M6.5 9.5 V19.5 H17.5 V9.5"/><path d="M10 19.5 V14.5 H14 V19.5"/></symbol>
+<symbol id="ic-medir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 15.6 L15.6 3.8 L20.2 8.4 L8.4 20.2 Z"/><path d="M7 12.4 L8.6 14 M9.6 9.8 L11.6 11.8 M12.2 7.2 L13.8 8.8"/></symbol>
+<symbol id="ic-exportar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V14 M8 10 L12 14 L16 10"/><path d="M5 15.5 V19 a1 1 0 0 0 1 1 H18 a1 1 0 0 0 1 -1 V15.5"/></symbol>
+<symbol id="ic-copiar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="1.5"/><path d="M15.5 8.5 V5.5 a1 1 0 0 0 -1 -1 H5.5 a1 1 0 0 0 -1 1 V14.5 a1 1 0 0 0 1 1 H8.5"/></symbol>
+</svg>
+    <!-- SPRITE:FIM -->
 
-        <!-- ========================================================= TOPBAR -->
+    <div class="app" id="app">
+
+        <!-- ========================================================= BARRA SUPERIOR -->
         <header class="topbar">
 
-            <div class="brand">
-                <img class="brand-logo" src="assets/favcon_red_green.png" alt="" width="28" height="28">
-                <span class="brand-name">Web<span class="brand-accent">GIS</span></span>
-            </div>
+            <div class="topbar-start">
+                <!-- ☰: expande/recolhe a barra esquerda. -->
+                <button type="button" class="topbar-icon-button topbar-menu-button" id="toolbar-menu-button" aria-controls="toolbar-left" aria-expanded="false" aria-label="Expandir a barra de ferramentas" title="Barra de ferramentas ( [ )">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-menu"/></svg>
+                </button>
 
-            <!--
-                Menus suspensos dos módulos, gerados por js/ui/module-menu.js
-                a partir de MODULE_MENUS (js/config.js). Camadas, Filtros e
-                Dashboard ficam só nos botões do mapa.
-            -->
-            <nav class="module-menu" id="module-menu" aria-label="Módulos"></nav>
-
-            <div class="topbar-actions">
-                <!-- Assistente de IA: ainda não implementado; o botão mostra o aviso "Em breve". -->
-                <div class="topbar-popover-anchor">
-                    <button class="topbar-icon-button ai-button" id="ai-button" type="button" aria-label="Assistente de IA" title="Assistente de IA" aria-expanded="false" aria-controls="ai-coming-soon">
-                        <!-- Brilhos preenchidos (mesmo estilo sólido do ícone de mapa base). -->
-                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            <path d="M10 3.5c.4 0 .7.3.8.7l.6 2.7a5 5 0 0 0 3.7 3.7l2.7.6a.8.8 0 0 1 0 1.6l-2.7.6a5 5 0 0 0-3.7 3.7l-.6 2.7a.8.8 0 0 1-1.6 0l-.6-2.7a5 5 0 0 0-3.7-3.7l-2.7-.6a.8.8 0 0 1 0-1.6l2.7-.6a5 5 0 0 0 3.7-3.7l.6-2.7c.1-.4.4-.7.8-.7Z"/>
-                            <path d="M18.5 2.5c.3 0 .5.2.6.5l.2.9a1.8 1.8 0 0 0 1.3 1.3l.9.2a.6.6 0 0 1 0 1.2l-.9.2a1.8 1.8 0 0 0-1.3 1.3l-.2.9a.6.6 0 0 1-1.2 0l-.2-.9a1.8 1.8 0 0 0-1.3-1.3l-.9-.2a.6.6 0 0 1 0-1.2l.9-.2a1.8 1.8 0 0 0 1.3-1.3l.2-.9c.1-.3.3-.5.6-.5Z"/>
-                        </svg>
-                    </button>
-
-                    <div class="coming-soon-card" id="ai-coming-soon" role="status" hidden>
-                        <span class="coming-soon-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M10 3.5c.4 0 .7.3.8.7l.6 2.7a5 5 0 0 0 3.7 3.7l2.7.6a.8.8 0 0 1 0 1.6l-2.7.6a5 5 0 0 0-3.7 3.7l-.6 2.7a.8.8 0 0 1-1.6 0l-.6-2.7a5 5 0 0 0-3.7-3.7l-2.7-.6a.8.8 0 0 1 0-1.6l2.7-.6a5 5 0 0 0 3.7-3.7l.6-2.7c.1-.4.4-.7.8-.7Z"/>
-                            </svg>
-                        </span>
-                        <span class="coming-soon-text">
-                            <span class="coming-soon-title">Assistente de IA</span>
-                            <span class="coming-soon-description">Converse com um modelo de IA sobre os dados do mapa. Em implementação.</span>
-                        </span>
-                        <span class="module-menu-soon">Em breve</span>
-                    </div>
+                <div class="brand">
+                    <img class="brand-logo" src="assets/png/favcon_red_green.png" alt="" width="28" height="28">
+                    <span class="brand-name">Web<span class="brand-accent">GIS</span></span>
                 </div>
 
-                <a class="topbar-icon-button" href="ajuda.html" target="_blank" rel="noopener" aria-label="Ajuda (abre em nova aba)" title="Ajuda">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
-                        <path d="M9.6 9.3a2.5 2.5 0 0 1 4.9.7c0 1.7-2.5 2.2-2.5 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="16.9" r="1" fill="currentColor"/>
-                    </svg>
-                </a>
+                <!-- Menus suspensos (MODULE_MENUS em js/config.js), gerados por js/ui/module-menu.js. -->
+                <nav class="module-menu" id="module-menu" aria-label="Menus"></nav>
+            </div>
 
+            <div class="topbar-actions">
                 <button class="topbar-icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Ativar modo claro" aria-pressed="true" title="Alternar tema">
-                    <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.7"/>
-                        <path d="M12 2.5V5M12 19V21.5M4.6 4.6L6.4 6.4M17.6 17.6L19.4 19.4M2.5 12H5M19 12H21.5M4.6 19.4L6.4 17.6M17.6 6.4L19.4 4.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <svg class="icon theme-icon theme-icon-moon" aria-hidden="true"><use href="#ic-tema-escuro"/></svg>
+                    <svg class="icon theme-icon theme-icon-sun" aria-hidden="true"><use href="#ic-tema-claro"/></svg>
+                </button>
+
+                <!-- Apresentar: a aplicação inteira em tela cheia (F); o mesmo botão sai. -->
+                <button class="topbar-present-button" id="present-button" type="button" aria-label="Apresentar" title="Apresentar em tela cheia (F)" aria-keyshortcuts="F" aria-pressed="false">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-apresentar"/></svg>
+                    <span class="topbar-present-label">Apresentar</span>
                 </button>
             </div>
 
         </header>
 
 
-        <!-- ========================================================= MAPA -->
-        <main class="map-container" id="map-container">
+        <div class="workspace">
 
-            <!-- Os botões sobre o mapa repetem os da topbar para funcionarem em tela cheia. -->
-            <button class="sidebar-toggle" type="button" data-panel-toggle="layers" aria-controls="sidebar" aria-expanded="false" aria-label="Camadas" title="Camadas">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="m12 3 9 5-9 5-9-5 9-5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="m3 12 9 5 9-5M3 16.5l9 5 9-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
+            <!-- ========================================================= BARRA ESQUERDA -->
+            <!--
+                Só ícones (48 px) ou ícone + rótulo (240 px), pelo botão do
+                rodapé, pelo ☰ ou pela tecla [. Itens "Em breve" ficam
+                desabilitados. js/ui/toolbar.js.
+                Blocos por função, de cima para baixo: Mapa, Camada ativa,
+                Consultar, Simbologia, Analisar; no pé, Conta, Configurações,
+                Sobre e expandir. Com a barra expandida, cada bloco mostra o
+                título.
+            -->
+            <nav class="toolbar toolbar-left" id="toolbar-left" aria-label="Barra de ferramentas">
+                <div class="toolbar-scroll">
+                    <span class="toolbar-indicator" aria-hidden="true"></span>
 
+                    <!-- Mapa: Conteúdo do mapa: camadas e legenda (o mapa base fica nos controles do mapa). -->
+                    <div class="toolbar-group" role="group" aria-labelledby="tb-group-map">
+                    <p class="toolbar-group-title" id="tb-group-map">Mapa</p>
+                    <button type="button" class="toolbar-item" aria-label="Camadas" data-tooltip="Camadas" data-panel-toggle="layers" aria-controls="sidebar" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-camadas-ui"/></svg><span class="toolbar-label">Camadas</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Adicionar camada" data-tooltip="Adicionar camada (GeoJSON, KML, KMZ)" data-action="open-file"><svg class="icon" aria-hidden="true"><use href="#ic-adicionar-camada"/></svg><span class="toolbar-label">Adicionar camada</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Legenda" data-tooltip="Legenda" data-panel-toggle="legend" aria-controls="panel-legend" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-legenda"/></svg><span class="toolbar-label">Legenda</span></button>
+                    </div>
 
-            <!-- SIDEBAR — CAMADAS -->
-            <aside id="sidebar" class="sidebar" aria-label="Camadas">
-                <!-- Fechar: preso à borda direita da aba, por fora, no alto (estilo dos botões do mapa). -->
-                <button type="button" class="sidebar-close" data-panel-close="layers" aria-label="Fechar camadas" title="Fechar">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
+                    <!-- Consultar: Achar feições: pesquisa avançada (a caixa de busca fica no mapa) e filtros. -->
+                    <div class="toolbar-group" role="group" aria-labelledby="tb-group-query">
+                    <p class="toolbar-group-title" id="tb-group-query">Consultar</p>
+                    <button type="button" class="toolbar-item" id="search-button" aria-label="Pesquisa avançada" data-tooltip="Pesquisa avançada" data-panel-toggle="search" aria-controls="panel-search" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-busca"/></svg><span class="toolbar-label">Pesquisar</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Filtro" data-tooltip="Filtro" data-panel-toggle="filters" aria-controls="filter-panel" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-filtro"/></svg><span class="toolbar-label">Filtro</span><span class="badge toolbar-badge" data-filter-count hidden></span></button>
+                    </div>
 
-                <!-- Marca: só em tela cheia, quando a barra superior (com a marca) fica fora da tela. -->
-                <div class="sidebar-brand" aria-hidden="true">
-                    <img class="brand-logo" src="assets/favcon_red_green.png" alt="" width="28" height="28">
-                    <span class="brand-name">Web<span class="brand-accent">GIS</span></span>
+                    <!-- Simbologia: Como a camada aparece: cores e tema, rótulos, pop-ups e efeitos. -->
+                    <div class="toolbar-group" role="group" aria-labelledby="tb-group-style">
+                    <p class="toolbar-group-title" id="tb-group-style">Simbologia</p>
+                    <button type="button" class="toolbar-item" aria-label="Estilos" data-tooltip="Estilos" data-panel-toggle="styles" aria-controls="panel-styles" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-estilos-ui"/></svg><span class="toolbar-label">Estilos</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Rótulos" data-tooltip="Rótulos" data-panel-toggle="labels" aria-controls="panel-labels" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-rotulos"/></svg><span class="toolbar-label">Rótulos</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Pop-ups" data-tooltip="Pop-ups — em breve"  aria-disabled="true" data-soon><svg class="icon" aria-hidden="true"><use href="#ic-popups-ui"/></svg><span class="toolbar-label">Pop-ups</span><span class="toolbar-soon">Em breve</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Efeitos" data-tooltip="Efeitos — em breve"  aria-disabled="true" data-soon><svg class="icon" aria-hidden="true"><use href="#ic-efeitos"/></svg><span class="toolbar-label">Efeitos</span><span class="toolbar-soon">Em breve</span></button>
+                    </div>
+
+                    <!-- Analisar: Atributos da camada ativa: campos, tabela de atributos e gráficos. A camada ativa se escolhe clicando no nome dela no painel Camadas. -->
+                    <div class="toolbar-group" role="group" aria-labelledby="tb-group-analysis">
+                    <p class="toolbar-group-title" id="tb-group-analysis">Analisar</p>
+                    <button type="button" class="toolbar-item" aria-label="Tabela de atributos" data-tooltip="Tabela de atributos" data-dashboard-tab="table" aria-controls="dashboard" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#ic-tabela"/></svg><span class="toolbar-label">Tabela de atributos</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Campos" data-tooltip="Campos" data-panel-toggle="fields" aria-controls="panel-fields" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-campos"/></svg><span class="toolbar-label">Campos</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Gráficos" data-tooltip="Gráficos" data-panel-toggle="charts" aria-controls="panel-charts" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-grafico-barras"/></svg><span class="toolbar-label">Gráficos</span></button>
+                    </div>
+
                 </div>
 
-                <div class="sidebar-header">
-                    <h2 class="sidebar-title" id="layer-list-title">Camadas</h2>
-                </div>
+                <div class="toolbar-footer">
+                    <!-- Conta: no pé da barra (como no ArcGIS); o cartão abre ao lado da barra e traz as notificações.
+                         O sininho no canto do ícone aparece quando há novidade (camada carregada, falha, exportação). -->
+                    <div class="toolbar-popover-anchor">
+                        <button type="button" class="toolbar-item account-button" id="account-button" aria-label="Conta e notificações" data-tooltip="Conta e notificações" aria-expanded="false" aria-controls="account-card"><span class="toolbar-account-icon"><svg class="icon" aria-hidden="true"><use href="#ic-usuario"/></svg><span class="notify-badge" id="notify-dot" hidden><svg aria-hidden="true"><use href="#ic-notificacoes"/></svg></span></span><span class="toolbar-label">Conta</span></button>
 
-                <div class="sidebar-body">
+                        <div class="coming-soon-card topbar-card account-card" id="account-card" role="region" aria-label="Conta e notificações" hidden>
+                            <p class="topbar-card-title">Conta</p>
+                            <div class="topbar-card-row">
+                                <span class="coming-soon-text">
+                                    <span class="coming-soon-title">Entrar</span>
+                                    <span class="coming-soon-description">Login com a conta da usina, mapas salvos e preferências.</span>
+                                </span>
+                                <span class="module-menu-soon">Em breve</span>
+                            </div>
+
+                            <p class="topbar-card-title account-card-section">Notificações</p>
+                            <ul class="notification-list" id="notification-list"></ul>
+                            <p class="notification-empty" id="notification-empty">Nenhuma notificação.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="toolbar-item" aria-label="Configurações" data-tooltip="Configurações" data-panel-toggle="settings" aria-controls="panel-settings" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-configuracoes"/></svg><span class="toolbar-label">Configurações</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Sobre" data-tooltip="Sobre o WebGIS" data-panel-toggle="about" aria-controls="panel-about" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-informacao"/></svg><span class="toolbar-label">Sobre</span></button>
+                    <button type="button" class="toolbar-item toolbar-expand" id="toolbar-expand" aria-expanded="false" aria-controls="toolbar-left" aria-label="Expandir a barra" data-tooltip="Expandir ( [ )">
+                        <svg class="icon icon-expand" aria-hidden="true"><use href="#ic-expandir-painel"/></svg><svg class="icon icon-collapse" aria-hidden="true"><use href="#ic-recolher-painel"/></svg><span class="toolbar-label">Recolher</span>
+                    </button>
+                </div>
+            </nav>
+
+
+            <!-- ========================================================= MAPA -->
+            <main class="map-container" id="map-container">
+
+            <!-- ===== PAINÉIS DA ESQUERDA (um por vez, colados à barra) ===== -->
+
+            <section class="side-panel side-panel-left" id="sidebar" aria-labelledby="layer-list-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-camadas-ui"/></svg>
+                    <div class="side-panel-heading">
+                        <h2 class="side-panel-title" id="layer-list-title">Camadas</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="layers" aria-label="Fechar camadas" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
                     <section class="sidebar-section" aria-labelledby="layer-list-title">
                         <ul class="layer-list" id="layer-list"></ul>
                     </section>
 
-                    <!-- Guia rápido: o que é a camada ativa e o que faz cada ícone (vale também no toque, sem tooltip). -->
+                    <!-- Guia rápido: o que é a camada ativa e o que faz cada ícone (além das dicas dos ícones). -->
                     <footer class="sidebar-key">
-                        <p class="sidebar-key-text">Selecione o nome para tornar a camada <strong>ativa</strong>: ela alimenta busca, filtros e Analytics.</p>
+                        <p class="sidebar-key-text">Selecione o nome para tornar a camada <strong>ativa</strong>: ela alimenta busca, filtros, Analytics e o grupo Camada ativa da barra.</p>
                         <ul class="sidebar-key-list">
                             <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" stroke="currentColor" stroke-width="1.8"/></svg>Exibir</li>
                             <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.9 1.8-1.8 0-1.2-1-1.6-1-2.6 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Tema</li>
                             <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5V5h14v1.5M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Rótulos</li>
-                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 11v5.5M12 7.6v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Dados</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 11v5.5M12 7.6v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Propriedades</li>
                         </ul>
                     </footer>
                 </div>
-            </aside>
+            </section>
 
-            <!-- Seletor de arquivo oculto: aberto por Ferramentas › Adicionar dados (menu de módulos). -->
-            <input type="file" id="layer-file-input" accept=".geojson,.json,.kml,.kmz,application/geo+json,application/json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" multiple hidden>
-
-
-            <!-- IDENTIFICAR CAMADA: resumo e atributos descobertos (aberto pelo botão "i" da camada). -->
-            <dialog class="layer-info" id="layer-info" aria-labelledby="layer-info-title">
-                <header class="panel-header layer-info-header">
-                    <div>
-                        <p class="layer-info-kicker">Dados da camada</p>
-                        <h2 class="panel-title" id="layer-info-title"></h2>
+            <!-- Mapa base: abre ao lado dos controles do mapa (botão acima do zoom); clique fora fecha. -->
+            <section class="side-panel side-panel-basemap" id="panel-basemap" aria-labelledby="panel-basemap-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-mapa-base-ui"/></svg>
+                    <div class="side-panel-heading">
+                        <h2 class="side-panel-title" id="panel-basemap-title">Mapa base</h2>
                     </div>
-                    <button type="button" class="icon-button" id="layer-info-close" aria-label="Fechar">×</button>
+                    <button type="button" class="side-panel-close" data-panel-close="basemap" aria-label="Fechar mapa base" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
                 </header>
-
-                <dl class="layer-info-summary" id="layer-info-summary"></dl>
-
-                <!-- Metadados: descrição do GeoJSON + .qmd do QGIS (some quando não há nada). -->
-                <section class="layer-info-meta" id="layer-info-metadata" aria-label="Metadados" hidden>
-                    <h3 class="layer-info-meta-title">Metadados</h3>
-                    <dl class="layer-info-meta-list" id="layer-info-metadata-list"></dl>
-                </section>
-
-                <div class="layer-info-table-scroll">
-                    <table class="data-table layer-info-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Atributo</th>
-                                <th scope="col">Tipo</th>
-                            </tr>
-                        </thead>
-                        <tbody id="layer-info-attributes"></tbody>
-                    </table>
+                <div class="side-panel-body">
+                    <div class="basemap-cards" id="basemap-options" role="radiogroup" aria-labelledby="panel-basemap-title"></div>
                 </div>
-            </dialog>
+            </section>
+
+            <section class="side-panel side-panel-left" id="panel-legend" aria-labelledby="panel-legend-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-legenda"/></svg>
+                    <div class="side-panel-heading">
+                        <h2 class="side-panel-title" id="panel-legend-title">Legenda</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="legend" aria-label="Fechar legenda" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <div class="legend-panel" id="legend-body"></div>
+                </div>
+            </section>
+
+            <section class="side-panel side-panel-left" id="panel-charts" aria-labelledby="panel-charts-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-grafico-barras"/></svg>
+                    <div class="side-panel-heading">
+                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-charts-title">Gráficos</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="charts" aria-label="Fechar gráficos" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <button type="button" class="button button-primary charts-add" id="charts-add"><svg class="icon" aria-hidden="true"><use href="#ic-adicionar"/></svg><span>Adicionar gráfico</span></button>
+                    <p class="settings-hint">O gráfico abre no Analytics (Resumo), com o agrupamento escolhido lá: agrupar por, operador e métrica.</p>
+                    <section class="settings-group" aria-labelledby="chart-types-title">
+                        <h3 class="settings-title" id="chart-types-title">Tipo de gráfico</h3>
+                        <div class="chart-types">
+                        <button type="button" class="chart-type-card" data-chart-type="bars" aria-pressed="false"><svg class="icon chart-type-icon" aria-hidden="true"><use href="#ic-grafico-barras"/></svg><span class="chart-type-name">Barras</span></button>
+                        <button type="button" class="chart-type-card" data-chart-type="donut" aria-pressed="false"><svg class="icon chart-type-icon" aria-hidden="true"><use href="#ic-grafico-pizza"/></svg><span class="chart-type-name">Pizza</span></button>
+                        <button type="button" class="chart-type-card" aria-disabled="true" title="Linhas — em breve"><svg class="icon chart-type-icon" aria-hidden="true"><use href="#ic-grafico-linhas"/></svg><span class="chart-type-name">Linhas</span><span class="toolbar-soon">Em breve</span></button>
+                        <button type="button" class="chart-type-card" aria-disabled="true" title="Histograma — em breve"><svg class="icon chart-type-icon" aria-hidden="true"><use href="#ic-histograma"/></svg><span class="chart-type-name">Histograma</span><span class="toolbar-soon">Em breve</span></button>
+                        <button type="button" class="chart-type-card" aria-disabled="true" title="Dispersão — em breve"><svg class="icon chart-type-icon" aria-hidden="true"><use href="#ic-dispersao"/></svg><span class="chart-type-name">Dispersão</span><span class="toolbar-soon">Em breve</span></button>
+                        <button type="button" class="chart-type-card" aria-disabled="true" title="Box plot — em breve"><svg class="icon chart-type-icon" aria-hidden="true"><use href="#ic-boxplot"/></svg><span class="chart-type-name">Box plot</span><span class="toolbar-soon">Em breve</span></button>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <!-- Seletor de arquivo oculto: Adicionar camada na barra esquerda. -->
+            <input type="file" id="layer-file-input" accept=".geojson,.json,.kml,.kmz,application/geo+json,application/json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" multiple hidden>
 
 
             <!-- MAPA -->
             <div class="map-background" id="map" role="application" aria-label="Mapa interativo" tabindex="0"></div>
 
 
-            <!-- BUSCA + FILTROS (canto superior direito) -->
-            <!-- Busca e filtros numa barra única (o filtro fica dentro da barra). -->
-            <div class="map-tools">
+            <!--
+                BUSCA (canto superior direito): sempre à vista; Ctrl+K leva o
+                foco até ela. O botão Pesquisar da barra esquerda abre a
+                Pesquisa avançada. O funil abre o menu de filtros
+                (js/ui/filter-menu.js).
+            -->
+            <div class="map-tools" id="map-tools">
                 <form class="search-bar" id="search-form" role="search">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
-                        <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                    </svg>
+                    <svg class="icon search-icon" aria-hidden="true"><use href="#ic-busca"/></svg>
 
-                    <input type="search" class="search-input" id="search-input" placeholder="Buscar" aria-label="Buscar" title="Um ou mais termos; todos precisam aparecer na feature" autocomplete="off" spellcheck="false">
+                    <input type="search" class="search-input" id="search-input" placeholder="Buscar" aria-label="Buscar" title="Um ou mais termos; todos precisam aparecer na feição" autocomplete="off" spellcheck="false">
 
                     <button class="search-clear" id="search-clear" type="button" aria-label="Limpar busca" hidden>
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                        </svg>
+                        <svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg>
                     </button>
                 </form>
 
                 <span class="map-tools-divider" aria-hidden="true"></span>
 
-                <button type="button" class="tool-button" data-panel-toggle="filters" aria-controls="filter-panel" aria-expanded="false" title="Filtros">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M4 5h16l-6 7.5V19l-4 1.5v-8L4 5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                    </svg>
-                    <span class="visually-hidden">Filtros</span>
+                <button type="button" class="tool-button" id="filter-menu-button" aria-haspopup="menu" aria-expanded="false" aria-label="Filtros" title="Filtros">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-filtro"/></svg>
                     <span class="badge" data-filter-count hidden></span>
                 </button>
 
@@ -228,14 +340,8 @@
             </div>
 
 
-            <!-- CARTÃO DA FEIÇÃO: seleção com o Analytics aberto (js/ui/feature-card.js). -->
+            <!-- CARTÃO DA FEIÇÃO (o pop-up): à direita do mapa, abaixo da busca (js/ui/feature-card.js). -->
             <section class="feature-card" id="feature-card" aria-label="Feição selecionada" hidden>
-                <!-- Expandir/recolher: só em telas estreitas, onde o cartão começa recolhido (só o título). -->
-                <button type="button" class="feature-card-toggle" id="feature-card-toggle" aria-expanded="false" aria-controls="feature-card-body" aria-label="Mostrar todos os atributos" title="Mostrar atributos">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
                 <button type="button" class="feature-card-close" id="feature-card-close" aria-label="Fechar o cartão da feição" title="Fechar">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M7 7l10 10M17 7L7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -246,11 +352,15 @@
 
 
             <!-- PAINEL DE FILTROS -->
-            <section class="floating-panel filter-panel" id="filter-panel" aria-labelledby="filter-title">
-                <header class="panel-header">
-                    <h2 class="panel-title" id="filter-title">Filtros</h2>
-                    <button type="button" class="icon-button" data-panel-close="filters" aria-label="Fechar filtros">×</button>
+            <section class="side-panel side-panel-left filter-panel" id="filter-panel" aria-labelledby="filter-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-filtro"/></svg>
+                    <div class="side-panel-heading">
+                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="filter-title">Filtro</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="filters" aria-label="Fechar filtros" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
                 </header>
+                <div class="side-panel-body filter-panel-body">
 
                 <p class="panel-summary" id="filter-summary"></p>
 
@@ -336,6 +446,48 @@
                     <h3 class="field-label" id="filter-saved-title">Filtros salvos</h3>
                     <ul class="filter-saved-list" id="filter-saved-list"></ul>
                 </section>
+                </div>
+            </section>
+
+            <!-- ===== PAINÉIS DA DIREITA (camada ativa) ===== -->
+
+            <section class="side-panel side-panel-left" id="panel-styles" aria-labelledby="panel-styles-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-estilos-ui"/></svg>
+                    <div class="side-panel-heading">
+                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-styles-title">Estilos</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="styles" aria-label="Fechar estilos" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <div id="styles-body"></div>
+                </div>
+            </section>
+
+            <section class="side-panel side-panel-left" id="panel-labels" aria-labelledby="panel-labels-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-rotulos"/></svg>
+                    <div class="side-panel-heading">
+                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-labels-title">Rótulos</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="labels" aria-label="Fechar rótulos" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <div id="labels-body"></div>
+                </div>
+            </section>
+
+            <section class="side-panel side-panel-left" id="panel-search" aria-labelledby="panel-search-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-busca"/></svg>
+                    <div class="side-panel-heading">
+                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-search-title">Pesquisa avançada</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="search" aria-label="Fechar pesquisa avançada" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <div id="search-body"></div>
+                </div>
             </section>
 
 
@@ -343,7 +495,7 @@
             <section class="dashboard" id="dashboard" aria-labelledby="dashboard-title">
                 <header class="dashboard-header">
                     <div class="dashboard-heading">
-                        <img class="dashboard-icon" src="assets/Analytics.png" alt="" width="34" height="34">
+                        <img class="dashboard-icon" src="assets/png/Analytics.png" alt="" width="34" height="34">
                         <div class="dashboard-heading-text">
                             <h2 class="panel-title" id="dashboard-title">Analytics</h2>
                             <p class="dashboard-context" id="dashboard-context" aria-live="polite"></p>
@@ -481,75 +633,47 @@
             </section>
 
 
-            <!-- CONTROLES DO MAPA (inferior direito) -->
             <!--
-                Controles agrupados em blocos (estilo Apple Maps):
-                Dashboard · Enquadrar + Tela cheia · Zoom · Mapa base.
+                CONTROLES DO MAPA: uma coluna de vidro com divisórias.
+                Flutuam no canto inferior direito do mapa.
+                Atalhos: + e − zoom (F, apresentar, fica na barra superior).
             -->
-            <div class="map-controls">
-
+            <div class="map-controls" role="toolbar" aria-label="Controles do mapa" aria-orientation="vertical">
                 <div class="control-stack">
-                    <button type="button" class="map-control-dashboard" data-panel-toggle="dashboard" aria-controls="dashboard" aria-expanded="false" title="Analytics" aria-label="Analytics">
-                        <!-- Três barras sólidas, cantos arredondados, separadas por vãos. -->
-                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            <rect x="3.5" y="12" width="4.5" height="8.5" rx="1.2"/>
-                            <rect x="9.75" y="3.5" width="4.5" height="17" rx="1.2"/>
-                            <rect x="16" y="8" width="4.5" height="12.5" rx="1.2"/>
-                        </svg>
+                    <button id="basemap-button" type="button" title="Mapa base" aria-label="Mapa base" data-panel-toggle="basemap" aria-controls="panel-basemap" aria-expanded="false">
+                        <svg class="icon" aria-hidden="true"><use href="#ic-mapa-base-ui"/></svg>
                     </button>
                 </div>
 
                 <div class="control-stack">
-                    <button id="home-button" type="button" title="Enquadrar extensão total das camadas" aria-label="Enquadrar extensão total das camadas" disabled>
-                        <!-- Casa sólida com a porta vazada (estilo do mapa base). -->
-                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            <path d="M11.1 3.4a1.4 1.4 0 0 1 1.8 0l8 6.7a.9.9 0 0 1-1.1 1.4l-.8-.6v8.1a1.5 1.5 0 0 1-1.5 1.5H14.5v-5.6a.9.9 0 0 0-.9-.9h-3.2a.9.9 0 0 0-.9.9V20.5H6.5A1.5 1.5 0 0 1 5 19V10.9l-.8.6a.9.9 0 0 1-1.1-1.4l8-6.7Z"/>
-                        </svg>
+                    <button id="locate-button" type="button" title="Minha localização" aria-label="Minha localização">
+                        <svg class="icon" aria-hidden="true"><use href="#ic-localizacao"/></svg>
                     </button>
 
-                    <button id="fullscreen-button" type="button" title="Tela cheia" aria-label="Tela cheia" aria-pressed="false">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M9 3H3v6M15 3h6v6M21 15v6h-6M3 15v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="control-stack">
-                    <button id="zoom-in-button" type="button" title="Aumentar zoom" aria-label="Aumentar zoom">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
+                    <button id="home-button" type="button" title="Início: extensão total das camadas" aria-label="Início: extensão total das camadas" disabled>
+                        <svg class="icon" aria-hidden="true"><use href="#ic-inicio"/></svg>
                     </button>
 
-                    <button id="zoom-out-button" type="button" title="Reduzir zoom" aria-label="Reduzir zoom">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
+                    <button id="zoom-in-button" type="button" title="Aumentar zoom (+)" aria-label="Aumentar zoom" aria-keyshortcuts="+">
+                        <svg class="icon" aria-hidden="true"><use href="#ic-zoom-mais"/></svg>
+                    </button>
+
+                    <button id="zoom-out-button" type="button" title="Reduzir zoom (−)" aria-label="Reduzir zoom" aria-keyshortcuts="-">
+                        <svg class="icon" aria-hidden="true"><use href="#ic-zoom-menos"/></svg>
                     </button>
                 </div>
-
-                <div class="control-stack map-control-group">
-                    <button id="basemap-button" type="button" title="Mapa base" aria-label="Mapa base" aria-haspopup="true" aria-expanded="false" aria-controls="basemap-menu">
-                        <!-- Mapa dobrado: três painéis preenchidos, separados por vãos. -->
-                        <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M3 6.5 8.5 4.5v15L3 21.5z"/>
-                            <path d="M10 4.5 14 6.5v15l-4-2z"/>
-                            <path d="M15.5 6.5 21 4.5v15l-5.5 2z"/>
-                        </svg>
-                    </button>
-
-                    <div class="basemap-menu" id="basemap-menu" role="group" aria-label="Mapa base" hidden>
-                        <p class="basemap-menu-title">Mapa base</p>
-                        <div id="basemap-options"></div>
-                    </div>
-                </div>
-
             </div>
 
             <div class="map-status" id="map-status" role="status" hidden></div>
 
-            <!-- RODAPÉ: discreto e translúcido, sobre o mapa (coordenadas e zoom). -->
-            <footer class="map-footer" id="map-footer" aria-label="Posição no mapa">
+            <!-- Falhas de carga: um cartão por camada, com "Tentar de novo" (js/ui/status.js). -->
+            <div class="map-notices" id="map-notices"></div>
+
+            <!-- RODAPÉ: status, coordenadas e zoom, à direita. As fontes dos dados ficam no Sobre. -->
+            <footer class="map-footer" id="map-footer" aria-label="Rodapé do mapa">
+                <!-- Espelho visível do status (o leitor de tela lê #app-status). -->
+                <span class="map-footer-status" id="footer-status" aria-hidden="true">Carregando…</span>
+
                 <span class="map-footer-item">
                     <span id="footer-coords-label">Centro</span>
                     <strong id="footer-coords">—</strong>
@@ -574,6 +698,159 @@
         </main>
 
 
+        </div>
+
+
+        <!--
+            JANELAS CENTRAIS (js/main.js, CENTER_PANELS): leitura e ajustes
+            que não dependem de ver o mapa (Configurações, Sobre, Propriedades,
+            Campos). Abrem no centro, sobre um fundo escurecido; o resto da
+            tela fica inerte até fechar (×, Esc ou clique no fundo).
+            As ferramentas que mudam o mapa continuam em janelas flutuantes
+            ao lado da barra, para o efeito ficar à vista.
+        -->
+        <div class="window-scrim" id="window-scrim" aria-hidden="true"></div>
+
+            <section class="side-panel side-panel-center" id="panel-settings" role="dialog" aria-modal="true" aria-labelledby="panel-settings-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-configuracoes"/></svg>
+                    <div class="side-panel-heading">
+                        <h2 class="side-panel-title" id="panel-settings-title">Configurações</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="settings" aria-label="Fechar configurações" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <section class="settings-group" aria-labelledby="settings-look">
+                        <h3 class="settings-title" id="settings-look">Aparência</h3>
+                        <div class="glass-card">
+                            <div class="settings-row">
+                                <span class="settings-label" id="settings-theme-label">Tema</span>
+                                <div class="tabs segmented" role="radiogroup" aria-labelledby="settings-theme-label">
+                                    <button type="button" class="tab" role="radio" data-theme-option="dark" aria-checked="true">Escuro</button>
+                                    <button type="button" class="tab" role="radio" data-theme-option="light" aria-checked="false">Claro</button>
+                                </div>
+                            </div>
+                            <label class="settings-row">
+                                <span class="settings-text">
+                                    <span class="settings-label">Reduzir transparência</span>
+                                    <span class="settings-hint">Painéis sem desfoque: mais leve em computadores lentos.</span>
+                                </span>
+                                <input type="checkbox" class="switch" id="settings-sem-blur">
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="settings-group" aria-labelledby="settings-keys">
+                        <h3 class="settings-title" id="settings-keys">Atalhos de teclado</h3>
+                        <dl class="glass-card shortcut-list">
+                            <div><dt>Expandir/recolher a barra</dt><dd><kbd>[</kbd></dd></div>
+                            <div><dt>Fechar painel ou menu</dt><dd><kbd>Esc</kbd></dd></div>
+                            <div><dt>Navegar nas barras e menus</dt><dd><kbd>↑</kbd> <kbd>↓</kbd></dd></div>
+                        </dl>
+                    </section>
+                </div>
+            </section>
+
+            <section class="side-panel side-panel-center" id="panel-about" role="dialog" aria-modal="true" aria-labelledby="panel-about-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-informacao"/></svg>
+                    <div class="side-panel-heading">
+                        <h2 class="side-panel-title" id="panel-about-title">Sobre</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="about" aria-label="Fechar sobre" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <div class="about-hero">
+                        <img src="assets/png/favcon_red_green.png" alt="" width="56" height="56">
+                        <div>
+                            <p class="about-name"><span class="brand-name">Web<span class="brand-accent">GIS</span></span></p>
+                            <p class="about-org">Bambuí Bioenergia</p>
+                        </div>
+                    </div>
+                    <p class="about-text">Visualização dos talhões, fazendas e da unidade industrial: camadas, busca, filtros, tabela de atributos, gráficos e exportação em CSV e KML. Os arquivos que você abre são lidos só no navegador.</p>
+                    <a class="button about-help" href="ajuda.html" target="_blank" rel="noopener">Guia do usuário</a>
+                    <section class="settings-group" aria-labelledby="about-credits-title">
+                        <h3 class="settings-title" id="about-credits-title">Fontes dos dados</h3>
+                        <ul class="glass-card about-credits" id="about-credits"></ul>
+                    </section>
+                </div>
+            </section>
+
+            <section class="side-panel side-panel-center" id="panel-properties" role="dialog" aria-modal="true" aria-labelledby="panel-properties-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-propriedades"/></svg>
+                    <div class="side-panel-heading">
+                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-properties-title">Propriedades</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="properties" aria-label="Fechar propriedades" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <dl class="layer-info-summary" id="layer-info-summary"></dl>
+
+                    <!-- Metadados: descrição do GeoJSON + .qmd do QGIS (some quando não há nada). -->
+                    <section class="layer-info-meta" id="layer-info-metadata" aria-label="Metadados" hidden>
+                        <h3 class="settings-title">Metadados</h3>
+                        <dl class="layer-info-meta-list" id="layer-info-metadata-list"></dl>
+                    </section>
+
+                    <section class="layer-info-fields" aria-labelledby="layer-properties-fields-title">
+                        <div class="layer-info-fields-heading">
+                            <h3 class="settings-title" id="layer-properties-fields-title">Campos</h3>
+                            <p class="panel-summary" id="layer-properties-fields-summary"></p>
+                        </div>
+                        <div class="layer-info-table-scroll">
+                            <table class="data-table layer-info-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Atributo</th>
+                                        <th scope="col">Tipo</th>
+                                        <th scope="col">Preenchidos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="layer-properties-attributes"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="side-panel side-panel-center" id="panel-fields" role="dialog" aria-modal="true" aria-labelledby="panel-fields-title">
+                <header class="side-panel-header">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-campos"/></svg>
+                    <div class="side-panel-heading">
+                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-fields-title">Campos</h2>
+                    </div>
+                    <button type="button" class="side-panel-close" data-panel-close="fields" aria-label="Fechar campos" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                </header>
+                <div class="side-panel-body">
+                    <p class="panel-summary" id="layer-fields-summary"></p>
+                    <div class="layer-info-table-scroll">
+                        <table class="data-table layer-info-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Atributo</th>
+                                    <th scope="col">Tipo</th>
+                                    <th scope="col">Preenchidos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="layer-info-attributes"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
+        <!--
+            MODO APRESENTAÇÃO (js/ui/map-controls.js): puxadores discretos
+            nas bordas (onde as barras escondidas voltam com o mouse) e um
+            aviso rápido ao entrar.
+        -->
+        <span class="present-handle present-handle-top" aria-hidden="true"></span>
+        <span class="present-handle present-handle-left" aria-hidden="true"></span>
+        <p class="present-hint" id="present-hint" role="status" hidden>
+            Modo apresentação · leve o mouse ao <strong>topo</strong> ou à <strong>esquerda</strong> para ver os menus · <kbd>Esc</kbd> sai
+        </p>
+
         <!-- Mensagens de status: só para leitores de tela (sem rodapé visível). -->
         <p class="visually-hidden" id="app-status" role="status" aria-live="polite">Carregando…</p>
 
@@ -585,6 +862,8 @@
         crossorigin=""
     ></script>
 
+    <!-- Rampas de cores do tema (window.RAMPAS; js/data/ramps.js). Gerado por assets/rampas_de_cores/converter_rampas.py. -->
+    <script src="assets/rampas_de_cores/rampas.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/pwa.js"></script>
     <script type="module" src="js/main.js"></script>

@@ -6,7 +6,7 @@
    escrevem no store e reagem aos seus eventos.
    ============================================================ */
 
-import { BASEMAPS, LAYERS, LAYER_PALETTE, MAP_OPTIONS, MODULE_MENUS } from "./config.js";
+import { BASEMAPS, LAYERS, LAYER_PALETTE, MAP_OPTIONS, MODULE_MENUS, THEME_BASEMAPS } from "./config.js";
 import { createStore } from "./core/store.js";
 import { loadFromFile, loadFromUrl } from "./data/geojson-provider.js";
 import { createMapView } from "./map/leaflet-view.js";
@@ -21,15 +21,24 @@ import { createMapControls, disableMapControls } from "./ui/map-controls.js";
 import { createStatusBar } from "./ui/status.js";
 import { createLoadingOverlay } from "./ui/loading.js";
 import { createModuleMenu } from "./ui/module-menu.js";
-import { createComingSoon } from "./ui/coming-soon.js";
 import { buildPopup } from "./ui/popup.js";
 import { createFeatureCard } from "./ui/feature-card.js";
+import { createToolbars } from "./ui/toolbar.js";
+import { createLayerTools } from "./ui/layer-tools.js";
+import { createLegendPanel } from "./ui/legend-panel.js";
+import { createNotifications, createSettingsPanel, plainText, renderAboutCredits } from "./ui/app-panels.js";
+import { createFilterMenu } from "./ui/filter-menu.js";
+import { createChartsPanel } from "./ui/charts-panel.js";
+import { createContextMenu } from "./ui/context-menu.js";
 import { formatCount, formatValue } from "./ui/format.js";
 import { getAttribute, isEmpty } from "./data/values.js";
 
 const store = createStore();
 const status = createStatusBar(store);
 const loading = createLoadingOverlay();
+const notifications = createNotifications();
+
+createSettingsPanel();
 
 
 /* ---------------- mapa (ou stub, sem Leaflet) ---------------- */
@@ -46,20 +55,21 @@ const createNullMapView = () => {
         setSelection: noop,
         setLabels: noop,
         setTheme: noop,
-        openPopup: noop,
-        closePopup: noop,
-        isPopupOpenFor: () => false,
         fitFeatures: () => false,
         fitExtent: () => false,
         hasExtent: () => false,
         onFeatureClick: noop,
         onEmptyClick: noop,
-        onPopupClose: noop,
+        onFeatureContextMenu: noop,
+        onMapContextMenu: noop,
         onContentChange: noop
     };
 };
 
 const leafletAvailable = typeof window.L !== "undefined";
+
+/* Controles do mapa (zoom, início, apresentar…); null sem Leaflet. */
+let mapControls = null;
 
 const mapView = leafletAvailable
     ? createMapView(window.L, document.getElementById("map"), { options: MAP_OPTIONS, basemaps: BASEMAPS })
@@ -76,8 +86,29 @@ mapView.setInsets({ bottom: footerHeight() });
 
 if (leafletAvailable) {
     status.bindMap(mapView.map);
-    createMapControls(store, mapView, BASEMAPS);
-    store.setBasemap(BASEMAPS[0].id);
+    mapControls = createMapControls(store, mapView, BASEMAPS);
+
+    /*
+       Mapa base acompanha o tema: claro → ruas, escuro → satélite
+       (THEME_BASEMAPS, config.js). Vale na abertura e a cada troca de
+       tema; "Reduzir transparência" também avisa "webgis:theme",
+       por isso só reage quando o tema de fato muda.
+    */
+    const currentTheme = () => (window.webgisTheme ? window.webgisTheme.get() : "dark");
+    const basemapFor = (theme) =>
+        BASEMAPS.some((item) => item.id === THEME_BASEMAPS[theme]) ? THEME_BASEMAPS[theme] : BASEMAPS[0].id;
+    let lastTheme = currentTheme();
+
+    store.setBasemap(basemapFor(lastTheme));
+
+    document.addEventListener("webgis:theme", () => {
+        const theme = currentTheme();
+
+        if (theme !== lastTheme) {
+            lastTheme = theme;
+            store.setBasemap(basemapFor(theme));
+        }
+    });
 
     window.addEventListener("resize", () => mapView.map.invalidateSize());
 } else {
@@ -109,7 +140,6 @@ const moveSearch = (intoDashboard) => {
     const hadFocus = searchForm.contains(document.activeElement);
 
     if (intoDashboard) {
-        panels.close("filters");
         dashboardSearchSlot.appendChild(searchForm);
     } else {
         mapTools.prepend(searchForm);
@@ -142,20 +172,91 @@ const dashboardResize = createDashboardResize(document.getElementById("dashboard
     }
 });
 
+/*
+   Janelas flutuantes ao lado da barra esquerda: as ferramentas que
+   mudam o mapa (o efeito fica à vista). A altura acompanha o
+   conteúdo. Abrir uma fecha a outra. O Analytics fica embaixo e
+   convive com elas.
+*/
+const LEFT_PANELS = [
+    ["layers", "sidebar"],
+    ["legend", "panel-legend"],
+    ["charts", "panel-charts"],
+    ["styles", "panel-styles"],
+    ["filters", "filter-panel"],
+    ["labels", "panel-labels"],
+    ["search", "panel-search"]
+];
+
+/*
+   Janelas centrais (modais): leitura e ajustes que não precisam do
+   mapa à vista. Fundo escurecido; o resto da tela fica inerte; o
+   clique no fundo, o × ou Esc fecham. A janela da esquerda que
+   estava aberta continua lá ao fechar.
+*/
+const CENTER_PANELS = [
+    ["settings", "panel-settings"],
+    ["about", "panel-about"],
+    ["properties", "panel-properties"],
+    ["fields", "panel-fields"]
+];
+
+const appChrome = [document.querySelector(".topbar"), document.querySelector(".workspace")].filter(Boolean);
+
+const sidePanel = (group, hostClass) => group.map(([id, element]) => ({
+    id,
+    element,
+    useHidden: false,
+    hostClass,
+    exclusiveWith: group.map(([other]) => other).filter((other) => other !== id)
+}));
+
+let toolbars = null;
+let layerInfo = null;
+
+/* Largura ocupada pelo painel aberto de um lado (o mapa enquadra fora dele). */
+const panelInset = (group) => {
+    const open = group.find(([id]) => panels.isOpen(id));
+    const element = open ? document.getElementById(open[1]) : null;
+
+    return element ? element.offsetWidth + 8 : 0;
+};
+
 const panels = createPanels([
-    { id: "layers", element: "sidebar", useHidden: false, hostClass: "layers-open" },
-    { id: "filters", element: "filter-panel", popover: true },
-    /* Abrir o dashboard fecha a aba Camadas: os dois disputariam o mapa. */
-    { id: "dashboard", element: "dashboard", hostClass: "dashboard-open", exclusiveWith: ["layers"] }
+    ...sidePanel(LEFT_PANELS, "left-panel-open"),
+    /* popover: foco entra na janela ao abrir e o clique fora (no fundo escurecido) fecha. */
+    ...sidePanel(CENTER_PANELS, "center-panel-open").map((panel) => ({ ...panel, popover: true })),
+    /* Mapa base: janela ao lado dos controles do mapa; convive com as da esquerda e fecha com clique fora. */
+    { id: "basemap", element: "panel-basemap", useHidden: false, popover: true },
+    { id: "dashboard", element: "dashboard", hostClass: "dashboard-open" }
 ], {
     onChange: (id, open) => {
+        if (LEFT_PANELS.some(([panel]) => panel === id)) {
+            mapView.setInsets({ left: panelInset(LEFT_PANELS) });
+        }
+
+        if (CENTER_PANELS.some(([panel]) => panel === id)) {
+            const modal = CENTER_PANELS.some(([panel]) => panels.isOpen(panel));
+
+            appChrome.forEach((node) => {
+                node.inert = modal;
+            });
+        }
+
+        if (open && (id === "properties" || id === "fields") && layerInfo) {
+            layerInfo.render();
+        }
+
+        if (toolbars) {
+            toolbars.refresh();
+        }
+
         if (id === "dashboard") {
             if (open) {
                 dashboardResize.refresh();
             } else {
                 /* Fechar sempre restaura: ao reabrir, volta à altura normal. */
                 dashboardResize.setMaximized(false);
-                featureCard.hide();
             }
 
             moveSearch(open);
@@ -164,11 +265,11 @@ const panels = createPanels([
 
             if (open && dashboard) {
                 dashboard.onOpen();
+            }
 
-                /* Seleção já existente passa do popup para a tabela. */
-                if (store.state.selection) {
-                    presentSelection(store.state.selection);
-                }
+            /* Seleção já existente: com o Analytics, vai também para a linha da tabela; sem ele, o cartão ganha "Mostrar na tabela". */
+            if (store.state.selection) {
+                presentSelection(store.state.selection);
             }
 
             /*
@@ -181,59 +282,36 @@ const panels = createPanels([
             }
         }
 
-        if (id === "layers") {
-            mapView.setInsets({ left: open ? document.getElementById("sidebar").offsetWidth : 0 });
-        }
     }
 });
 
 
 /* ---------------- seleção ↔ mapa ---------------- */
 
-let pendingLatLng = null;
-
-const featureCard = createFeatureCard();
-
-/* Trocar a camada analisada: o cartão só vale para a seleção da camada ativa. */
-store.on("active", (layer) => {
-    const selection = store.state.selection;
-
-    if (!selection || !layer || selection.layerId !== layer.id) {
-        featureCard.hide();
+/*
+   Cartão da feição (o "pop-up"), à direita do mapa. Sem o Analytics,
+   fechar o cartão desfaz a seleção; com ele, a linha continua na
+   tabela. Enquanto está à vista, o mapa enquadra fora dele.
+*/
+const featureCard = createFeatureCard({
+    onDismiss: () => {
+        if (!panels.isOpen("dashboard")) {
+            store.select(null);
+        }
+    },
+    onVisibilityChange: (visible, card) => {
+        mapView.setInsets({ right: visible ? card.offsetWidth + 16 : 0 });
     }
 });
 
-const openSelectionPopup = (selection) => {
-    const layer = store.getLayer(selection.layerId);
-    const feature = store.getSelectedFeature();
-
-    if (layer && feature) {
-        const { layerId, uid } = selection;
-
-        mapView.openPopup({ ...selection, latlng: pendingLatLng }, buildPopup(layer, feature, {
-            onZoom: () => mapView.fitFeatures(layerId, [uid], MAP_OPTIONS.fitMaxZoom + 1),
-            /*
-               Abre o Analytics na camada da feição: a tabela vai até a
-               linha (presentSelection) e o popup dá lugar a ela.
-            */
-            onShowInTable: dashboard
-                ? () => {
-                    store.setActiveLayer(layerId);
-
-                    if (panels.isOpen("dashboard")) {
-                        presentSelection(store.state.selection);
-                    } else {
-                        panels.open("dashboard");
-                    }
-                }
-                : null
-        }));
+/* Trocar a camada analisada com o Analytics aberto: o cartão segue a seleção conforme a nova camada. */
+store.on("active", () => {
+    if (store.state.selection) {
+        presentSelection(store.state.selection);
     }
+});
 
-    pendingLatLng = null;
-};
-
-/* Enquadra antes de selecionar: o popup abre já com o mapa em movimento e se reposiciona no fim. */
+/* Enquadra antes de selecionar: o cartão abre já com o mapa em movimento. */
 const selectFeature = (layerId, uid, { fit = false } = {}) => {
     if (fit) {
         mapView.fitFeatures(layerId, [uid], MAP_OPTIONS.fitMaxZoom + 1);
@@ -261,12 +339,12 @@ const fitToFocus = () => {
 };
 
 /*
-   Onde mostrar os atributos da feature selecionada.
-
-   Com o dashboard aberto e a feature na camada ativa, a tabela já
-   exibe os atributos: o popup só cobriria o mapa. Nesse caso a
-   linha é destacada na aba Tabela. Fora disso (dashboard fechado
-   ou feature de outra camada), vale o popup.
+   Onde mostrar os atributos da feature selecionada: sempre no
+   cartão à direita do mapa. Com o Analytics aberto e a feature na
+   camada ativa, a linha também é destacada na aba Tabela (a linha
+   mostra poucas colunas; o cartão, a feição inteira). Várias
+   feições selecionadas: sem cartão (seria só de uma delas), salvo
+   partes da mesma unidade.
 */
 const presentSelection = (selection, { reveal = false } = {}) => {
     const inTable = Boolean(
@@ -276,48 +354,42 @@ const presentSelection = (selection, { reveal = false } = {}) => {
     );
 
     if (inTable) {
-        pendingLatLng = null;
-        mapView.closePopup();
         dashboard.showRow(selection.layerId, selection.uid);
+    }
 
-        /* A linha mostra poucas colunas; o cartão mostra a feição inteira (uma só). */
-        const layer = store.getLayer(selection.layerId);
-        const feature = store.getSelectedFeature();
+    const layer = store.getLayer(selection.layerId);
+    const feature = store.getSelectedFeature();
 
-        if (selection.uids.length === 1 && layer && feature) {
-            const { layerId, uid } = selection;
-
-            featureCard.show(`${layerId}:${uid}`, buildPopup(layer, feature, {
-                onZoom: () => mapView.fitFeatures(layerId, [uid], MAP_OPTIONS.fitMaxZoom + 1)
-            }), { reveal });
-        } else {
-            featureCard.hide();
-        }
-
+    if (!(selection.uids.length === 1 || selection.parts) || !layer || !feature) {
+        featureCard.hide();
         return;
     }
 
-    featureCard.hide();
+    const { layerId, uid } = selection;
 
-    /* Várias feições selecionadas: sem popup (seria só de uma delas). */
-    if (selection.uids.length > 1) {
-        pendingLatLng = null;
-        mapView.closePopup();
-        return;
-    }
+    /* A chave inclui o modo: ao abrir ou fechar o Analytics, o conteúdo troca ("Mostrar na tabela" só faz sentido fora dela). */
+    featureCard.show(`${inTable ? "tabela" : "mapa"}:${layerId}:${uid}`, buildPopup(layer, feature, {
+        onZoom: () => mapView.fitFeatures(layerId, [uid], MAP_OPTIONS.fitMaxZoom + 1),
+        /* Abre o Analytics na camada da feição: a tabela vai até a linha. */
+        onShowInTable: dashboard && !inTable
+            ? () => {
+                store.setActiveLayer(layerId);
 
-    if (!mapView.isPopupOpenFor(selection.layerId, selection.uid)) {
-        openSelectionPopup(selection);
-    }
+                if (panels.isOpen("dashboard")) {
+                    presentSelection(store.state.selection);
+                } else {
+                    panels.open("dashboard");
+                }
+            }
+            : null
+    }), { reveal });
 };
 
-mapView.onFeatureClick(({ layerId, uid, latlng }) => {
-    pendingLatLng = latlng;
-
+mapView.onFeatureClick(({ layerId, uid }) => {
     /* Clicar de novo na feature já selecionada a mostra outra vez. */
     const current = store.state.selection;
 
-    if (current && current.layerId === layerId && current.uid === uid && current.uids.length === 1) {
+    if (current && current.layerId === layerId && current.uid === uid && (current.uids.length === 1 || current.parts)) {
         presentSelection(current, { reveal: true });
         return;
     }
@@ -326,13 +398,11 @@ mapView.onFeatureClick(({ layerId, uid, latlng }) => {
 });
 
 mapView.onEmptyClick(() => store.select(null));
-mapView.onPopupClose(() => store.select(null));
 
 store.on("selection", (selection) => {
     mapView.setSelection(store.state.layers, selection);
 
     if (!selection) {
-        mapView.closePopup();
         featureCard.hide();
         return;
     }
@@ -406,6 +476,7 @@ const loadLayer = async (definition, loader) => {
         /* Schema, índice de busca e desenho rodam aqui, ainda com "Preparando" na tela. */
         store.setLayerData(layer.id, data);
         store.setStatus(`${layer.name}: ${formatCount(data.features.length)} feições`);
+        notifications.notify(`${layer.name}: ${formatCount(data.features.length)} feições carregadas`, "success");
 
         return store.getLayer(layer.id);
     } catch (error) {
@@ -413,6 +484,18 @@ const loadLayer = async (definition, loader) => {
 
         store.setLayerError(layer.id, message);
         store.setStatus(`${layer.name}: falha ao carregar`);
+        notifications.notify(`${layer.name}: não foi possível carregar`, "error");
+
+        status.showLoadError({
+            key: layer.id,
+            title: `Não foi possível carregar ${layer.name}`,
+            detail: message,
+            /* Arquivo local: o usuário abre de novo; camada da configuração: recarrega daqui. */
+            onRetry: definition.source === "file" ? null : () => {
+                store.removeLayer(layer.id);
+                loadLayer(definition, loader);
+            }
+        });
         console.error(`[webgis] falha ao carregar "${layer.id}"`, error);
 
         return null;
@@ -440,36 +523,115 @@ const addFile = async (file) => {
     }
 };
 
-const layerInfo = createLayerInfo(store);
+layerInfo = createLayerInfo(store, { isVisible: () => panels.isOpen("properties") || panels.isOpen("fields") });
 
-createLayerPanel(store, { onAddFile: addFile, onIdentify: (layerId) => layerInfo.open(layerId) });
+/* O "i" da linha da camada: ela vira a ativa e as Propriedades abrem numa janela central. */
+createLayerPanel(store, {
+    onAddFile: addFile,
+    onIdentify: (layerId) => {
+        store.setActiveLayer(layerId);
+        panels.open("properties");
+    }
+});
+createLayerTools(store);
+createLegendPanel(store);
 createFilterPanel(store);
-createSearchBox(store, mapView);
+const searchBox = createSearchBox(store, mapView);
+
+createFilterMenu(store, { openPanel: () => panels.open("filters") });
 
 /*
-   Menus de módulos da barra superior. Cada action de MODULE_MENUS
-   é tratada aqui; os módulos futuros entram como novas entradas.
+   Ações dos menus e das barras. "nome:parâmetro" chama a ação
+   "nome" com o parâmetro (ex.: "tema:light", "basemap:ruas").
+   Os módulos futuros entram como novas entradas.
 */
 const MODULE_ACTIONS = {
     /* Seletor de arquivo oculto (#layer-file-input); a aba Camadas trata o arquivo escolhido. */
     "open-file": () => document.getElementById("layer-file-input").click(),
     /* KML da camada ativa como está no mapa (a lógica fica com a tabela, que sabe a ordem e os filtros). */
-    "export-kml": () => dashboard.exportKml()
+    "export-kml": () => dashboard.exportKml(),
+    "open-help": () => window.open("ajuda.html", "_blank", "noopener"),
+    "open-shortcuts": () => {
+        panels.open("settings");
+        document.getElementById("settings-keys").scrollIntoView({ block: "start" });
+    },
+    "open-about": () => panels.open("about"),
+    "open-settings": () => panels.open("settings"),
+    search: () => searchBox.focus(),
+    "open-search": () => panels.open("search"),
+    tema: (theme) => window.webgisTheme && window.webgisTheme.set(theme),
+    "sem-blur": () => window.webgisTheme && window.webgisTheme.setSemBlur(!window.webgisTheme.isSemBlur()),
+    toolbar: () => toolbars && toolbars.toggle(),
+    fullscreen: () => mapControls && mapControls.toggleFullscreen(),
+    analytics: (tab) => dashboardTabs.toggle(tab),
+    basemap: (id) => store.setBasemap(id)
 };
 
-/* Assistente de IA: por enquanto só o botão, com o aviso "Em breve". */
-createComingSoon(document.getElementById("ai-button"));
+const runAction = (action) => {
+    const [name, arg] = String(action).split(/:(.*)/s);
+    const handler = MODULE_ACTIONS[name];
 
-createModuleMenu(document.getElementById("module-menu"), MODULE_MENUS, {
-    onAction: (action) => {
-        const handler = MODULE_ACTIONS[action];
-
-        if (handler) {
-            handler();
-        } else {
-            console.warn(`[webgis] ação de módulo sem tratamento: "${action}"`);
-        }
+    if (handler) {
+        handler(arg);
+    } else {
+        console.warn(`[webgis] ação sem tratamento: "${action}"`);
     }
+};
+
+/* Marcações (✓) dos menus, resolvidas na hora de abrir. */
+const isChecked = (key) => {
+    const [name, arg] = String(key).split(/:(.*)/s);
+    const theme = window.webgisTheme;
+
+    switch (name) {
+        case "tema":
+            return Boolean(theme && theme.get() === arg);
+        case "sem-blur":
+            return Boolean(theme && theme.isSemBlur());
+        case "toolbar":
+            return Boolean(toolbars && toolbars.isExpanded());
+        case "fullscreen":
+            return Boolean(mapControls && mapControls.isFullscreen());
+        case "analytics":
+            return Boolean(dashboard && dashboardTabs.isActive(arg));
+        default:
+            return false;
+    }
+};
+
+/* Itens prontos para o menu: ✓ resolvido e "basemaps" preenchido com BASEMAPS. */
+const resolveItems = (items) => {
+    if (items === "basemaps") {
+        return BASEMAPS.map((basemap) => ({
+            label: basemap.name,
+            action: `basemap:${basemap.id}`,
+            checked: store.state.basemap === basemap.id
+        }));
+    }
+
+    return items.map((item) => {
+        if (item.separator || item.heading) {
+            return item;
+        }
+
+        const resolved = { ...item };
+
+        if (item.items) {
+            resolved.items = resolveItems(item.items);
+        }
+
+        if ("checked" in item) {
+            resolved.checked = isChecked(item.checked);
+        }
+
+        return resolved;
+    });
+};
+
+
+createModuleMenu(document.getElementById("module-menu"), {
+    getMenus: () => MODULE_MENUS.map((menu) => ({ ...menu, items: resolveItems(menu.items) })),
+    onAction: runAction
 });
 
 dashboard = createDashboard(store, {
@@ -479,8 +641,99 @@ dashboard = createDashboard(store, {
     onRowsSelect: (layerId, uids, primary) => {
         mapView.fitFeatures(layerId, uids, MAP_OPTIONS.fitMaxZoom + 1);
         store.selectMany(layerId, uids, primary);
+    },
+    onTabChange: () => {
+        if (toolbars) {
+            toolbars.refresh();
+        }
     }
 });
+
+
+/* ---------------- barras de ferramentas ---------------- */
+
+/*
+   Tabela de atributos (barra esquerda) e Análises (menu) abrem o
+   Analytics na aba certa; clicar de novo no item ativo fecha.
+*/
+const dashboardTabs = {
+    isActive: (tab) => panels.isOpen("dashboard") && dashboard.getTab() === tab,
+    toggle: (tab) => {
+        if (panels.isOpen("dashboard") && dashboard.getTab() === tab) {
+            panels.close("dashboard");
+            return;
+        }
+
+        dashboard.selectTab(tab);
+        panels.open("dashboard");
+
+        if (toolbars) {
+            toolbars.refresh();
+        }
+    }
+};
+
+toolbars = createToolbars(store, {
+    onAction: runAction,
+    dashboardTabs,
+    /* A barra esquerda mudou de largura: o mapa ocupa o novo espaço. */
+    onLayoutChange: () => {
+        if (leafletAvailable) {
+            mapView.map.invalidateSize({ animate: false });
+        }
+    }
+});
+
+
+/* Painel Gráficos: o tipo escolhido abre no Resumo do Analytics. */
+const chartsPanel = createChartsPanel({
+    onPick: (type) => {
+        if (type) {
+            dashboard.setChartType(type);
+        }
+
+        dashboard.selectTab("summary");
+        panels.open("dashboard");
+        toolbars.refresh();
+    },
+    getCurrent: () => dashboard.getChartType()
+});
+
+chartsPanel.sync();
+
+
+/* ---------------- menu de contexto (botão direito no mapa) ---------------- */
+
+if (leafletAvailable) {
+    createContextMenu(store, mapView, {
+        /* Informações: seleciona e mostra no cartão da feição (e na tabela, com o Analytics aberto). */
+        onInfo: (layerId, uid) => {
+            const current = store.state.selection;
+
+            if (current && current.layerId === layerId && current.uid === uid && (current.uids.length === 1 || current.parts)) {
+                presentSelection(current, { reveal: true });
+            } else {
+                store.select(layerId, uid);
+            }
+        },
+        onZoom: (layerId, uid) => mapView.fitFeatures(layerId, [uid], MAP_OPTIONS.fitMaxZoom + 1),
+        onExportKml: (layerId, uid, title) => dashboard.exportKml({ layerId, uids: [uid], fileLabel: title })
+    });
+}
+
+
+/* ---------------- créditos das fontes ---------------- */
+
+/* Fontes dos dados (só no Sobre): todos os mapas base e camadas, sem repetir. */
+const renderCredits = () => {
+    renderAboutCredits(Array.from(new Set([
+        ...BASEMAPS.map((item) => `${item.name}: ${plainText(item.attribution)}`),
+        ...store.state.layers.filter((layer) => layer.attribution).map((layer) => `${layer.name}: ${plainText(layer.attribution)}`)
+    ])));
+};
+
+store.on("layers", renderCredits);
+renderCredits();
 
 
 /* ---------------- carga inicial ---------------- */

@@ -66,5 +66,5 @@ deslocamento máximo de ~5,5 cm, nenhum anel inválido. 15,7 MB → 9,3 MB
 Para atualizar o dado: baixe a nova versão da origem, rode o script, confira
 contagem e atributos, e anote o commit de origem na tabela acima.
 
-Arquivos podem ser abertos sem alterar código por **Ferramentas › Adicionar
-dados** (GeoJSON, KML ou KMZ).
+Arquivos podem ser abertos sem alterar código por **Adicionar camada** na
+barra esquerda (GeoJSON, KML ou KMZ).

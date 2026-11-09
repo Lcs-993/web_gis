@@ -3,8 +3,9 @@
 
    Único módulo que conhece o Leaflet além dos controles do mapa.
    Recebe camadas do store e as desenha; devolve eventos de
-   interação (clique em feature, clique no vazio, popup fechado)
-   em termos de { layerId, uid }, nunca de objetos Leaflet.
+   interação (clique e botão direito em feature ou no vazio) em
+   termos de { layerId, uid }, nunca de objetos Leaflet. Os atributos
+   da feição clicada aparecem fora do mapa (js/ui/feature-card.js).
 
    Uma futura troca para MapLibre deve reimplementar esta mesma
    interface.
@@ -146,8 +147,6 @@ const applyMarkerState = (layer, state) => {
     }
 };
 
-const isMarker = (layer) => typeof layer.setIcon === "function";
-
 const tagUid = (layer, uid) => {
     layer._wgUid = uid;
 
@@ -169,11 +168,6 @@ const boundsOf = (L, layer) => {
 
     return L.latLngBounds([layer.getLatLng()]);
 };
-
-const anchorOf = (L, layer) =>
-    typeof layer.getLatLng === "function"
-        ? layer.getLatLng()
-        : boundsOf(L, layer).getCenter();
 
 
 export function createMapView(L, element, { options, basemaps }) {
@@ -215,7 +209,7 @@ export function createMapView(L, element, { options, basemaps }) {
 
     let currentBasemap = null;
 
-    /* Rótulos ficam acima das feições e abaixo dos popups; não recebem clique. */
+    /* Rótulos ficam acima das feições; não recebem clique. */
     const labelPane = map.createPane("labels");
 
     labelPane.style.zIndex = "450";
@@ -224,7 +218,7 @@ export function createMapView(L, element, { options, basemaps }) {
     /* layerId → { group, paths, shown, styles, points, color, attribution, onMap, labels… } */
     const entries = new Map();
 
-    const handlers = { featureClick: null, emptyClick: null, popupClose: null };
+    const handlers = { featureClick: null, emptyClick: null, featureContextMenu: null, mapContextMenu: null };
 
     /*
        Avisados depois que o conteúdo desenhado muda (camada ligada,
@@ -236,13 +230,8 @@ export function createMapView(L, element, { options, basemaps }) {
     const notifyContent = () => contentListeners.forEach((listener) => listener());
 
     let featureClicked = false;
-    let moving = false;
-
-    map.on("movestart", () => { moving = true; });
-    map.on("moveend", () => { moving = false; });
-    let popup = null;
-    let popupKey = null;
-    let closingPopupProgrammatically = false;
+    /* Mesmo papel de featureClicked, para o botão direito. */
+    let featureContext = false;
 
 
     /* ---------------- mapa base ---------------- */
@@ -341,6 +330,29 @@ export function createMapView(L, element, { options, basemaps }) {
 
             if (handlers.featureClick) {
                 handlers.featureClick({ layerId: layer.id, uid: target._wgUid, latlng: event.latlng });
+            }
+        });
+
+        /* Botão direito sobre a feição: menu de contexto da feição (o mapa vazio não recebe). */
+        group.on("contextmenu", (event) => {
+            const target = event.propagatedFrom || event.sourceTarget || event.layer;
+
+            if (!target || target._wgUid === undefined) {
+                return;
+            }
+
+            featureContext = true;
+            window.setTimeout(() => {
+                featureContext = false;
+            }, 0);
+
+            if (handlers.featureContextMenu) {
+                handlers.featureContextMenu({
+                    layerId: layer.id,
+                    uid: target._wgUid,
+                    latlng: event.latlng,
+                    point: { x: event.originalEvent.clientX, y: event.originalEvent.clientY }
+                });
             }
         });
 
@@ -803,78 +815,6 @@ export function createMapView(L, element, { options, basemaps }) {
     };
 
 
-    /* ---------------- popup ---------------- */
-
-    const closePopup = () => {
-        if (!popup) {
-            return;
-        }
-
-        closingPopupProgrammatically = true;
-        map.closePopup(popup);
-        closingPopupProgrammatically = false;
-        popup = null;
-        popupKey = null;
-    };
-
-    const openPopup = ({ layerId, uid, latlng }, content) => {
-        const entry = entries.get(layerId);
-        const path = entry ? entry.paths[uid] : null;
-
-        if (!path) {
-            return;
-        }
-
-        closePopup();
-
-        /*
-           Ponto com ícone: o popup sai do topo da imagem, ancorado na
-           coordenada do ponto (não no pixel clicado), para não cobrir o ícone.
-        */
-        const iconAnchor = isMarker(path) ? path.options.icon.options.iconAnchor : null;
-
-        popup = L.popup({
-            className: "feature-popup",
-            maxWidth: 320,
-            offset: iconAnchor ? [0, 4 - iconAnchor[1]] : [0, 7],
-            autoPanPaddingTopLeft: [24 + insets.left, 64 + insets.top],
-            autoPanPaddingBottomRight: [72 + insets.right, 24 + insets.bottom]
-        })
-            .setLatLng(iconAnchor ? path.getLatLng() : latlng || anchorOf(L, path))
-            .setContent(content);
-
-        popupKey = `${layerId}:${uid}`;
-
-        const current = popup;
-
-        current.on("remove", () => {
-            if (closingPopupProgrammatically || popup !== current) {
-                return;
-            }
-
-            popup = null;
-            popupKey = null;
-
-            if (handlers.popupClose) {
-                handlers.popupClose();
-            }
-        });
-
-        current.openOn(map);
-
-        /* Aberto durante um enquadramento animado: reposiciona ao final. */
-        if (moving) {
-            map.once("moveend", () => {
-                if (popup === current) {
-                    current.update();
-                }
-            });
-        }
-    };
-
-    const isPopupOpenFor = (layerId, uid) => popupKey === `${layerId}:${uid}`;
-
-
     /* ---------------- enquadramento ---------------- */
 
     /* Área coberta por painéis (sidebar, dashboard), descontada no enquadramento. */
@@ -970,6 +910,18 @@ export function createMapView(L, element, { options, basemaps }) {
         }
     });
 
+    /* Ter um ouvinte de contextmenu faz o Leaflet suprimir o menu nativo do navegador. */
+    map.on("contextmenu", (event) => {
+        if (featureContext || !handlers.mapContextMenu) {
+            return;
+        }
+
+        handlers.mapContextMenu({
+            latlng: event.latlng,
+            point: { x: event.originalEvent.clientX, y: event.originalEvent.clientY }
+        });
+    });
+
     return {
         map,
         setInsets,
@@ -979,15 +931,13 @@ export function createMapView(L, element, { options, basemaps }) {
         setSelection,
         setLabels,
         setTheme,
-        openPopup,
-        closePopup,
-        isPopupOpenFor,
         fitFeatures,
         fitExtent,
         hasExtent,
         onFeatureClick: (handler) => { handlers.featureClick = handler; },
         onEmptyClick: (handler) => { handlers.emptyClick = handler; },
-        onPopupClose: (handler) => { handlers.popupClose = handler; },
+        onFeatureContextMenu: (handler) => { handlers.featureContextMenu = handler; },
+        onMapContextMenu: (handler) => { handlers.mapContextMenu = handler; },
         onContentChange: (listener) => { contentListeners.push(listener); }
     };
 }

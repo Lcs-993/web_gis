@@ -51,17 +51,86 @@
     };
 
 
+    /*
+       Modo sem desfoque (vidro quase sólido, sem backdrop-filter),
+       para máquinas em que o mapa fica lento sob os painéis. Liga em
+       Configurações › Reduzir transparência.
+
+       A escolha é guardada por tema: no escuro vem desligado; no
+       claro vem LIGADO (o vidro claro desfocado sobre o satélite
+       perde contraste), até o usuário desligar. Trocar de tema
+       aplica a escolha do tema novo. Guardado como "1" (ligado) ou
+       "0" (desligado); sem valor, vale o padrão do tema.
+       A classe vem antes dos painéis aparecerem, pois este script
+       roda no fim do <body>.
+    */
+    const SEM_BLUR_KEYS = { dark: "webgis-sem-blur", light: "webgis-sem-blur-claro" };
+    const SEM_BLUR_DEFAULT = { dark: false, light: true };
+
+    const currentTheme = () => root.getAttribute("data-theme") === LIGHT ? LIGHT : DARK;
+
+    const readSemBlur = (theme) => {
+        try {
+            const value = localStorage.getItem(SEM_BLUR_KEYS[theme]);
+
+            if (value === "1" || value === "0") {
+                return value === "1";
+            }
+        } catch (error) {
+            /* Sem localStorage: vale o padrão do tema */
+        }
+
+        return SEM_BLUR_DEFAULT[theme];
+    };
+
+    const setSemBlur = (on) => {
+        root.classList.toggle("sem-blur", on);
+
+        try {
+            localStorage.setItem(SEM_BLUR_KEYS[currentTheme()], on ? "1" : "0");
+        } catch (error) {
+            /* Sem localStorage: vale só até recarregar */
+        }
+    };
+
+    const applySemBlur = () => root.classList.toggle("sem-blur", readSemBlur(currentTheme()));
+
+    applySemBlur();
+
+
+    /* Avisa a interface (painel Configurações) que o tema mudou. */
+    const announce = () => document.dispatchEvent(new CustomEvent("webgis:theme"));
+
+    const setTheme = (theme) => {
+        const next = theme === LIGHT ? LIGHT : DARK;
+
+        apply(next);
+        store(next);
+        applySemBlur();
+        announce();
+    };
+
+
     /* Estado inicial: o atributo já veio do <head>; aqui só se sincroniza a UI. */
     apply(root.getAttribute("data-theme") === LIGHT ? LIGHT : DARK);
 
 
     if (toggle) {
         toggle.addEventListener("click", () => {
-            const next = root.getAttribute("data-theme") === DARK ? LIGHT : DARK;
-
-            apply(next);
-            store(next);
+            setTheme(root.getAttribute("data-theme") === DARK ? LIGHT : DARK);
         });
     }
+
+
+    /* API mínima para os módulos (js/ui/app-panels.js). */
+    window.webgisTheme = Object.freeze({
+        get: currentTheme,
+        set: setTheme,
+        isSemBlur: () => root.classList.contains("sem-blur"),
+        setSemBlur: (on) => {
+            setSemBlur(Boolean(on));
+            announce();
+        }
+    });
 
 })();

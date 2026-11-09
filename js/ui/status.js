@@ -3,12 +3,13 @@
 
    - Status: vai para uma região "live" oculta (#app-status), lida
      por leitores de tela.
-   - Rodapé (#map-footer): discreto e translúcido, sobre o mapa;
-     mostra as coordenadas do cursor (ou do centro, com o cursor
-     fora do mapa) e o nível de zoom.
+   - Rodapé (#map-footer): faixa fina sobre o mapa, à direita: o
+     status visível ("Pronto", "Carregando…"), as coordenadas do
+     cursor (ou do centro, com o cursor fora do mapa) e o zoom. As
+     fontes dos dados ficam no painel Sobre.
 */
 
-import { byId } from "./dom.js";
+import { el, byId } from "./dom.js";
 
 const LOCALE = "pt-BR";
 
@@ -25,9 +26,53 @@ export function createStatusBar(store) {
     const coordsLabel = byId("footer-coords-label");
     const coords = byId("footer-coords");
     const zoom = byId("footer-zoom");
+    const footerStatus = byId("footer-status");
 
     const setStatus = (text) => {
         status.textContent = text;
+
+        /* Reticências no fim = trabalho em andamento: o ponto pulsa. */
+        footerStatus.textContent = text;
+        footerStatus.classList.toggle("is-busy", /…$/.test(text));
+    };
+
+    /*
+       Cartão de falha sobre o mapa (vidro, topo central): o que
+       falhou, o porquê e as ações. Um por camada; some ao tentar de
+       novo ou ao fechar.
+    */
+    const notices = byId("map-notices");
+
+    const showLoadError = ({ key, title, detail, onRetry }) => {
+        const previous = notices.querySelector(`[data-key="${CSS.escape(key)}"]`);
+
+        if (previous) {
+            previous.remove();
+        }
+
+        const card = el("section", { class: "notice-card", role: "alert", dataset: { key } }, [
+            el("span", { class: "notice-mark", "aria-hidden": "true", text: "!" }),
+            el("div", { class: "notice-text" }, [
+                el("p", { class: "notice-title", text: title }),
+                detail ? el("p", { class: "notice-detail", text: detail }) : null
+            ]),
+            el("div", { class: "notice-actions" }, [
+                onRetry
+                    ? el("button", {
+                        type: "button",
+                        class: "button button-primary",
+                        text: "Tentar de novo",
+                        onclick: () => {
+                            card.remove();
+                            onRetry();
+                        }
+                    })
+                    : null,
+                el("button", { type: "button", class: "button button-ghost", text: "Fechar", onclick: () => card.remove() })
+            ])
+        ]);
+
+        notices.appendChild(card);
     };
 
     /* Aviso sobre o mapa, para falhas que impedem o uso. */
@@ -74,5 +119,5 @@ export function createStatusBar(store) {
 
     store.on("status", setStatus);
 
-    return { setStatus, setMapNotice, bindMap };
+    return { setStatus, setMapNotice, showLoadError, bindMap };
 }

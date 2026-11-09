@@ -2,16 +2,17 @@
    PAINEL DE CAMADAS (sidebar)
 
    Lista as camadas do store: visibilidade (olho), rótulos (T,
-   com escolha do atributo), tema por categoria (paleta, com
-   escolha do atributo e legenda), camada ativa (a que alimenta busca,
+   com escolha do atributo), tema (paleta: por categoria ou por
+   faixas de valor, com escolha do atributo e legenda), camada ativa (a que alimenta busca,
    filtros e dashboard), contagem e estado de carga. O botão "i"
    (identificar) abre os dados da camada em uma janela
    (ui/layer-info.js). Permite abrir um GeoJSON local.
    ============================================================ */
 
 import { el, byId } from "./dom.js";
-import { formatCount, formatValue } from "./format.js";
-import { isThemeable } from "../data/theme.js";
+import { formatCount, themeClassLabel } from "./format.js";
+import { isThemeable, themeKind } from "../data/theme.js";
+import { skeletonLine } from "./skeleton.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -56,6 +57,142 @@ const ICONS = {
 
 const LABEL_MAX_LINES = 4;
 
+/*
+   Blocos reaproveitados pelos painéis da camada ativa (Estilos,
+   Rótulos) e pela Legenda: a mesma interface em todo lugar.
+*/
+
+/*
+   Símbolo da camada, como no sumário do ArcGIS: ícone do ponto,
+   círculo (pontos), traço (linhas), só contorno (camadas de
+   referência) ou quadrado preenchido.
+*/
+export const buildLayerSymbol = (layer) => {
+    const types = Object.keys(layer.geometryTypes || {}).join(" ");
+    const kind = layer.icon
+        ? "icon"
+        : /Point/.test(types) && !/Polygon|LineString/.test(types)
+            ? "point"
+            : /LineString/.test(types) && !/Polygon/.test(types)
+                ? "line"
+                : layer.style === "outline" ? "outline" : "fill";
+
+    const symbol = kind === "icon"
+        ? el("img", { class: "layer-symbol is-icon", src: layer.icon.url, alt: "", width: 14, height: 14 })
+        : el("span", { class: `layer-symbol is-${kind}`, "aria-hidden": "true" });
+
+    if (kind !== "icon") {
+        symbol.style.setProperty("--symbol-color", layer.color || "var(--text-muted)");
+    }
+
+    return symbol;
+};
+
+/* Seletores das linhas do rótulo (um atributo por linha), remover linha e "+ Adicionar linha". */
+export const buildLabelFields = (store, layer) => {
+    const options = layer.schema.attributes.filter((attribute) => attribute.role !== "empty");
+    const fields = layer.labels.fields.length ? layer.labels.fields : options.slice(0, 1).map((item) => item.name);
+    const setFields = (next) => store.setLabels(layer.id, { fields: next });
+
+    const lines = fields.map((field, index) => el("div", { class: "layer-label-field" }, [
+        el("select", {
+            "aria-label": `Linha ${index + 1} do rótulo de ${layer.name}`,
+            dataset: { focusKey: `label-field:${layer.id}:${index}` },
+            onchange: (event) => setFields(fields.map((item, position) => (position === index ? event.target.value : item)))
+        }, options.map((attribute) => el("option", {
+            value: attribute.name,
+            text: attribute.name,
+            selected: attribute.name === field
+        }))),
+        fields.length > 1
+            ? el("button", {
+                type: "button",
+                class: "layer-label-remove",
+                text: "×",
+                title: "Remover linha",
+                "aria-label": `Remover a linha ${index + 1} do rótulo`,
+                onclick: () => setFields(fields.filter((_, position) => position !== index))
+            })
+            : null
+    ]));
+
+    /* Nova linha: o primeiro atributo ainda não usado. */
+    const unused = options.find((attribute) => !fields.includes(attribute.name));
+
+    if (unused && fields.length < LABEL_MAX_LINES) {
+        lines.push(el("button", {
+            type: "button",
+            class: "link-button layer-label-add",
+            text: "+ Adicionar linha",
+            dataset: { focusKey: `label-add:${layer.id}` },
+            onclick: () => setFields([...fields, unused.name])
+        }));
+    }
+
+    return el("div", { class: "layer-label-fields" }, [
+        el("span", { class: "field-label", text: "Rótulo" }),
+        el("div", { class: "layer-label-lines" }, lines)
+    ]);
+};
+
+/*
+   Seletor do atributo do tema: categorias e números em grupos
+   separados (o tipo decide entre uma cor por valor e faixas).
+*/
+export const buildThemeFieldSelect = (store, layer, themeable, label) => {
+    const option = (item) => el("option", { value: item.name, text: item.name, selected: item.name === layer.theme.field });
+    const groups = [
+        ["Categorias (uma cor por valor)", themeable.filter((item) => themeKind(item) === "category")],
+        ["Valores numéricos (faixas)", themeable.filter((item) => themeKind(item) === "numeric")]
+    ].filter(([, items]) => items.length);
+
+    return el("select", {
+        "aria-label": label,
+        dataset: { focusKey: `theme-field:${layer.id}` },
+        onchange: (event) => store.setTheme(layer.id, { field: event.target.value })
+    }, groups.map(([title, items]) => el("optgroup", { label: title }, items.map(option))));
+};
+
+/* Tema: atributo e legenda (cor · valor ou faixa · quantidade). */
+export const buildThemeBlock = (store, layer, themeable, { showField = true } = {}) => {
+    const legend = layer.theme.legend;
+    const attribute = themeable.find((item) => item.name === legend.field);
+
+    const entry = (color, label, count, muted) => {
+        const swatch = el("span", { class: "legend-swatch", "aria-hidden": "true" });
+
+        swatch.style.backgroundColor = color;
+
+        return el("li", { class: `legend-item${muted ? " is-muted" : ""}` }, [
+            swatch,
+            el("span", { class: "legend-label", text: label, title: label }),
+            el("span", { class: "legend-count", text: formatCount(count) })
+        ]);
+    };
+
+    const items = legend.classes.map((item) =>
+        entry(item.color, themeClassLabel(item, attribute), item.count, false)
+    );
+
+    if (legend.outside) {
+        items.push(entry(legend.outside.color, "(fora das classes)", legend.outside.count, true));
+    }
+
+    if (legend.empty) {
+        items.push(entry(legend.empty.color, "(vazio)", legend.empty.count, true));
+    }
+
+    return el("div", { class: "layer-theme-block" }, [
+        showField
+            ? el("label", { class: "layer-label-field" }, [
+                el("span", { class: "field-label", text: "Tema" }),
+                buildThemeFieldSelect(store, layer, themeable, `Atributo do tema de ${layer.name}`)
+            ])
+            : null,
+        el("ul", { class: "legend", "aria-label": `Legenda do tema ${legend.field}` }, items)
+    ]);
+};
+
 export function createLayerPanel(store, { onAddFile, onIdentify }) {
     const list = byId("layer-list");
     const fileInput = byId("layer-file-input");
@@ -77,51 +214,6 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
     };
 
     /* Recria a lista sem perder o foco do teclado. */
-    const labelFieldsPanel = (layer) => {
-        const options = layer.schema.attributes.filter((attribute) => attribute.role !== "empty");
-        const fields = layer.labels.fields.length ? layer.labels.fields : options.slice(0, 1).map((item) => item.name);
-        const setFields = (next) => store.setLabels(layer.id, { fields: next });
-
-        const lines = fields.map((field, index) => el("div", { class: "layer-label-field" }, [
-            el("select", {
-                "aria-label": `Linha ${index + 1} do rótulo de ${layer.name}`,
-                dataset: { focusKey: `label-field:${layer.id}:${index}` },
-                onchange: (event) => setFields(fields.map((item, position) => (position === index ? event.target.value : item)))
-            }, options.map((attribute) => el("option", {
-                value: attribute.name,
-                text: attribute.name,
-                selected: attribute.name === field
-            }))),
-            fields.length > 1
-                ? el("button", {
-                    type: "button",
-                    class: "layer-label-remove",
-                    text: "×",
-                    title: "Remover linha",
-                    "aria-label": `Remover a linha ${index + 1} do rótulo`,
-                    onclick: () => setFields(fields.filter((_, position) => position !== index))
-                })
-                : null
-        ]));
-
-        /* Nova linha: o primeiro atributo ainda não usado. */
-        const unused = options.find((attribute) => !fields.includes(attribute.name));
-
-        if (unused && fields.length < LABEL_MAX_LINES) {
-            lines.push(el("button", {
-                type: "button",
-                class: "link-button layer-label-add",
-                text: "+ Adicionar linha",
-                dataset: { focusKey: `label-add:${layer.id}` },
-                onclick: () => setFields([...fields, unused.name])
-            }));
-        }
-
-        return el("div", { class: "layer-label-fields" }, [
-            el("span", { class: "field-label", text: "Rótulo" }),
-            el("div", { class: "layer-label-lines" }, lines)
-        ]);
-    };
 
     const renderLayers = () => {
         const focused = list.contains(document.activeElement)
@@ -139,46 +231,6 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
         }
     };
 
-    const themePanel = (layer, categories) => {
-        const legend = layer.theme.legend;
-        const attribute = categories.find((item) => item.name === legend.field);
-
-        const entry = (color, label, count, muted) => {
-            const swatch = el("span", { class: "legend-swatch", "aria-hidden": "true" });
-
-            swatch.style.backgroundColor = color;
-
-            return el("li", { class: `legend-item${muted ? " is-muted" : ""}` }, [
-                swatch,
-                el("span", { class: "legend-label", text: label, title: label }),
-                el("span", { class: "legend-count", text: formatCount(count) })
-            ]);
-        };
-
-        const items = legend.classes.map((item) =>
-            entry(item.color, formatValue(item.key, attribute), item.count, false)
-        );
-
-        if (legend.empty) {
-            items.push(entry(legend.empty.color, "(vazio)", legend.empty.count, true));
-        }
-
-        return el("div", { class: "layer-theme-block" }, [
-            el("label", { class: "layer-label-field" }, [
-                el("span", { class: "field-label", text: "Tema" }),
-                el("select", {
-                    "aria-label": `Atributo do tema de ${layer.name}`,
-                    dataset: { focusKey: `theme-field:${layer.id}` },
-                    onchange: (event) => store.setTheme(layer.id, { field: event.target.value })
-                }, categories.map((item) => el("option", {
-                    value: item.name,
-                    text: item.name,
-                    selected: item.name === legend.field
-                })))
-            ]),
-            el("ul", { class: "legend", "aria-label": `Legenda do tema ${legend.field}` }, items)
-        ]);
-    };
 
     const drawLayers = () => {
         const { layers, activeLayerId } = store.state;
@@ -212,25 +264,25 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                 onclick: () => store.setLabels(layer.id, { visible: !layer.labels.visible })
             }, ICONS.label());
 
-            const categories = ready ? layer.schema.attributes.filter(isThemeable) : [];
+            const themeable = ready ? layer.schema.attributes.filter(isThemeable) : [];
             const themeOn = layer.theme.visible && ready;
 
             const theme = el("button", {
                 type: "button",
                 class: "layer-toggle layer-theme",
                 "aria-pressed": String(themeOn),
-                "aria-label": themeOn ? `Remover tema de ${layer.name}` : `Tematizar ${layer.name} por categoria`,
-                title: !categories.length && ready
-                    ? "Sem atributos de categoria para tematizar"
-                    : themeOn ? "Remover tema" : "Tematizar por categoria",
-                disabled: !ready || !categories.length,
+                "aria-label": themeOn ? `Remover tema de ${layer.name}` : `Tematizar ${layer.name}`,
+                title: !themeable.length && ready
+                    ? "Sem atributos para tematizar"
+                    : themeOn ? "Remover tema" : "Tematizar (cores por atributo; ajuste em Estilos)",
+                disabled: !ready || !themeable.length,
                 dataset: { focusKey: `theme:${layer.id}` },
                 onclick: () => store.setTheme(layer.id, { visible: !layer.theme.visible })
             }, ICONS.theme());
 
             /* Com tema ligado: escolha do atributo e legenda (cor · valor · quantidade). */
             const themeBlock = themeOn && layer.theme.legend
-                ? themePanel(layer, categories)
+                ? buildThemeBlock(store, layer, themeable)
                 : null;
 
             /*
@@ -238,7 +290,7 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                atributo por linha, na ordem), remover linha (×) e
                "+ Adicionar linha" (até LABEL_MAX_LINES).
             */
-            const labelField = labelsOn ? labelFieldsPanel(layer) : null;
+            const labelField = labelsOn ? buildLabelFields(store, layer) : null;
 
             const name = el("button", {
                 type: "button",
@@ -251,38 +303,24 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                 onclick: () => store.setActiveLayer(layer.id)
             });
 
-            /*
-               Símbolo da camada, como no sumário do ArcGIS: ícone do
-               ponto, círculo (pontos), traço (linhas), só contorno
-               (camadas de referência) ou quadrado preenchido.
-            */
-            const types = Object.keys(layer.geometryTypes || {}).join(" ");
-            const kind = layer.icon
-                ? "icon"
-                : /Point/.test(types) && !/Polygon|LineString/.test(types)
-                    ? "point"
-                    : /LineString/.test(types) && !/Polygon/.test(types)
-                        ? "line"
-                        : layer.style === "outline" ? "outline" : "fill";
+            const symbol = buildLayerSymbol(layer);
 
-            const symbol = kind === "icon"
-                ? el("img", { class: "layer-symbol is-icon", src: layer.icon.url, alt: "", width: 14, height: 14 })
-                : el("span", { class: `layer-symbol is-${kind}`, "aria-hidden": "true" });
-
-            if (kind !== "icon") {
-                symbol.style.setProperty("--symbol-color", layer.color || "var(--color-text-muted)");
-            }
-
-            const meta = el("span", {
-                class: `layer-meta${layer.status === "error" ? " is-error" : ""}`,
-                text: metaText(layer)
-            });
+            /* Carregando: um traço pulsando no lugar da contagem (o leitor de tela lê o texto). */
+            const meta = layer.status === "loading"
+                ? el("span", { class: "layer-meta" }, [
+                    skeletonLine("48px"),
+                    el("span", { class: "visually-hidden", text: "carregando" })
+                ])
+                : el("span", {
+                    class: `layer-meta${layer.status === "error" ? " is-error" : ""}`,
+                    text: metaText(layer)
+                });
 
             const info = el("button", {
                 type: "button",
                 class: "layer-toggle layer-info-button",
-                "aria-label": `Identificar ${layer.name}: dados da camada`,
-                title: "Identificar: dados da camada",
+                "aria-label": `Propriedades de ${layer.name}`,
+                title: "Propriedades da camada",
                 disabled: !ready,
                 dataset: { focusKey: `info:${layer.id}` },
                 onclick: () => onIdentify(layer.id)

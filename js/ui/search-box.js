@@ -1,4 +1,14 @@
-/* Busca textual na camada ativa, respeitando os filtros. */
+/*
+   Busca textual na camada ativa, respeitando os filtros.
+
+   A caixa de busca fica sempre à vista no canto superior direito
+   do mapa; Ctrl+K (⌘K no Mac) leva o foco até ela e Esc limpa o
+   termo (com o campo vazio, sai dele). Com o Analytics aberto o
+   campo mora no cabeçalho dele (js/main.js).
+   O botão Pesquisar da barra esquerda abre a Pesquisa avançada
+   (campos, correspondência, E/OU; js/ui/layer-tools.js), que vale
+   para esta mesma caixa.
+*/
 
 import { byId } from "./dom.js";
 import { formatCount } from "./format.js";
@@ -8,7 +18,6 @@ export function createSearchBox(store, mapView) {
     const input = byId("search-input");
     const clear = byId("search-clear");
     const feedback = byId("search-feedback");
-
     let pending = null;
     let lastFitted = null;
 
@@ -25,7 +34,13 @@ export function createSearchBox(store, mapView) {
         clear.hidden = input.value === "";
 
         if (!layer || layer.status !== "ready") {
-            showFeedback(input.value ? "A camada ativa ainda não carregou." : null);
+            const pending = !layer
+                ? "Nenhuma camada para buscar."
+                : layer.status === "error"
+                    ? `${layer.name} não carregou: a busca não está disponível.`
+                    : `${layer.name} ainda está carregando; a busca roda quando terminar.`;
+
+            showFeedback(input.value ? pending : null);
             return;
         }
 
@@ -73,12 +88,31 @@ export function createSearchBox(store, mapView) {
                 : "Nenhum resultado");
         }
 
-        /* Enquadra só quando o termo muda, não a cada filtro. */
-        if (matches.length && lastFitted !== term) {
-            lastFitted = term;
-            mapView.fitFeatures(layer.id, matches);
+        /* Enquadra só quando a busca muda (termo ou opções), não a cada filtro; a pesquisa avançada pode desligar. */
+        const signature = `${term}|${JSON.stringify(layer.search.options)}`;
+
+        if (matches.length && lastFitted !== signature) {
+            lastFitted = signature;
+
+            if (layer.search.options.fit) {
+                mapView.fitFeatures(layer.id, matches);
+            }
         }
     };
+
+    /* ---------------- foco (Ctrl+K e menu Ferramentas › Buscar) ---------------- */
+
+    const focusSearch = () => {
+        input.focus();
+        input.select();
+    };
+
+    document.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && (event.key === "k" || event.key === "K")) {
+            event.preventDefault();
+            focusSearch();
+        }
+    });
 
     input.addEventListener("input", schedule);
 
@@ -97,7 +131,12 @@ export function createSearchBox(store, mapView) {
 
         if (event.key === "Escape" && input.value !== "") {
             event.preventDefault();
+            event.stopPropagation();
             reset();
+        } else if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            input.blur();
         }
     });
 
@@ -109,6 +148,15 @@ export function createSearchBox(store, mapView) {
     });
 
     store.on("view", render);
+
+    /* Termo digitado enquanto a camada carregava: a busca roda assim que ela fica pronta. */
+    store.on("layers", () => {
+        const layer = store.getActiveLayer();
+
+        if (input.value && !pending && layer && layer.status === "ready" && layer.search.term !== input.value.trim()) {
+            run();
+        }
+    });
 
     /* Trocar de camada ativa: a busca recomeça na nova camada. */
     store.on("active", (layer) => {
@@ -122,4 +170,6 @@ export function createSearchBox(store, mapView) {
 
         render(layer);
     });
+
+    return { focus: focusSearch };
 }

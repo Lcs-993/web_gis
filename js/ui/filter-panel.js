@@ -17,7 +17,7 @@
 import { el, byId } from "./dom.js";
 import { formatCount, formatValue, roleLabel } from "./format.js";
 import { createFilter, describeFilter, findOperator, operatorsFor } from "../data/filters.js";
-import { deleteFilterSet, listSavedFilters, saveFilterSet } from "../data/saved-filters.js";
+import { applyFilterSet, deleteFilterSet, listSavedFilters, saveFilterSet } from "../data/saved-filters.js";
 import { getAttribute, toNumber } from "../data/values.js";
 
 const INPUT_TYPE = { number: "number", date: "date" };
@@ -474,23 +474,7 @@ export function createFilterPanel(store) {
         }));
     };
 
-    /* Só entram condições cujos atributos existem na camada como está agora. */
-    const applySaved = (set) => {
-        const layer = store.getActiveLayer();
-
-        if (!layer || layer.status !== "ready") {
-            return;
-        }
-
-        const names = new Set(layer.schema.attributes.map((attribute) => attribute.name));
-        const usable = set.filters.filter((filter) => filter && names.has(filter.field));
-        const dropped = set.filters.length - usable.length;
-
-        store.setFilters(layer.id, usable, set.mode);
-        store.setStatus(dropped
-            ? `“${set.name}” aplicado; ${dropped} condição(ões) ignorada(s): atributo inexistente`
-            : `“${set.name}” aplicado`);
-    };
+    const applySaved = (set) => applyFilterSet(store, store.getActiveLayer(), set);
 
     const closeSaveForm = ({ focus = false } = {}) => {
         saveForm.hidden = true;

@@ -18,7 +18,7 @@
 
 import { el } from "./dom.js";
 import { formatValue } from "./format.js";
-import { getAttribute, isEmpty } from "../data/values.js";
+import { getAttribute, isEmpty, toNumber } from "../data/values.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const MAX_HIGHLIGHTS = 3;
@@ -73,6 +73,38 @@ const action = (kind, label, handler) => {
     return button;
 };
 
+/*
+   Mini-gráfico da medida: onde o valor fica entre o menor e o maior
+   da camada (faixa do schema), numa barra de escala de cor. Sem
+   faixa (todos iguais) não aparece.
+*/
+const rangeBar = (attribute, value) => {
+    const range = attribute.range;
+    const number = toNumber(value);
+
+    if (!range || number === null || range.max === range.min) {
+        return null;
+    }
+
+    const percent = Math.min(100, Math.max(0, ((number - range.min) / (range.max - range.min)) * 100));
+    const bar = el("dd", {
+        class: "feature-highlight-scale color-scale",
+        title: `Entre ${formatValue(range.min, attribute)} (mín.) e ${formatValue(range.max, attribute)} (máx.) da camada`
+    }, el("span", { class: "color-scale-marker" }));
+
+    bar.style.setProperty("--position", `${percent.toFixed(1)}%`);
+
+    return bar;
+};
+
+/* Título curto da feição (o mesmo do cabeçalho do pop-up), ou null. */
+export function featureTitle(layer, feature) {
+    const attributes = layer.schema.attributes.filter((attribute) => attribute.role !== "empty");
+    const attribute = pickTitle(layer, attributes, feature);
+
+    return attribute ? formatValue(getAttribute(feature, attribute.name), attribute) : null;
+}
+
 export function buildPopup(layer, feature, { onZoom = null, onShowInTable = null } = {}) {
     const attributes = layer.schema.attributes.filter((attribute) => attribute.role !== "empty");
     const valueOf = (attribute) => getAttribute(feature, attribute.name);
@@ -101,7 +133,8 @@ export function buildPopup(layer, feature, { onZoom = null, onShowInTable = null
         ? el("dl", { class: "feature-highlights" }, highlights.map((attribute) =>
             el("div", { class: "feature-highlight" }, [
                 el("dt", { text: attribute.name }),
-                el("dd", { text: formatValue(valueOf(attribute), attribute) })
+                el("dd", { text: formatValue(valueOf(attribute), attribute) }),
+                rangeBar(attribute, valueOf(attribute))
             ])
         ))
         : null;

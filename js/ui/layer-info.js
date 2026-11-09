@@ -1,14 +1,19 @@
 /* ============================================================
-   IDENTIFICAR CAMADA
+   PROPRIEDADES E CAMPOS DA CAMADA ATIVA (painéis à esquerda)
 
-   Janela (dialog modal) com os dados de uma camada: resumo
-   (feições, geometria, origem) e os atributos descobertos no
-   schema, com seus tipos. Esc, o "×" ou clique fora fecham.
+   Propriedades: resumo (feições, geometria, origem, CRS,
+   extensão) e metadados (descrição do GeoJSON + .qmd do QGIS).
+   Campos: os atributos descobertos no schema, com tipo e
+   quantos valores preenchidos.
+
+   Sempre da camada ativa: o "i" da linha da camada no painel
+   Camadas torna a camada ativa e abre Propriedades.
    ============================================================ */
 
 import { el, byId } from "./dom.js";
-import { formatCount, roleLabel } from "./format.js";
+import { formatCount, formatNumber, roleLabel } from "./format.js";
 import { loadQgisMetadata } from "../data/qgis-metadata.js";
+import { layerPendingState } from "./skeleton.js";
 
 /* Coordenada em graus com 4 casas (~10 m), vírgula decimal. */
 const degrees = (value) => value.toLocaleString("pt-BR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
@@ -38,68 +43,28 @@ const geometryText = (layer) => {
         : "—";
 };
 
-export function createLayerInfo(store) {
-    const dialog = byId("layer-info");
-    const title = byId("layer-info-title");
+export function createLayerInfo(store, { isVisible = () => true } = {}) {
     const summary = byId("layer-info-summary");
     const body = byId("layer-info-attributes");
-    const close = byId("layer-info-close");
+    const propertiesBody = byId("layer-properties-attributes");
+    const fieldsSummary = byId("layer-fields-summary");
+    const propertiesFieldsSummary = byId("layer-properties-fields-summary");
     const metaSection = byId("layer-info-metadata");
     const metaList = byId("layer-info-metadata-list");
 
     /* layerId → metadados do .qmd (null = sem arquivo ou ainda carregando). */
     const qgisCache = new Map();
 
-    let currentId = null;
+    const item = (label, value) => el("div", { class: "layer-info-item" }, [
+        el("dt", { text: label }),
+        el("dd", { text: value })
+    ]);
 
-    const render = () => {
-        const layer = store.getLayer(currentId);
+    const wide = (label, value) => {
+        const node = item(label, value);
 
-        if (!layer) {
-            dialog.close();
-            return;
-        }
-
-        title.textContent = layer.name;
-
-        const item = (label, value) => el("div", { class: "layer-info-item" }, [
-            el("dt", { text: label }),
-            el("dd", { text: value })
-        ]);
-
-        const metadata = layer.metadata || {};
-        const qgis = qgisCache.get(layer.id) || null;
-        const wide = (label, value) => {
-            const node = item(label, value);
-
-            node.classList.add("is-wide");
-            return node;
-        };
-
-        summary.replaceChildren(
-            /* Quatro curtos na primeira linha; os de texto longo, dois por linha. */
-            item("Feições", formatCount(layer.features.length)),
-            item("Visíveis com filtros", formatCount(layer.view.filtered.length)),
-            item("Atributos", formatCount(layer.schema.attributes.length)),
-            item("Origem", sourceText(layer)),
-            wide("Geometria", geometryText(layer)),
-            /* Como o mapa lê os dados; o CRS de origem (QGIS) só se for outro. */
-            wide("Sistema de coordenadas", metadata.crs || "—"),
-            ...(qgis && qgis.crs && qgis.crs !== metadata.crs ? [wide("CRS de origem (QGIS)", qgis.crs)] : []),
-            wide("Extensão", bboxText(metadata.bbox))
-        );
-
-        renderMetadata(layer, qgis);
-
-        body.replaceChildren(...layer.schema.attributes.map((attribute) =>
-            el("tr", { class: attribute.role === "empty" ? "is-empty" : null }, [
-                el("td", { class: "layer-info-name", text: attribute.name }),
-                el("td", {}, el("span", {
-                    class: `attribute-role role-${attribute.role}`,
-                    text: roleLabel(attribute.role)
-                }))
-            ])
-        ));
+        node.classList.add("is-wide");
+        return node;
     };
 
     /*
@@ -133,51 +98,89 @@ export function createLayerInfo(store) {
         metaSection.hidden = !rows.length;
     };
 
-    const open = (layerId) => {
-        currentId = layerId;
-        render();
+    const fieldRows = (layer) => {
+        const total = layer.features.length;
 
-        if (!dialog.open) {
-            dialog.showModal();
+        return layer.schema.attributes.map((attribute) =>
+            el("tr", { class: attribute.role === "empty" ? "is-empty" : null }, [
+                el("td", { class: "layer-info-name", text: attribute.name }),
+                el("td", {}, el("span", {
+                    class: `attribute-role role-${attribute.role}`,
+                    text: roleLabel(attribute.role)
+                })),
+                el("td", {
+                    class: "layer-info-filled",
+                    title: `${formatCount(attribute.filled)} de ${formatCount(total)}`,
+                    text: total ? `${formatNumber((attribute.filled / total) * 100, 0)}%` : "—"
+                })
+            ])
+        );
+    };
+
+    const render = () => {
+        const layer = store.getActiveLayer();
+
+        if (!layer || layer.status !== "ready") {
+            /* Esqueleto enquanto carrega; mensagem clara se falhou. Campos mostra o mesmo. */
+            summary.replaceChildren(layerPendingState(layer));
+            body.replaceChildren();
+            propertiesBody.replaceChildren();
+            fieldsSummary.replaceChildren(layerPendingState(layer));
+            propertiesFieldsSummary.replaceChildren(layerPendingState(layer));
+            metaSection.hidden = true;
+            return;
         }
 
-        /* .qmd do QGIS: buscado uma vez por camada, na primeira abertura. */
-        const layer = store.getLayer(layerId);
+        const metadata = layer.metadata || {};
+        const qgis = qgisCache.get(layer.id) || null;
 
-        if (layer && layer.source === "url" && !qgisCache.has(layerId)) {
-            qgisCache.set(layerId, null);
-            loadQgisMetadata(layer.url).then((metadata) => {
-                qgisCache.set(layerId, metadata);
+        summary.replaceChildren(
+            item("Feições", formatCount(layer.features.length)),
+            item("Visíveis com filtros", formatCount(layer.view.filtered.length)),
+            item("Atributos", formatCount(layer.schema.attributes.length)),
+            item("Origem", sourceText(layer)),
+            wide("Geometria", geometryText(layer)),
+            /* Como o mapa lê os dados; o CRS de origem (QGIS) só se for outro. */
+            wide("Sistema de coordenadas", metadata.crs || "—"),
+            ...(qgis && qgis.crs && qgis.crs !== metadata.crs ? [wide("CRS de origem (QGIS)", qgis.crs)] : []),
+            wide("Extensão", bboxText(metadata.bbox))
+        );
 
-                if (currentId === layerId) {
+        renderMetadata(layer, qgis);
+
+        const total = layer.features.length;
+        const rows = fieldRows(layer);
+        const fieldSummary = `${formatCount(layer.schema.attributes.length)} atributos em ${formatCount(total)} feições`;
+
+        fieldsSummary.replaceChildren(fieldSummary);
+        propertiesFieldsSummary.replaceChildren(fieldSummary);
+
+        body.replaceChildren(...rows);
+        propertiesBody.replaceChildren(...rows.map((row) => row.cloneNode(true)));
+
+        /* .qmd do QGIS: buscado uma vez por camada, na primeira vez que ela aparece aqui. */
+        if (layer.source === "url" && !qgisCache.has(layer.id)) {
+            qgisCache.set(layer.id, null);
+            loadQgisMetadata(layer.url).then((data) => {
+                qgisCache.set(layer.id, data);
+
+                if (store.state.activeLayerId === layer.id) {
                     render();
                 }
             });
         }
     };
 
-    close.addEventListener("click", () => dialog.close());
-
-    /* Clique no fundo (fora da caixa) fecha. */
-    dialog.addEventListener("click", (event) => {
-        if (event.target === dialog) {
-            dialog.close();
-        }
-    });
-
-    dialog.addEventListener("close", () => {
-        currentId = null;
-    });
-
-    /* Mantém o conteúdo atualizado se a camada mudar com a janela aberta. */
+    /* Só redesenha com o painel à vista: a busca dispara "view" a cada tecla. */
     const refresh = () => {
-        if (dialog.open && currentId) {
+        if (isVisible()) {
             render();
         }
     };
 
     store.on("layers", refresh);
+    store.on("active", refresh);
     store.on("view", refresh);
 
-    return { open };
+    return { render };
 }
