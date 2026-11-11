@@ -126,26 +126,33 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
     const sliderRow = ({ label, value, min, max, step, format, focusKey, disabled, onChange }) => {
         const output = el("output", { class: "prop-value", text: format(value) });
         const live = throttled((number) => quiet(() => onChange(number)));
+        /* Parte do trilho até o botão, pintada na cor de destaque (como no macOS). */
+        const paint = (input, number) => input.style.setProperty("--fill", `${((number - min) / (max - min || 1)) * 100}%`);
+
+        const input = el("input", {
+            type: "range",
+            class: "prop-range",
+            min: String(min),
+            max: String(max),
+            step: String(step),
+            value: String(value),
+            disabled: Boolean(disabled),
+            dataset: { focusKey },
+            oninput: (event) => {
+                const number = Number(event.target.value);
+
+                output.textContent = format(number);
+                paint(event.target, number);
+                live(number);
+            },
+            onchange: (event) => onChange(Number(event.target.value))
+        });
+
+        paint(input, value);
 
         return el("label", { class: "prop-row" }, [
             el("span", { class: "prop-label", text: label }),
-            el("input", {
-                type: "range",
-                class: "prop-range",
-                min: String(min),
-                max: String(max),
-                step: String(step),
-                value: String(value),
-                disabled: Boolean(disabled),
-                dataset: { focusKey },
-                oninput: (event) => {
-                    const number = Number(event.target.value);
-
-                    output.textContent = format(number);
-                    live(number);
-                },
-                onchange: (event) => onChange(Number(event.target.value))
-            }),
+            input,
             output
         ]);
     };
@@ -195,9 +202,54 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
 
     const TYPE_OPTIONS = [
         ["single", "Símbolo único", "Uma cor só para a camada inteira."],
-        ["category", "Categorizado", "Uma cor para cada valor de um atributo de categoria."],
+        ["category", "Categorias", "Uma cor para cada valor de um atributo de categoria."],
         ["numeric", "Graduado", "Faixas de valor de um atributo numérico, numa rampa de cores."]
     ];
+
+    /* Amostra do símbolo atual (polígono, linha ou ponto), como a do ArcGIS. */
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const svgNode = (tag, attributes) => {
+        const node = document.createElementNS(SVG_NS, tag);
+
+        Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, String(value)));
+
+        return node;
+    };
+
+    const symbolPreview = (layer, symbol, themed) => {
+        const box = svgNode("svg", { viewBox: "0 0 44 32", class: "prop-preview", "aria-hidden": "true" });
+        /* Com tema, a amostra mostra as três primeiras cores dele. */
+        const colors = themed && layer.theme.legend
+            ? layer.theme.legend.classes.slice(0, 3).map((item) => item.color)
+            : [layer.color];
+        const fillOpacity = symbol.fill ? baseFillOpacity(symbol, { isPoint: symbol.kind === "point", themed }) : 0;
+        const opacity = symbol.opacity;
+
+        if (symbol.icon) {
+            box.appendChild(svgNode("path", { d: "M22 4c-6 0-10 4.4-10 10 0 7 10 15 10 15s10-8 10-15c0-5.6-4-10-10-10Z", fill: layer.color, opacity }));
+        } else if (symbol.kind === "line") {
+            box.appendChild(svgNode("path", { d: "M5 24 C14 6, 26 30, 39 9", fill: "none", stroke: colors[0], "stroke-width": Math.max(1.5, symbol.strokeWidth), "stroke-linecap": "round", opacity }));
+        } else if (symbol.kind === "point") {
+            colors.forEach((color, i) => box.appendChild(svgNode("circle", {
+                cx: 12 + i * 10, cy: 16, r: Math.min(8, Math.max(4, symbol.pointSize)),
+                fill: color, "fill-opacity": fillOpacity, stroke: symbol.strokeColor, "stroke-width": symbol.strokeWidth, opacity
+            })));
+        } else {
+            const shapes = ["M4 8 L20 4 L22 18 L6 22 Z", "M20 4 L40 7 L38 20 L22 18 Z", "M6 22 L22 18 L38 20 L36 29 L8 29 Z"];
+
+            shapes.forEach((d, i) => box.appendChild(svgNode("path", {
+                d,
+                fill: symbol.fill ? colors[i % colors.length] : "none",
+                "fill-opacity": fillOpacity,
+                stroke: symbol.fill ? symbol.strokeColor : colors[0],
+                "stroke-width": Math.max(0.8, symbol.strokeWidth),
+                "stroke-linejoin": "round",
+                opacity
+            })));
+        }
+
+        return box;
+    };
 
     const symbology = (layer) => {
         const themeable = layer.schema.attributes.filter(isThemeable);
@@ -224,19 +276,36 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
 
         const typeInfo = TYPE_OPTIONS.find(([id]) => id === current);
 
-        const typeCard = section("Tipo de simbologia", [
-            el("label", { class: "prop-row" }, [
-                el("span", { class: "prop-label", text: "Tipo" }),
-                el("select", {
-                    class: "prop-select",
-                    dataset: { focusKey: `symbol-type:${layer.id}` },
-                    onchange: (event) => setType(event.target.value)
-                }, TYPE_OPTIONS.map(([id, text]) => el("option", {
-                    value: id,
-                    text,
-                    selected: id === current,
-                    disabled: id !== "single" && !firstOf(id)
-                })))
+        /*
+           Estilo primário, como nas opções de estilo do ArcGIS, num
+           controle segmentado do macOS. Tipo sem atributo que sirva
+           (ex.: Graduado sem campo numérico) fica desabilitado.
+        */
+        const typeCard = section("Estilo", [
+            el("div", { class: "prop-type" }, [
+                el("div", {
+                    class: "tabs segmented prop-segmented",
+                    role: "radiogroup",
+                    "aria-label": "Tipo de simbologia"
+                }, TYPE_OPTIONS.map(([id, text]) => {
+                    const available = id === "single" || Boolean(firstOf(id));
+
+                    return el("button", {
+                        type: "button",
+                        class: "tab",
+                        role: "radio",
+                        "aria-checked": String(id === current),
+                        disabled: !available,
+                        title: available ? TYPE_OPTIONS.find(([key]) => key === id)[2] : "A camada não tem atributo para este tipo",
+                        dataset: { focusKey: `symbol-type:${layer.id}:${id}` },
+                        onclick: () => {
+                            if (id !== current) {
+                                setType(id);
+                            }
+                        }
+                    }, text);
+                })),
+                symbolPreview(layer, symbol, themeOn)
             ]),
             el("p", { class: "settings-hint", text: typeInfo[2] })
         ]);
@@ -318,7 +387,7 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
 
         const themeCards = themeOn
             ? [
-                section(current === "numeric" ? "Graduado" : "Categorizado", buildThemeSettings(layer, themeable)),
+                section(current === "numeric" ? "Graduado" : "Categorias", buildThemeSettings(layer, themeable)),
                 section(layer.theme.legend.kind === "numeric" ? "Classes (limites editáveis)" : "Classes", [
                     layer.theme.legend.kind === "numeric"
                         ? buildLimitEditor(layer, themeable)
@@ -355,7 +424,7 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
         const set = (patch) => store.setTheme(layer.id, patch);
         const ramps = listRamps();
         const current = options.ramp && rampName(options.ramp) ? options.ramp : null;
-        const currentName = current ? rampName(current) : "Padrão (alto contraste)";
+        const currentName = current ? rampName(current) : "Padrão (terrosa)";
         const preview = (id) => id ? rampGradient(id, { invert: options.invert }) : defaultPaletteGradient();
 
         const pick = el("button", {
@@ -403,7 +472,7 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
         const list = rampListOpen
             ? el("div", { class: "ramp-list", role: "group", "aria-label": "Rampas de cores" }, [
                 kind === "category"
-                    ? el("div", { class: "ramp-group" }, [option(null, "Padrão (alto contraste)", "12 cores bem distintas; acima disso, geradas")])
+                    ? el("div", { class: "ramp-group" }, [option(null, "Padrão (terrosa)", "12 cores terrosas bem distintas; acima disso, geradas")])
                     : null,
                 ...groups,
                 ramps.length
@@ -581,8 +650,66 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
             zooms.push(level);
         }
 
+        /*
+           As opções ficam sempre à vista (como no ArcGIS); com os rótulos
+           desligados, esmaecidas e fora do alcance do teclado (inert).
+        */
+        const options = el("div", { class: `prop-dependent${on ? "" : " is-off"}`, inert: !on }, [
+            section("Conteúdo", [buildLabelFields(store, layer)], "Um atributo por linha, na ordem."),
+            section("Texto", [
+                sliderRow({
+                    label: "Tamanho",
+                    value: style.size,
+                    min: LABEL_SIZE_LIMITS.min,
+                    max: LABEL_SIZE_LIMITS.max,
+                    step: 1,
+                    format: (value) => `${value} px`,
+                    focusKey: `labels-size:${layer.id}`,
+                    onChange: (value) => set({ size: value })
+                }),
+                colorRow({
+                    label: "Cor",
+                    value: toHex(style.color),
+                    focusKey: `labels-color:${layer.id}`,
+                    onChange: (color) => set({ color })
+                }),
+                switchRow({
+                    label: "Negrito",
+                    checked: style.bold,
+                    focusKey: `labels-bold:${layer.id}`,
+                    onChange: (checked) => set({ bold: checked })
+                }),
+                switchRow({
+                    label: "Halo",
+                    hint: "Contorno suave que destaca o texto do mapa (escuro sob letra clara e vice-versa).",
+                    checked: style.halo,
+                    focusKey: `labels-halo:${layer.id}`,
+                    onChange: (checked) => set({ halo: checked })
+                })
+            ]),
+            section("Visibilidade", [
+                el("label", { class: "prop-row" }, [
+                    el("span", { class: "prop-label", text: "Mostrar a partir do zoom" }),
+                    el("select", {
+                        class: "prop-select",
+                        dataset: { focusKey: `labels-zoom:${layer.id}` },
+                        onchange: (event) => set({ minZoom: Number(event.target.value) || null })
+                    }, [
+                        el("option", { value: "0", text: "Sempre", selected: !style.minZoom }),
+                        ...zooms.map((level) => el("option", {
+                            value: String(level),
+                            text: String(level),
+                            selected: style.minZoom === level
+                        }))
+                    ])
+                ])
+            ], zoom === null
+                ? "Rótulos que se sobreporiam são omitidos e aparecem ao aproximar."
+                : `O mapa está no zoom ${zoom}. Rótulos que se sobreporiam são omitidos e aparecem ao aproximar.`)
+        ]);
+
         return [
-            el("div", { class: "glass-card" }, [
+            section("Rótulos", [
                 switchRow({
                     label: "Mostrar rótulos",
                     hint: "Só uma camada fica rotulada por vez.",
@@ -591,61 +718,7 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
                     onChange: (checked) => set({ visible: checked })
                 })
             ]),
-            on ? section("Conteúdo", [buildLabelFields(store, layer)], "Um atributo por linha, na ordem.") : null,
-            on
-                ? section("Texto", [
-                    sliderRow({
-                        label: "Tamanho",
-                        value: style.size,
-                        min: LABEL_SIZE_LIMITS.min,
-                        max: LABEL_SIZE_LIMITS.max,
-                        step: 1,
-                        format: (value) => `${value} px`,
-                        focusKey: `labels-size:${layer.id}`,
-                        onChange: (value) => set({ size: value })
-                    }),
-                    colorRow({
-                        label: "Cor",
-                        value: toHex(style.color),
-                        focusKey: `labels-color:${layer.id}`,
-                        onChange: (color) => set({ color })
-                    }),
-                    switchRow({
-                        label: "Negrito",
-                        checked: style.bold,
-                        focusKey: `labels-bold:${layer.id}`,
-                        onChange: (checked) => set({ bold: checked })
-                    }),
-                    switchRow({
-                        label: "Halo",
-                        hint: "Contorno suave que destaca o texto do mapa (escuro sob letra clara e vice-versa).",
-                        checked: style.halo,
-                        focusKey: `labels-halo:${layer.id}`,
-                        onChange: (checked) => set({ halo: checked })
-                    })
-                ])
-                : null,
-            on
-                ? section("Visibilidade", [
-                    el("label", { class: "prop-row" }, [
-                        el("span", { class: "prop-label", text: "Mostrar a partir do zoom" }),
-                        el("select", {
-                            class: "prop-select",
-                            dataset: { focusKey: `labels-zoom:${layer.id}` },
-                            onchange: (event) => set({ minZoom: Number(event.target.value) || null })
-                        }, [
-                            el("option", { value: "0", text: "Sempre", selected: !style.minZoom }),
-                            ...zooms.map((level) => el("option", {
-                                value: String(level),
-                                text: String(level),
-                                selected: style.minZoom === level
-                            }))
-                        ])
-                    ])
-                ], zoom === null
-                    ? "Rótulos que se sobreporiam são omitidos e aparecem ao aproximar."
-                    : `O mapa está no zoom ${zoom}. Rótulos que se sobreporiam são omitidos e aparecem ao aproximar.`)
-                : null
+            options
         ];
     };
 

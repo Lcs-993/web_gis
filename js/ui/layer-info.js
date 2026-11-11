@@ -46,17 +46,17 @@ export function createLayerInfo() {
     /* layerId → metadados do .qmd (null = sem arquivo ou ainda carregando). */
     const qgisCache = new Map();
 
-    const item = (label, value) => el("div", { class: "layer-info-item" }, [
+    /* Linha "rótulo · valor", como no Obter Informações do macOS. */
+    const item = (label, value) => el("div", { class: "info-row" }, [
         el("dt", { text: label }),
-        el("dd", { text: value })
+        el("dd", {}, value)
     ]);
 
-    const wide = (label, value) => {
-        const node = item(label, value);
-
-        node.classList.add("is-wide");
-        return node;
-    };
+    /* Grupo com título, no padrão das outras abas da janela. */
+    const group = (title, rows) => el("section", { class: "settings-group" }, [
+        el("h3", { class: "settings-title", text: title }),
+        el("dl", { class: "glass-card prop-card info-list" }, rows.filter(Boolean))
+    ]);
 
     /*
        Seção Metadados: descrição gravada no GeoJSON + o .qmd do QGIS
@@ -67,7 +67,7 @@ export function createLayerInfo() {
         const rows = [];
         const add = (label, value) => {
             if (value && (!Array.isArray(value) || value.length)) {
-                rows.push(el("div", { class: "layer-info-meta-row" }, [el("dt", { text: label }), el("dd", {}, value)]));
+                rows.push(item(label, value));
             }
         };
 
@@ -85,12 +85,7 @@ export function createLayerInfo() {
             add("Descrição do arquivo", layer.metadata.description);
         }
 
-        return rows.length
-            ? el("section", { class: "layer-info-meta", "aria-label": "Metadados" }, [
-                el("h3", { class: "settings-title", text: "Metadados" }),
-                el("dl", { class: "layer-info-meta-list" }, rows)
-            ])
-            : null;
+        return rows.length ? group("Metadados", rows) : null;
     };
 
     /*
@@ -113,16 +108,18 @@ export function createLayerInfo() {
         }
 
         return [
-            el("dl", { class: "layer-info-summary" }, [
+            group("Dados", [
+                item("Origem", sourceText(layer)),
                 item("Feições", formatCount(layer.features.length)),
                 item("Visíveis com filtros", formatCount(layer.view.filtered.length)),
-                item("Atributos", formatCount(layer.schema.attributes.length)),
-                item("Origem", sourceText(layer)),
-                wide("Geometria", geometryText(layer)),
+                item("Atributos", formatCount(layer.schema.attributes.length))
+            ]),
+            group("Geometria e coordenadas", [
+                item("Geometria", geometryText(layer)),
                 /* Como o mapa lê os dados; o CRS de origem (QGIS) só se for outro. */
-                wide("Sistema de coordenadas", metadata.crs || "—"),
-                ...(qgis && qgis.crs && qgis.crs !== metadata.crs ? [wide("CRS de origem (QGIS)", qgis.crs)] : []),
-                wide("Extensão", bboxText(metadata.bbox))
+                item("Sistema de coordenadas", metadata.crs || "—"),
+                qgis && qgis.crs && qgis.crs !== metadata.crs ? item("CRS de origem (QGIS)", qgis.crs) : null,
+                item("Extensão", bboxText(metadata.bbox))
             ]),
             buildMetadata(layer, qgis)
         ];
@@ -148,18 +145,23 @@ export function createLayerInfo() {
         );
 
         return [
-            el("p", {
-                class: "panel-summary",
-                text: `${formatCount(layer.schema.attributes.length)} atributos em ${formatCount(total)} feições`
-            }),
-            el("div", { class: "layer-info-table-scroll" }, el("table", { class: "data-table layer-info-table" }, [
-                el("thead", {}, el("tr", {}, [
-                    el("th", { scope: "col", text: "Atributo" }),
-                    el("th", { scope: "col", text: "Tipo" }),
-                    el("th", { scope: "col", text: "Preenchidos" })
-                ])),
-                el("tbody", {}, rows)
-            ]))
+            el("section", { class: "settings-group" }, [
+                el("h3", { class: "settings-title" }, [
+                    "Atributos",
+                    el("span", {
+                        class: "settings-title-meta",
+                        text: `${formatCount(layer.schema.attributes.length)} atributos · ${formatCount(total)} feições`
+                    })
+                ]),
+                el("div", { class: "layer-info-table-scroll" }, el("table", { class: "data-table layer-info-table" }, [
+                    el("thead", {}, el("tr", {}, [
+                        el("th", { scope: "col", text: "Atributo" }),
+                        el("th", { scope: "col", text: "Tipo" }),
+                        el("th", { scope: "col", text: "Preenchidos" })
+                    ])),
+                    el("tbody", {}, rows)
+                ]))
+            ])
         ];
     };
 

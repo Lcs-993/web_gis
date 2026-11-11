@@ -222,12 +222,42 @@ export const MODULE_MENUS = [
         items: [
             { id: "buscar", label: "Buscar", description: "Leva à caixa de busca do mapa", action: "search", shortcut: "Ctrl K" },
             { id: "pesquisa-avancada", label: "Pesquisa avançada…", description: "Campos, correspondência e E/OU da busca", action: "open-search" },
+            { separator: true },
+            { id: "propriedades", label: "Propriedades da camada…", description: "Informação, estilos, rótulos e campos da camada ativa", action: "propriedades:info" },
+            { id: "estilos", label: "Estilos…", description: "Símbolo, categorias ou faixas de valor da camada ativa", action: "propriedades:symbology" },
+            { id: "rotulos", label: "Rótulos…", description: "Textos da camada ativa sobre o mapa", action: "propriedades:labels" },
+            { separator: true },
             { id: "medir", label: "Medir", description: "Distância e área no mapa" },
             { id: "desenho", label: "Desenho", description: "Pontos, linhas, polígonos e textos sobre o mapa" },
             { id: "caixa-ferramentas", label: "Outras ferramentas", description: "Recortar, unir, dissolver e converter camadas" },
             { separator: true },
-            { id: "mapa-base", label: "Mapa base", items: "basemaps" },
+            { id: "configuracoes", label: "Configurações…", description: "Tema, transparência e atalhos", action: "open-settings" }
+        ]
+    },
+    {
+        /* O que se faz com o mapa inteiro: guardar, exportar, imprimir, compartilhar. */
+        id: "mapa",
+        label: "Mapa",
+        items: [
+            { id: "adicionar-camada", label: "Adicionar camada…", description: "GeoJSON, KML ou KMZ do computador", action: "open-file" },
+            { separator: true },
+            { id: "salvar", label: "Salvar mapa", description: "Camadas, filtros, estilos e enquadramento atuais" },
             { id: "favoritos", label: "Favoritos", description: "Enquadramentos, camadas e filtros salvos" },
+            { separator: true },
+            { id: "exportar-kml", label: "Exportar KML", description: "Camada ativa como está no mapa (filtros e cores) para o Google Earth", action: "export-kml" },
+            { id: "imprimir", label: "Imprimir mapa", description: "PDF ou imagem com legenda" },
+            { separator: true },
+            { id: "compartilhar", label: "Compartilhar", description: "Link do mapa como está (camadas, filtros e enquadramento)" },
+            { id: "incorporar", label: "Incorporar", description: "Código para colocar o mapa em outro site" },
+            { id: "aplicativos", label: "Aplicativos", description: "Painéis e apps feitos a partir deste mapa" }
+        ]
+    },
+    {
+        /* Como a tela se apresenta (o "Visualizar" dos apps do macOS). */
+        id: "exibir",
+        label: "Exibir",
+        items: [
+            { id: "mapa-base", label: "Mapa base", items: "basemaps" },
             {
                 id: "aparencia",
                 label: "Aparência",
@@ -238,16 +268,9 @@ export const MODULE_MENUS = [
                     { id: "sem-blur", label: "Reduzir transparência", action: "sem-blur", checked: "sem-blur" }
                 ]
             },
-            { id: "barra", label: "Barra lateral expandida", action: "toolbar", checked: "toolbar", shortcut: "[" },
-            { id: "apresentar", label: "Apresentar", description: "Tela cheia para apresentações", action: "fullscreen", checked: "fullscreen", shortcut: "F" },
-            { id: "configuracoes", label: "Configurações…", description: "Tema, transparência e atalhos", action: "open-settings" },
             { separator: true },
-            { id: "salvar", label: "Salvar mapa", description: "Camadas, filtros, estilos e enquadramento atuais" },
-            { id: "exportar-kml", label: "Exportar KML", description: "Camada ativa como está no mapa (filtros e cores) para o Google Earth", action: "export-kml" },
-            { id: "imprimir", label: "Imprimir mapa", description: "PDF ou imagem com legenda" },
-            { id: "compartilhar", label: "Compartilhar", description: "Link do mapa como está (camadas, filtros e enquadramento)" },
-            { id: "incorporar", label: "Incorporar", description: "Código para colocar o mapa em outro site" },
-            { id: "aplicativos", label: "Aplicativos", description: "Painéis e apps feitos a partir deste mapa" }
+            { id: "barra", label: "Barra lateral expandida", action: "toolbar", checked: "toolbar", shortcut: "[" },
+            { id: "apresentar", label: "Apresentar", description: "Tela cheia para apresentações", action: "fullscreen", checked: "fullscreen", shortcut: "F" }
         ]
     },
     {
