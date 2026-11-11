@@ -4658,6 +4658,361 @@ th[aria-sort="descending"] .table-sort::after {
     padding: 0 12px 14px;
 }
 
+/*
+   ---------- Propriedades da camada (js/ui/layer-properties.js) ----------
+   Janela flutuante, não modal: abre ao lado do painel da esquerda,
+   com o mapa à vista. Abas na vertical (como no QGIS), conteúdo
+   rolando à direita e rodapé fixo com Restaurar padrão, Cancelar e OK.
+*/
+
+.layer-window {
+    left: calc(var(--sidebar-w) + 24px);
+    width: min(600px, calc(100% - var(--sidebar-w) - 40px));
+    height: min(620px, calc(100% - var(--footer-h) - 16px));
+    background: var(--glass-bg-solid);
+    z-index: 345;
+}
+
+/* Com o Analytics aberto, a janela cabe acima dele. */
+.dashboard-open .layer-window {
+    height: min(620px, calc(100% - var(--dashboard-h) - var(--footer-h) - 16px));
+    min-height: 280px;
+}
+
+.layer-window.is-dragging {
+    transition: none;
+    user-select: none;
+}
+
+.layer-window-header {
+    cursor: grab;
+    border-bottom: 0.5px solid var(--border-hairline);
+    padding-bottom: 12px;
+    touch-action: none;
+}
+
+.layer-window.is-dragging .layer-window-header {
+    cursor: grabbing;
+}
+
+.layer-window-layer {
+    flex: 0 1 200px;
+    min-width: 0;
+    font-weight: 600;
+}
+
+.layer-window-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 148px minmax(0, 1fr);
+}
+
+.layer-window-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 8px;
+    border-right: 0.5px solid var(--border-hairline);
+    overflow-y: auto;
+}
+
+.layer-window-tab {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 10px;
+    border-radius: 9px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.layer-window-tab .icon {
+    flex: none;
+    width: 17px;
+    height: 17px;
+}
+
+.layer-window-tab:hover {
+    background: var(--fill-segment);
+    color: var(--text);
+}
+
+.layer-window-tab[aria-selected="true"] {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 600;
+}
+
+.layer-window-body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 16px 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.layer-window-body:focus-visible {
+    outline-offset: -2px;
+}
+
+.layer-window-footer {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+.layer-window-footer-space {
+    flex: 1 1 auto;
+}
+
+.layer-window-footer .button {
+    min-width: 84px;
+}
+
+.layer-window-footer .button[hidden] {
+    display: none;
+}
+
+/* Linha de propriedade: rótulo à esquerda, controle e valor à direita. */
+.prop-card {
+    display: grid;
+    gap: 0;
+    padding: 2px 12px;
+}
+
+.prop-card > * {
+    min-width: 0;
+}
+
+.prop-card > * + * {
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+.prop-card > .settings-hint,
+.prop-card > .layer-label-fields,
+.prop-card > .theme-settings,
+.prop-card > .layer-theme-block {
+    padding: 10px 0;
+}
+
+.prop-card > .settings-row + .settings-row {
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+.prop-hint {
+    padding: 0 4px;
+}
+
+.prop-row {
+    min-height: 44px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 190px) 58px;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.prop-label {
+    display: grid;
+    gap: 1px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.prop-value {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.prop-select {
+    grid-column: 2 / -1;
+    width: 100%;
+}
+
+.prop-select,
+.layer-window-layer {
+    min-height: 30px;
+    padding: 4px 8px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+    color: var(--text);
+    font-size: 13px;
+}
+
+/* Cursor (opacidade, espessura, tamanho): trilho fino e botão redondo, estilo iOS. */
+.prop-range {
+    width: 100%;
+    height: 24px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.prop-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--fill-segment-hover);
+}
+
+.prop-range::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--fill-segment-hover);
+}
+
+.prop-range::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    margin-top: -8px;
+    border: 0;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.prop-range::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+}
+
+.prop-range:focus-visible {
+    outline: none;
+}
+
+.prop-range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--accent);
+}
+
+.prop-range:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--accent);
+}
+
+.prop-range:disabled,
+.prop-color:disabled {
+    cursor: default;
+    opacity: 0.4;
+}
+
+/* Amostra de cor: abre o seletor do sistema. */
+.prop-color {
+    justify-self: end;
+    width: 44px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--border-hairline);
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    overflow: hidden;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.prop-color::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.prop-color::-webkit-color-swatch {
+    border: 0;
+}
+
+.prop-color::-moz-color-swatch {
+    border: 0;
+}
+
+.prop-color-code {
+    font-size: 11px;
+}
+
+/* Tela média: sem espaço ao lado do painel da esquerda, a janela abre por cima dele. */
+@media (max-width: 1100px) {
+    .layer-window {
+        left: 8px;
+        width: min(640px, calc(100% - 16px));
+    }
+}
+
+/* Tela estreita: a janela ocupa a área do mapa; as abas vão para o topo, na horizontal. */
+@media (max-width: 720px) {
+    .layer-window {
+        top: 0;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100%;
+        max-width: none;
+        height: calc(100% - var(--footer-h));
+        max-height: none;
+        border-radius: 0;
+        border-width: 0;
+    }
+
+    .layer-window-header {
+        cursor: default;
+    }
+
+    .layer-window-layer {
+        flex-basis: 130px;
+    }
+
+    .layer-window-main {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .layer-window-tabs {
+        flex-direction: row;
+        padding: 8px;
+        border-right: 0;
+        border-bottom: 0.5px solid var(--border-hairline);
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .layer-window-tab {
+        flex: none;
+    }
+
+    .prop-row {
+        grid-template-columns: minmax(0, 1fr) minmax(96px, 130px) 52px;
+        gap: 8px;
+    }
+}
+
+/* Etiquetas de estado na linha da camada (tema e rótulos ligados). */
+.layer-badge {
+    flex: none;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
 /* Cartão de vidro dentro do painel de vidro: a hierarquia vem do aninhamento. */
 .glass-card {
     min-width: 0;

@@ -48,11 +48,12 @@ Depois acesse `http://127.0.0.1:8899`. Não há instalação nem build.
 A tela segue o ArcGIS Map Viewer: barra superior, barra de ferramentas à
 esquerda (todas as ferramentas, inclusive as da camada ativa) e o mapa
 ocupando o resto, com os controles flutuando no canto inferior direito. As
-ferramentas que mudam o mapa (Camadas, Legenda, Gráficos, Filtro, Estilos, Rótulos,
+ferramentas que mudam o mapa (Camadas, Legenda, Gráficos, Filtro,
 Pesquisa avançada) abrem em **janelas flutuantes** ao lado da barra, uma de cada vez,
 com a altura do conteúdo, para o efeito ficar à vista; o **Mapa base** abre ao lado
-dos controles do mapa. **Configurações, Sobre,
-Propriedades e Campos** abrem numa **janela central** sobre o fundo escurecido
+dos controles do mapa. **Estilos, Rótulos e Campos** abrem a janela
+**Propriedades da camada** (abaixo) na aba correspondente. **Configurações e
+Sobre** abrem numa **janela central** sobre o fundo escurecido
 (o resto da tela fica bloqueado; ×, `Esc` ou clique no fundo fecham, e a janela
 flutuante que estava aberta continua lá). Clicar de novo no ícone fecha.
 Itens marcados **Em breve** ainda não têm função e ficam desabilitados.
@@ -63,7 +64,7 @@ Itens marcados **Em breve** ainda não têm função e ficam desabilitados.
 | **Menus** (estilo macOS Big Sur) | Linhas compactas com ✓ à esquerda e o atalho (ou › de submenu) à direita. Análises inclui também Análise espacial. Ferramentas reúne Buscar (Ctrl+K), Pesquisa avançada…, Medir, Desenho, Outras ferramentas, Mapa base ›, Favoritos, Aparência › (tema e "Reduzir transparência"), Barra lateral expandida ( `[` ), Apresentar (F), Configurações…, Salvar mapa, Exportar KML, Imprimir mapa, Compartilhar, Incorporar e Aplicativos. Teclado: ↑ ↓ percorrem, → abre o submenu, ← volta, Esc fecha |
 | **Barra esquerda** | Blocos por função, separados por divisória (com a barra expandida, cada um mostra o título). *Mapa:* **Camadas**, Adicionar camada e **Legenda**. *Consultar:* **Pesquisar** (abre a **Pesquisa avançada**) e **Filtro** (com o número de filtros). *Simbologia:* **Estilos** (tema por categoria ou por faixas de valor, rampa de cores, classes e legenda), **Rótulos**, Pop-ups e Efeitos. *Analisar:* **Tabela de atributos**, **Campos** (atributos, tipo e % preenchido) e **Gráficos** (Analytics). A camada ativa se escolhe clicando no nome dela no painel **Camadas**. Os itens da camada ficam desabilitados sem camada pronta. No pé, **Conta** (o cartão abre ao lado da barra e traz as **notificações**; um sininho na cor de acento aparece no canto do ícone quando há novidade e some ao abrir o cartão), **Configurações** e **Sobre**. O botão » do rodapé (ou a tecla `[`) mostra os rótulos; a escolha fica salva. As ferramentas do mapa abrem em janelas flutuantes ao lado dela; Configurações, Sobre, Campos e Propriedades, em janela central. **Propriedades** (feições, geometria, CRS, extensão, metadados) abrem pelo **i** da camada no painel Camadas |
 | **Sem barra direita** | Removida: os controles do mapa flutuam sobre ele. Desenho, Análise, Salvar mapa, Favoritos, Compartilhar, Incorporar, Aplicativos e Imprimir ficam nos menus **Análises** e **Ferramentas** |
-| **Camadas** (painel) | Mostra/oculta camadas (olho), tematiza (paleta; por categoria ou faixas de valor), liga rótulos (**T**), abre as Propriedades (**i**) e escolhe a **camada ativa** (clique no nome) |
+| **Camadas** (painel) | Mostra/oculta camadas (olho), abre as **Propriedades da camada** (botão de controles, ou duplo clique no nome) e escolhe a **camada ativa** (clique no nome). Etiquetas ao lado do nome indicam tema e rótulos ligados |
 | **Controles do mapa** (canto inferior direito do mapa) | **Mapa base** (bloco próprio, no topo: abre ao lado as miniaturas Satélite e Ruas; clique fora fecha), **Minha localização**, **Início** (extensão total das camadas ligadas, mesmo com filtros) e **Zoom** + / − (teclas + e −), num bloco de vidro; sobem junto quando o Analytics abre |
 | **Busca** | Pílula **sempre à vista** no canto superior direito do mapa; Ctrl+K leva o foco até ela. O botão **Pesquisar** da barra esquerda abre a **Pesquisa avançada** (campos, correspondência, E/OU, enquadrar). O funil abre o menu de filtros: painel de filtros, filtros ativos (clique remove), "todas"/"qualquer uma", filtros salvos e limpar |
 | **Botão direito** no mapa | No vazio: copiar coordenadas, centralizar aqui, medir (Em breve). Sobre uma feição: informações, aproximar, exportar só ela em KML e registrar ocorrência › (Em breve). Pelo teclado: Shift+F10 com o mapa em foco |
@@ -318,10 +319,35 @@ que é lento e só guarda cache por 5 minutos. Para atualizar o dado, use
 continuam aceitas; prefira fixá-las em um commit ou tag, porque branches como
 `main` mudam sem aviso.
 
+### Propriedades da camada
+
+Uma janela só para tudo o que é de uma camada, como a de propriedades do QGIS.
+Abre pelo botão de controles na linha da camada, por **duplo clique no nome**
+ou pelos botões **Estilos**, **Rótulos** e **Campos** da barra esquerda (estes,
+para a camada ativa). O seletor do cabeçalho troca de camada sem fechar.
+
+| Aba | O quê |
+| --- | --- |
+| **Informação** | Feições, geometria, origem, sistema de coordenadas, extensão e metadados (GeoJSON + `.qmd` do QGIS) |
+| **Simbologia** | **Tipo** (símbolo único, categorizado, graduado); **Símbolo** (preenchimento ligado/desligado, cor e opacidade do preenchimento, cor e espessura do contorno; em linhas, cor e espessura; em pontos, cor, tamanho e contorno); ajustes do tema; **Opacidade** da camada |
+| **Rótulos** | Ligar, atributos (um por linha), texto (tamanho, cor, negrito, halo) e zoom mínimo |
+| **Campos** | Atributos com tipo e percentual preenchido |
+
+A janela **não é modal**: o mapa fica à vista e muda a cada ajuste. **Cancelar**
+desfaz tudo o que foi mudado desde que ela abriu (em todas as camadas mexidas);
+**OK**, **×** e `Esc` mantêm. **Restaurar padrão** volta a aba atual ao padrão
+da camada. Arrasta pelo cabeçalho; em telas estreitas ocupa a área do mapa, com
+as abas no topo. As mudanças valem para a sessão (não são gravadas).
+
+No código: `layer.color` é a cor principal e `layer.symbol` guarda só o que o
+usuário mudou (`js/data/symbol.js`, `resolveSymbol`); `store.setSymbol` emite
+`symbol` e o mapa repinta (`mapView.setSymbol`). Camadas de ponto com ícone de
+imagem só aceitam a opacidade.
+
 ### Tema (por categoria ou por faixas de valor)
 
-O ícone de **paleta** na linha da camada (ou o interruptor **Tema** em
-**Estilos**) colore as feições por um atributo. O tipo do atributo decide:
+Em **Propriedades da camada › Simbologia**, o **Tipo** *Categorizado* ou
+*Graduado* colore as feições por um atributo. O tipo do atributo decide:
 
 - **Categoria** (ex.: Variedade): cada valor distinto recebe a sua própria cor;
   nenhum valor é agrupado ou resumido. Na **paleta padrão**, os 12 mais
@@ -335,7 +361,7 @@ O ícone de **paleta** na linha da camada (ou o interruptor **Tema** em
   do menor ao maior valor. Dados com muitos valores iguais podem gerar menos
   classes que o pedido (o painel avisa). Acima de 4.000 feições, o Jenks usa
   uma amostra regular dos valores ordenados.
-- **Limites digitados (manual):** em Estilos, cada classe mostra o limite
+- **Limites digitados (manual):** na aba Simbologia, cada classe mostra o limite
   inferior e o superior em campos editáveis (aceitam vírgula decimal; Enter
   confirma). Digitar um limite passa a classificação para **Manual**, partindo
   das classes que estavam na tela. Se o limite era compartilhado com a classe
@@ -346,7 +372,7 @@ O ícone de **paleta** na linha da camada (ou o interruptor **Tema** em
   maior limite. Os limites valem só para o atributo em que foram digitados;
   escolher outro método volta ao cálculo automático.
 
-No painel **Estilos** ficam a personalização: atributo (separado em
+Na aba **Simbologia** fica a personalização: atributo (separado em
 "Categorias" e "Valores numéricos"), **Cores** (lista de rampas com amostra,
 agrupadas em sequenciais, divergentes e multimatiz), **Inverter cores** e, nos
 números, **Classificação**, **Classes** (digitado) e os **limites** de cada classe. Cada tipo guarda as próprias escolhas:
@@ -354,7 +380,7 @@ trocar de atributo e voltar mantém a rampa. Os valores iniciais ficam em
 `THEME_DEFAULTS` (`js/config.js`): categorias na paleta padrão; números na rampa
 41 invertida (vermelho no menor, verde no maior), 5 classes por Jenks.
 
-A legenda (Estilos, painel Camadas e painel Legenda) mostra cada valor ou faixa
+A legenda (aba Simbologia e painel Legenda) mostra cada valor ou faixa
 com a cor e a quantidade. Vazios ficam em cinza escuro. Busca e seleção mantêm
 as cores do tema: os realces mexem só em contorno e opacidade. O botão fica
 desabilitado em camadas sem atributo de categoria nem numérico.
@@ -367,8 +393,10 @@ código (`js/data/ramps.js` lê `window.RAMPAS`).
 
 ### Rótulos
 
-O ícone **T** na linha da camada liga os rótulos (só uma camada rotulada por
-vez: ligar numa desliga na outra); abaixo dela aparece a
+Em **Propriedades da camada › Rótulos**, **Mostrar rótulos** liga os rótulos
+(só uma camada rotulada por vez: ligar numa desliga na outra). Na mesma aba
+ficam o **texto** (tamanho de 8 a 24 px, cor, negrito e halo, que é escuro sob
+letra clara e claro sob letra escura), o **zoom mínimo** e a
 escolha do atributo exibido (começa no primeiro atributo do arquivo). Para
 combinar atributos, **+ Adicionar linha** acrescenta outro (até 4): cada um
 vira uma linha do rótulo, na ordem escolhida; o **×** remove a linha. Linhas
@@ -452,8 +480,10 @@ js/
     ├── panels.js          abrir/fechar painéis, Esc, clique fora
     ├── toolbar.js         barra esquerda (expandir, indicador, dicas)
     ├── layer-panel.js     painel Camadas (+ blocos de rótulo, tema e símbolo)
-    ├── layer-tools.js     painéis Estilos e Rótulos da camada ativa
-    ├── layer-info.js      painéis Propriedades e Campos da camada ativa
+    ├── layer-properties.js janela Propriedades da camada (abas, Cancelar/OK, arrastar)
+    ├── layer-style.js     abas Simbologia e Rótulos (editores da aparência)
+    ├── layer-info.js      abas Informação e Campos
+    ├── layer-tools.js     painel Pesquisa avançada
     ├── legend-panel.js    painel Legenda
     ├── charts-panel.js    painel Gráficos
     ├── app-panels.js      Configurações, créditos do Sobre, notificações (sininho da Conta)

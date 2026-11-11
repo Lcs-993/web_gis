@@ -12,7 +12,7 @@ import { loadFromFile, loadFromUrl } from "./data/geojson-provider.js";
 import { createMapView } from "./map/leaflet-view.js";
 import { createPanels } from "./ui/panels.js";
 import { createLayerPanel } from "./ui/layer-panel.js";
-import { createLayerInfo } from "./ui/layer-info.js";
+import { createLayerProperties } from "./ui/layer-properties.js";
 import { createFilterPanel } from "./ui/filter-panel.js";
 import { createSearchBox } from "./ui/search-box.js";
 import { createDashboard } from "./ui/dashboard.js";
@@ -55,6 +55,7 @@ const createNullMapView = () => {
         setSelection: noop,
         setLabels: noop,
         setTheme: noop,
+        setSymbol: noop,
         fitFeatures: () => false,
         fitExtent: () => false,
         hasExtent: () => false,
@@ -182,9 +183,7 @@ const LEFT_PANELS = [
     ["layers", "sidebar"],
     ["legend", "panel-legend"],
     ["charts", "panel-charts"],
-    ["styles", "panel-styles"],
     ["filters", "filter-panel"],
-    ["labels", "panel-labels"],
     ["search", "panel-search"]
 ];
 
@@ -196,9 +195,7 @@ const LEFT_PANELS = [
 */
 const CENTER_PANELS = [
     ["settings", "panel-settings"],
-    ["about", "panel-about"],
-    ["properties", "panel-properties"],
-    ["fields", "panel-fields"]
+    ["about", "panel-about"]
 ];
 
 const appChrome = [document.querySelector(".topbar"), document.querySelector(".workspace")].filter(Boolean);
@@ -212,7 +209,22 @@ const sidePanel = (group, hostClass) => group.map(([id, element]) => ({
 }));
 
 let toolbars = null;
-let layerInfo = null;
+
+/* Botões Estilos, Rótulos e Campos da barra: marcados enquanto a janela mostra a aba deles para a camada ativa. */
+const syncPropertiesTriggers = () => {
+    const tab = layerProperties && layerProperties.activeLayerId() === store.state.activeLayerId
+        ? layerProperties.activeTab()
+        : null;
+
+    document.querySelectorAll("[data-properties-tab]").forEach((trigger) => {
+        trigger.setAttribute("aria-expanded", String(trigger.dataset.propertiesTab === tab));
+    });
+
+    if (toolbars) {
+        toolbars.refresh();
+    }
+};
+let layerProperties = null;
 
 /* Largura ocupada pelo painel aberto de um lado (o mapa enquadra fora dele). */
 const panelInset = (group) => {
@@ -228,6 +240,11 @@ const panels = createPanels([
     ...sidePanel(CENTER_PANELS, "center-panel-open").map((panel) => ({ ...panel, popover: true })),
     /* Mapa base: janela ao lado dos controles do mapa; convive com as da esquerda e fecha com clique fora. */
     { id: "basemap", element: "panel-basemap", useHidden: false, popover: true },
+    /*
+       Propriedades da camada: janela flutuante, não modal (o mapa
+       muda à vista) e convive com as da esquerda e com o Analytics.
+    */
+    { id: "properties", element: "panel-properties", useHidden: false, hostClass: "properties-open" },
     { id: "dashboard", element: "dashboard", hostClass: "dashboard-open" }
 ], {
     onChange: (id, open) => {
@@ -243,8 +260,9 @@ const panels = createPanels([
             });
         }
 
-        if (open && (id === "properties" || id === "fields") && layerInfo) {
-            layerInfo.render();
+        /* Fechada (OK, × ou Esc): os botões da barra deixam de marcar a aba. */
+        if (id === "properties") {
+            syncPropertiesTriggers();
         }
 
         if (toolbars) {
@@ -447,6 +465,9 @@ const applyTheme = (layer) => {
 
 store.on("theme", applyTheme);
 
+/* Simbologia (cor, contorno, opacidades): o mapa relê a camada e repinta. */
+store.on("symbol", (layer) => mapView.setSymbol(layer));
+
 store.on("layers", (layers) => {
     mapView.syncLayers(layers).forEach((layer) => {
         mapView.renderView(layer);
@@ -523,15 +544,28 @@ const addFile = async (file) => {
     }
 };
 
-layerInfo = createLayerInfo(store, { isVisible: () => panels.isOpen("properties") || panels.isOpen("fields") });
+/*
+   Propriedades da camada: uma janela para informação, simbologia,
+   rótulos e campos de qualquer camada. Abre pelo botão da linha da
+   camada (ou duplo clique no nome) e pelos botões Estilos, Rótulos
+   e Campos da barra (estes, para a camada ativa).
+*/
+layerProperties = createLayerProperties(store, {
+    panels,
+    getZoom: () => (mapView.map ? mapView.map.getZoom() : null),
+    zoomRange: { minMapZoom: MAP_OPTIONS.minZoom, maxZoom: MAP_OPTIONS.maxZoom },
+    onChange: () => syncPropertiesTriggers()
+});
 
-/* O "i" da linha da camada: ela vira a ativa e as Propriedades abrem numa janela central. */
+if (mapView.map) {
+    mapView.map.on("zoomend", () => layerProperties.onZoom());
+}
+
+store.on("active", () => syncPropertiesTriggers());
+
 createLayerPanel(store, {
     onAddFile: addFile,
-    onIdentify: (layerId) => {
-        store.setActiveLayer(layerId);
-        panels.open("properties");
-    }
+    onProperties: (layerId) => layerProperties.open({ layer: layerId })
 });
 createLayerTools(store);
 createLegendPanel(store);

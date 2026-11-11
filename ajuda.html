@@ -273,7 +273,7 @@
                     <li><strong>Controles do mapa:</strong> minha localização, início e zoom, no canto inferior direito do mapa.</li>
                     <li><strong>Rodapé:</strong> status (“Pronto”, “Carregando…”), coordenadas do cursor (ou do centro) e zoom. As fontes dos dados ficam no <strong>Sobre</strong>.</li>
                 </ul>
-                <p>As ferramentas que mudam o mapa (camadas, legenda, gráficos, filtro, estilos, rótulos, pesquisa avançada) abrem numa janela flutuante ao lado da barra, para você ver o efeito no mapa. Configurações, Sobre, Campos e Propriedades abrem numa janela no centro da tela, com o fundo escurecido; clique no fundo para fechá-la. Clique de novo no ícone (ou no ×, ou <kbd>Esc</kbd>) para fechar. Itens com <strong>Em breve</strong> ainda não funcionam. Busca, filtros, estilos, rótulos, campos e Analytics trabalham sempre sobre a <strong>camada ativa</strong>: para trocá-la, clique no nome da camada no painel <strong>Camadas</strong>. Na abertura, a ativa é <strong>Talhões</strong>.</p>
+                <p>As ferramentas que mudam o mapa (camadas, legenda, gráficos, filtro, pesquisa avançada) abrem numa janela flutuante ao lado da barra, para você ver o efeito no mapa. <strong>Estilos</strong>, <strong>Rótulos</strong> e <strong>Campos</strong> abrem a janela <strong>Propriedades da camada</strong> na aba correspondente. Configurações e Sobre abrem numa janela no centro da tela, com o fundo escurecido; clique no fundo para fechá-la. Clique de novo no ícone (ou no ×, ou <kbd>Esc</kbd>) para fechar. Itens com <strong>Em breve</strong> ainda não funcionam. Busca, filtros, estilos, rótulos, campos e Analytics trabalham sempre sobre a <strong>camada ativa</strong>: para trocá-la, clique no nome da camada no painel <strong>Camadas</strong>. Na abertura, a ativa é <strong>Talhões</strong>.</p>
             </section>
 
             <section class="help-section" id="camadas">
@@ -281,10 +281,18 @@
                 <p>Abra pelo ícone <strong>Camadas</strong> na barra da esquerda. Cada camada mostra o símbolo (cor e tipo de geometria), o nome, a quantidade de feições entre parênteses e os botões (resumidos também no pé do painel):</p>
                 <table class="help-table">
                     <tr><th>Olho</th><td>Mostra ou oculta a camada no mapa.</td></tr>
-                    <tr><th>Paleta</th><td>Liga o tema por categoria (cores por valor de um atributo).</td></tr>
-                    <tr><th>T</th><td>Liga os rótulos.</td></tr>
-                    <tr><th>i</th><td>Torna a camada ativa e abre as <strong>Propriedades</strong> no lugar do painel Camadas: feições, geometria, sistema de coordenadas, extensão e metadados. Em <strong>Campos</strong>, a lista de atributos com o tipo e quanto está preenchido.</td></tr>
+                    <tr><th>Controles</th><td>Abre as <strong>Propriedades da camada</strong> (também por <strong>duplo clique</strong> no nome).</td></tr>
                 </table>
+                <p>Etiquetas ao lado do nome mostram quando a camada está com <strong>Tema</strong> ou <strong>Rótulos</strong> ligados.</p>
+                <h3>Propriedades da camada</h3>
+                <p>Uma janela só para tudo o que é de uma camada, com abas à esquerda. O seletor no cabeçalho troca de camada sem fechar.</p>
+                <table class="help-table">
+                    <tr><th>Informação</th><td>Feições, geometria, sistema de coordenadas, extensão e metadados.</td></tr>
+                    <tr><th>Simbologia</th><td>Tipo (símbolo único, categorizado ou graduado), cor e opacidade do preenchimento, cor e espessura do contorno, tamanho do ponto e a opacidade da camada inteira.</td></tr>
+                    <tr><th>Rótulos</th><td>Ligar, escolher os atributos, tamanho e cor do texto, negrito, halo e a partir de qual zoom aparecem.</td></tr>
+                    <tr><th>Campos</th><td>A lista de atributos com o tipo e quanto está preenchido.</td></tr>
+                </table>
+                <p>O mapa muda na hora, a cada ajuste. <strong>Cancelar</strong> desfaz tudo o que você mudou desde que abriu a janela; <strong>OK</strong>, o × e <kbd>Esc</kbd> mantêm. <strong>Restaurar padrão</strong> volta a aba atual ao padrão. Arraste a janela pelo cabeçalho para ver o mapa por trás.</p>
                 <p>Clique no <strong>nome</strong> da camada para torná-la a camada ativa. <strong>Fazendas</strong> é só referência visual: aparece como contorno, não recebe clique e mostra o número da fazenda a partir do zoom 13. <strong>Talhões</strong> fica sempre por último na lista.</p>
                 <p>A <strong>Legenda</strong> (barra da esquerda) mostra as camadas ligadas, com as cores do tema quando ele está ligado. O <strong>Mapa base</strong> fica nos controles do mapa, no canto inferior direito (o botão acima dos de localização e zoom): escolha entre Satélite e Ruas pelas miniaturas; clique fora da janela para fechá-la.</p>
             </section>
@@ -293,16 +301,16 @@
                 <h2>Rótulos e tema</h2>
                 <h3>Rótulos</h3>
                 <ul>
-                    <li>Ligue pelo <strong>T</strong> (ou em <strong>Rótulos</strong>, na barra da esquerda) e escolha o atributo no seletor <strong>Rótulo</strong>. Só uma camada fica rotulada por vez: ligar os rótulos de uma desliga os da outra.</li>
+                    <li>Ligue em <strong>Propriedades da camada › Rótulos</strong> (ou pelo botão <strong>Rótulos</strong> da barra da esquerda) e escolha o atributo no seletor <strong>Rótulo</strong>. Só uma camada fica rotulada por vez: ligar os rótulos de uma desliga os da outra.</li>
                     <li><strong>+ Adicionar linha</strong> combina até 4 atributos, um por linha (ex.: Fazenda, Variedade, Área (ha.)). O <strong>×</strong> remove a linha.</li>
                     <li>Rótulos que se sobreporiam são omitidos e aparecem ao aproximar o zoom. Feições escondidas por filtro ou esmaecidas pela busca ficam sem rótulo.</li>
                 </ul>
                 <h3>Tema</h3>
                 <ul>
-                    <li>Ligue pela <strong>paleta</strong> (ou em <strong>Estilos</strong>, na barra da esquerda) e escolha o atributo.</li>
+                    <li>Em <strong>Propriedades da camada › Simbologia</strong> (ou pelo botão <strong>Estilos</strong> da barra), escolha o tipo <strong>Categorizado</strong> ou <strong>Graduado</strong> e o atributo.</li>
                     <li><strong>Categorias</strong> (ex.: Variedade): uma cor para cada valor.</li>
                     <li><strong>Valores numéricos</strong> (ex.: Área (ha.)): as feições são divididas em faixas, da cor do menor valor à do maior.</li>
-                    <li>Em <strong>Estilos</strong> você personaliza: <strong>Cores</strong> (escolha uma rampa na lista), <strong>Inverter cores</strong> e, nos números, a <strong>Classificação</strong> (quebras naturais, quantis, intervalos iguais ou manual) e o número de <strong>Classes</strong> (digite de 1 a 32).</li>
+                    <li>Na mesma aba você personaliza: <strong>Cores</strong> (escolha uma rampa na lista), <strong>Inverter cores</strong> e, nos números, a <strong>Classificação</strong> (quebras naturais, quantis, intervalos iguais ou manual) e o número de <strong>Classes</strong> (digite de 1 a 32).</li>
                     <li>Nos números, a lista <strong>Classes</strong> mostra o limite inferior e o superior de cada faixa: digite um novo valor e tecle <kbd>Enter</kbd>. A classificação passa para <strong>Manual</strong>; a classe vizinha acompanha o limite que elas dividem. Valores que ficarem fora de todas as faixas aparecem como “fora das classes”.</li>
                     <li>A legenda mostra cada valor ou faixa com a cor e a quantidade; valores vazios ficam em cinza.</li>
                 </ul>

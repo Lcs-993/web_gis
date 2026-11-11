@@ -29,6 +29,7 @@ import { CHART_TYPES, PART_LIMIT, renderChart, renderSubgroupChart, seriesColors
 import { isCategory, isMetric, isNumeric } from "../data/schema.js";
 import { getAttribute, isEmpty, toNumber } from "../data/values.js";
 import { describeFilters } from "../data/filters.js";
+import { resolveSymbol } from "../data/symbol.js";
 import { downloadText, rowsToCsv, safeFileName, toCsv } from "../data/csv.js";
 import { toKml } from "../data/kml-export.js";
 import { EMPTY_COLOR } from "../data/theme.js";
@@ -1149,7 +1150,7 @@ export function createDashboard(store, { isOpen, onRowSelect, onRowsSelect, onTa
             groups,
             attributes: columnsOf(layer),
             nameFields: layer.labels.visible ? layer.labels.fields : [],
-            outline: layer.style === "outline",
+            outline: !resolveSymbol(layer).fill,
             themed: Boolean(theme),
             formatValue,
             exportedAt: new Date().toLocaleDateString("pt-BR")

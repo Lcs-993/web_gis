@@ -16,6 +16,7 @@
    ============================================================ */
 
 import { labelAnchor } from "./label-anchor.js";
+import { baseFillOpacity, resolveSymbol } from "../data/symbol.js";
 
 const STATE_DEFAULT = 0;
 const STATE_MATCH = 1;
@@ -25,9 +26,6 @@ const STATE_SELECTED_MATCH = 3;
 const STATE_DIMMED = 4;
 
 const isSelectedState = (state) => state === STATE_SELECTED || state === STATE_SELECTED_MATCH;
-
-/* Espessura da linha das camadas "outline" (ex.: Fazendas). */
-const OUTLINE_WEIGHT = 1.3;
 
 /*
    Halo escuro sob o contorno das camadas "outline": a linha clara
@@ -44,49 +42,43 @@ const OUTLINE_HALO = {
     interactive: false
 };
 
-/*
-   Contorno dos polígonos (camadas com preenchimento): branco fino
-   e translúcido, discreto, para marcar as divisas em qualquer tema.
-*/
-const POLYGON_STROKE = "#ffffff";
-const POLYGON_STROKE_WEIGHT = 0.8;
-const POLYGON_STROKE_OPACITY = 0.55;
+/* Tipo de cada feição no mapa (entry.kinds): decide o que a cor principal pinta. */
+const KIND_POLYGON = 0;
+const KIND_POINT = 1;
+const KIND_LINE = 2;
 
-const POINT_RADIUS = 5;
-const POINT_RADIUS_SELECTED = 8;
+const POINT_GROW_SELECTED = 3;
 
 
 /*
-   Estilo por estado, em dois níveis independentes:
-   - busca: os achados ficam com o estilo normal (cor da camada ou
-     do tema) e o que não casa esmaece (STATE_DIMMED);
-   - seleção (nível acima): as selecionadas ganham contorno branco
-     forte e preenchimento mais intenso, com ou sem busca ativa.
+   Estilo por estado, a partir da simbologia da camada (symbol:
+   js/data/symbol.js) e da cor principal da feição (color: a da
+   camada ou a do tema). Dois níveis independentes:
+   - busca: os achados ficam mais intensos e o que não casa
+     esmaece (STATE_DIMMED);
+   - seleção (nível acima): contorno branco forte e preenchimento
+     mais intenso, com ou sem busca ativa.
+   A opacidade da camada multiplica tudo, menos a seleção: a
+   feição selecionada precisa aparecer mesmo numa camada quase
+   transparente.
 */
-const styleFor = (color, state, isPoint, themed = false, outline = false) => {
-    const base = { lineCap: "round", lineJoin: "round", opacity: 1, fillColor: color };
+const styleFor = (symbol, color, state, kind, themed = false) => {
+    const isPoint = kind === KIND_POINT;
+    const layerOpacity = symbol.opacity;
+    const filled = isPoint || (kind === KIND_POLYGON && symbol.fill);
+    const fill = baseFillOpacity(symbol, { isPoint, themed });
+    /* Sem preenchimento (linha ou só contorno), a cor principal (camada ou tema) vai no traço. */
+    const strokeColor = !filled && themed ? color : symbol.strokeColor;
+    const base = { lineCap: "round", lineJoin: "round", fill: filled, fillColor: color, radius: symbol.pointSize };
 
-    /* Opacidade de preenchimento "normal": tema precisa de mais para a cor ser lida sobre o satélite. */
-    const fill = isPoint ? 0.85 : themed ? 0.5 : 0.35;
-
-    if (outline && !isPoint) {
-        /* Camada de referência (style: "outline"): só a borda, sobre um halo escuro (OUTLINE_HALO). */
-        return { ...base, color, weight: OUTLINE_WEIGHT, opacity: state === STATE_DIMMED ? 0.3 : 1, fill: false };
-    }
-
-    /*
-       Seleção (clique no mapa ou na tabela): nível acima da busca.
-       Contorno branco forte e preenchimento mais intenso, na própria
-       cor (camada ou tema); nada mais é esmaecido por ela.
-    */
     if (isSelectedState(state)) {
         return {
             ...base,
             color: "#ffffff",
-            weight: isPoint ? 2.5 : 3,
+            weight: isPoint ? 2.5 : Math.max(3, symbol.strokeWidth + 1.5),
             opacity: 1,
-            fillOpacity: isPoint ? 1 : themed ? 0.8 : 0.6,
-            radius: POINT_RADIUS_SELECTED
+            fillOpacity: isPoint ? 1 : Math.min(1, fill + (themed ? 0.3 : 0.25)),
+            radius: symbol.pointSize + POINT_GROW_SELECTED
         };
     }
 
@@ -94,12 +86,11 @@ const styleFor = (color, state, isPoint, themed = false, outline = false) => {
         /* Sombra translúcida: a feição continua lá, mas sai de cena. */
         return {
             ...base,
-            color: isPoint ? "#1d1d1f" : POLYGON_STROKE,
-            weight: isPoint ? 1 : POLYGON_STROKE_WEIGHT,
+            color: strokeColor,
+            weight: symbol.strokeWidth,
             /* Quase some: fica só um vestígio da forma, para não competir com os achados. */
-            opacity: isPoint ? 0.2 : 0.07,
-            fillOpacity: isPoint ? 0.15 : themed ? 0.05 : 0.03,
-            radius: POINT_RADIUS
+            opacity: (isPoint ? 0.2 : filled ? 0.07 : 0.3) * layerOpacity,
+            fillOpacity: (isPoint ? 0.15 : themed ? 0.05 : 0.03) * layerOpacity
         };
     }
 
@@ -107,22 +98,19 @@ const styleFor = (color, state, isPoint, themed = false, outline = false) => {
     if (state === STATE_MATCH && !isPoint) {
         return {
             ...base,
-            color: POLYGON_STROKE,
-            weight: 1,
-            opacity: 0.9,
-            fillOpacity: themed ? 0.72 : 0.55,
-            radius: POINT_RADIUS
+            color: strokeColor,
+            weight: Math.max(1, symbol.strokeWidth),
+            opacity: (filled ? 0.9 : 1) * layerOpacity,
+            fillOpacity: Math.min(1, fill + 0.2) * layerOpacity
         };
     }
 
-    /* Divisas: linha fina e clara, igual com ou sem tema; o preenchimento leva a cor. */
     return {
         ...base,
-        color: isPoint ? "#1d1d1f" : POLYGON_STROKE,
-        weight: isPoint ? 1 : POLYGON_STROKE_WEIGHT,
-        opacity: isPoint ? 0.95 : POLYGON_STROKE_OPACITY,
-        fillOpacity: fill,
-        radius: POINT_RADIUS
+        color: strokeColor,
+        weight: symbol.strokeWidth,
+        opacity: symbol.strokeOpacity * layerOpacity,
+        fillOpacity: fill * layerOpacity
     };
 };
 
@@ -260,6 +248,7 @@ export function createMapView(L, element, { options, basemaps }) {
         const points = new Uint8Array(layer.features.length);
         const outline = layer.style === "outline";
         const halos = outline ? new Array(layer.features.length).fill(null) : null;
+        const symbol = resolveSymbol(layer);
         let invalid = 0;
 
         /* Ícone de imagem para pontos, se a camada definir (config.js). */
@@ -284,10 +273,10 @@ export function createMapView(L, element, { options, basemaps }) {
                     renderer,
                     /* Sem clique: no canvas, até um polígono sem preenchimento capturaria o clique. */
                     interactive: layer.interactive,
-                    fill: layer.style !== "outline",
+                    fill: symbol.fill,
                     pointToLayer: (_, latlng) => markerIcon
-                        ? L.marker(latlng, { icon: markerIcon, keyboard: false, riseOnHover: true, interactive: layer.interactive })
-                        : L.circleMarker(latlng, { renderer, radius: POINT_RADIUS, interactive: layer.interactive })
+                        ? L.marker(latlng, { icon: markerIcon, keyboard: false, riseOnHover: true, interactive: layer.interactive, opacity: symbol.opacity })
+                        : L.circleMarker(latlng, { renderer, radius: symbol.pointSize, interactive: layer.interactive })
                 });
             } catch (error) {
                 invalid++;
@@ -308,7 +297,9 @@ export function createMapView(L, element, { options, basemaps }) {
             if (markerIcon) {
                 path.on("add", () => applyMarkerState(path, entry.styles[uid]));
             }
-            points[uid] = isPointLayer(path) ? 1 : 0;
+            points[uid] = isPointLayer(path)
+                ? KIND_POINT
+                : path instanceof L.Polyline && !(path instanceof L.Polygon) ? KIND_LINE : KIND_POLYGON;
             paths[uid] = path;
         });
 
@@ -364,6 +355,7 @@ export function createMapView(L, element, { options, basemaps }) {
             shown: new Uint8Array(layer.features.length),
             styles: new Int8Array(layer.features.length).fill(-1),
             color: layer.color,
+            symbol,   // simbologia já resolvida (js/data/symbol.js); muda em setSymbol
             outline,
             halos,
             haloGroup: halos ? L.featureGroup() : null,
@@ -433,6 +425,29 @@ export function createMapView(L, element, { options, basemaps }) {
     const LABEL_HEIGHT = 18;
     const LABEL_LINE_HEIGHT = 13;
     const LABEL_GAP = 4;
+    /* Tamanho de letra para o qual as medidas acima foram calibradas. */
+    const LABEL_BASE_SIZE = 11;
+
+    /* Cor clara pede halo escuro e vice-versa (luminância aproximada do hex). */
+    const isLightColor = (hex) => {
+        const value = /^#[0-9a-f]{6}$/i.test(hex || "") ? parseInt(hex.slice(1), 16) : 0xffffff;
+
+        return (0.299 * (value >> 16) + 0.587 * ((value >> 8) & 255) + 0.114 * (value & 255)) > 140;
+    };
+
+    const labelCss = (labels) => {
+        const color = labels.color || "#ffffff";
+        const halo = isLightColor(color) ? "0, 0, 0" : "255, 255, 255";
+
+        return {
+            color,
+            fontSize: `${labels.size || LABEL_BASE_SIZE}px`,
+            fontWeight: labels.bold === false ? "400" : "600",
+            textShadow: labels.halo === false
+                ? "none"
+                : `0 0 2px rgba(${halo}, 0.95), 0 0 4px rgba(${halo}, 0.8), 0 1px 2px rgba(${halo}, 0.9)`
+        };
+    };
 
     const anchorFor = (entry, uid) => {
         if (entry.anchors[uid] === undefined) {
@@ -481,6 +496,10 @@ export function createMapView(L, element, { options, basemaps }) {
         const size = map.getSize();
         const placed = [];
 
+        /* Texto do rótulo (Propriedades › Rótulos): a caixa de colisão cresce com o tamanho da letra. */
+        const labelStyle = labelCss(layer.labels);
+        const scale = (layer.labels.size || LABEL_BASE_SIZE) / LABEL_BASE_SIZE;
+
         const order = labelOrder(entry, layer);
 
         for (let i = 0; i < order.length && placed.length < LABEL_LIMIT; i++) {
@@ -501,8 +520,8 @@ export function createMapView(L, element, { options, basemaps }) {
             const lines = text.split("\n");
             const longest = lines.reduce((size, line) => Math.max(size, line.length), 0);
             const point = map.latLngToContainerPoint(anchor);
-            const halfWidth = (longest * LABEL_CHAR_WIDTH + 10) / 2 + LABEL_GAP;
-            const halfHeight = (LABEL_HEIGHT + (lines.length - 1) * LABEL_LINE_HEIGHT) / 2 + LABEL_GAP;
+            const halfWidth = (longest * LABEL_CHAR_WIDTH * scale + 10) / 2 + LABEL_GAP;
+            const halfHeight = (LABEL_HEIGHT + (lines.length - 1) * LABEL_LINE_HEIGHT) * scale / 2 + LABEL_GAP;
             const box = {
                 left: point.x - halfWidth,
                 right: point.x + halfWidth,
@@ -529,6 +548,7 @@ export function createMapView(L, element, { options, basemaps }) {
 
             content.className = "feature-label-text";
             content.textContent = text;
+            Object.assign(content.style, labelStyle);
 
             L.marker(anchor, {
                 pane: "labels",
@@ -569,6 +589,42 @@ export function createMapView(L, element, { options, basemaps }) {
 
         for (let uid = 0; uid < entry.paths.length; uid++) {
             if (entry.paths[uid] && entry.shown[uid]) {
+                restyle(entry, uid, stateOf(entry, layer, uid));
+            }
+        }
+    };
+
+    /* ---------------- simbologia ---------------- */
+
+    /*
+       Reaplica a simbologia da camada (cor, contorno, opacidades,
+       tamanho do ponto) a todas as feições visíveis. As ocultas por
+       filtro pegam o estilo novo quando voltarem (styles = -1).
+    */
+    const setSymbol = (layer) => {
+        const entry = entries.get(layer.id);
+
+        if (!entry) {
+            return;
+        }
+
+        entry.symbol = resolveSymbol(layer);
+        entry.color = layer.color;
+        entry.styles.fill(-1);
+
+        for (let uid = 0; uid < entry.paths.length; uid++) {
+            const path = entry.paths[uid];
+
+            if (!path) {
+                continue;
+            }
+
+            /* Pontos com ícone de imagem: só a opacidade da camada se aplica. */
+            if (typeof path.setOpacity === "function") {
+                path.setOpacity(entry.symbol.opacity);
+            }
+
+            if (entry.shown[uid]) {
                 restyle(entry, uid, stateOf(entry, layer, uid));
             }
         }
@@ -654,12 +710,17 @@ export function createMapView(L, element, { options, basemaps }) {
         const color = themed ? entry.themeColors[uid] : entry.color;
 
         if (typeof entry.paths[uid].setStyle === "function") {
-            entry.paths[uid].setStyle(styleFor(color, state, entry.points[uid] === 1, themed, entry.outline));
+            entry.paths[uid].setStyle(styleFor(entry.symbol, color, state, entry.points[uid], themed));
         }
 
-        /* Halo das camadas de contorno esmaece junto com a linha. */
+        /* Halo das camadas de contorno: esmaece com a linha e some se a camada ganhar preenchimento. */
         if (entry.halos && entry.halos[uid]) {
-            entry.halos[uid].setStyle({ opacity: state === STATE_DIMMED ? OUTLINE_HALO.opacity * 0.35 : OUTLINE_HALO.opacity });
+            const visible = entry.symbol.halo ? entry.symbol.opacity : 0;
+
+            entry.halos[uid].setStyle({
+                opacity: (state === STATE_DIMMED ? OUTLINE_HALO.opacity * 0.35 : OUTLINE_HALO.opacity) * visible,
+                weight: entry.symbol.strokeWidth + 1.7
+            });
         }
 
         applyMarkerState(entry.paths[uid], state);
@@ -930,6 +991,7 @@ export function createMapView(L, element, { options, basemaps }) {
         renderView,
         setSelection,
         setLabels,
+        setSymbol,
         setTheme,
         fitFeatures,
         fitExtent,

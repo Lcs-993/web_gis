@@ -1,18 +1,19 @@
 /* ============================================================
    PAINEL DE CAMADAS (sidebar)
 
-   Lista as camadas do store: visibilidade (olho), rótulos (T,
-   com escolha do atributo), tema (paleta: por categoria ou por
-   faixas de valor, com escolha do atributo e legenda), camada ativa (a que alimenta busca,
-   filtros e dashboard), contagem e estado de carga. O botão "i"
-   (identificar) abre os dados da camada em uma janela
-   (ui/layer-info.js). Permite abrir um GeoJSON local.
+   Lista as camadas do store: símbolo, nome (clique = camada
+   ativa, a que alimenta busca, filtros e dashboard; duplo clique =
+   propriedades), contagem, visibilidade (olho) e o botão de
+   Propriedades (js/ui/layer-properties.js), onde ficam
+   simbologia, rótulos, informação e campos. Tema e rótulos
+   ligados aparecem como etiquetas ao lado do nome.
    ============================================================ */
 
 import { el, byId } from "./dom.js";
 import { formatCount, themeClassLabel } from "./format.js";
-import { isThemeable, themeKind } from "../data/theme.js";
+import { themeKind } from "../data/theme.js";
 import { skeletonLine } from "./skeleton.js";
+import { resolveSymbol } from "../data/symbol.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -44,15 +45,11 @@ const PUPIL = "M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z";
 const ICONS = {
     eyeOpen: () => icon([EYE, PUPIL]),
     eyeClosed: () => icon([EYE, PUPIL, "M4 4l16 16"]),
-    /* "T" de texto: rótulos. */
-    label: () => icon(["M5 6.5V5h14v1.5", "M12 5v14", "M9 19h6"]),
-    /* Paleta: tema por categoria. */
-    theme: () => icon([
-        "M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.9 1.8-1.8 0-1.2-1-1.6-1-2.6 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3Z",
-        "M7.5 11.5v.01", "M9.8 7.4v.01", "M14.4 7.4v.01"
-    ]),
-    /* "i" de informação: identificar a camada. */
-    info: () => icon(["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z", "M12 11v5.5", "M12 7.6v.01"])
+    /* Controles deslizantes: propriedades da camada. */
+    properties: () => icon([
+        "M4 7h9M17 7h3", "M4 12h3M11 12h9", "M4 17h11M19 17h1",
+        "M15 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z", "M9 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z", "M17 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"
+    ])
 };
 
 const LABEL_MAX_LINES = 4;
@@ -75,7 +72,7 @@ export const buildLayerSymbol = (layer) => {
             ? "point"
             : /LineString/.test(types) && !/Polygon/.test(types)
                 ? "line"
-                : layer.style === "outline" ? "outline" : "fill";
+                : resolveSymbol(layer).fill ? "fill" : "outline";
 
     const symbol = kind === "icon"
         ? el("img", { class: "layer-symbol is-icon", src: layer.icon.url, alt: "", width: 14, height: 14 })
@@ -193,7 +190,7 @@ export const buildThemeBlock = (store, layer, themeable, { showField = true } = 
     ]);
 };
 
-export function createLayerPanel(store, { onAddFile, onIdentify }) {
+export function createLayerPanel(store, { onAddFile, onProperties }) {
     const list = byId("layer-list");
     const fileInput = byId("layer-file-input");
 
@@ -253,44 +250,12 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                 onclick: () => store.setLayerVisible(layer.id, !layer.visible)
             }, shown ? ICONS.eyeOpen() : ICONS.eyeClosed());
 
-            const labels = el("button", {
-                type: "button",
-                class: "layer-toggle layer-labels",
-                "aria-pressed": String(labelsOn),
-                "aria-label": labelsOn ? `Ocultar rótulos de ${layer.name}` : `Exibir rótulos de ${layer.name}`,
-                title: labelsOn ? "Ocultar rótulos" : "Exibir rótulos",
-                disabled: !ready,
-                dataset: { focusKey: `labels:${layer.id}` },
-                onclick: () => store.setLabels(layer.id, { visible: !layer.labels.visible })
-            }, ICONS.label());
-
-            const themeable = ready ? layer.schema.attributes.filter(isThemeable) : [];
+            /* Estado resumido ao lado do nome: tema e rótulos ligados (ajustes na janela de Propriedades). */
             const themeOn = layer.theme.visible && ready;
-
-            const theme = el("button", {
-                type: "button",
-                class: "layer-toggle layer-theme",
-                "aria-pressed": String(themeOn),
-                "aria-label": themeOn ? `Remover tema de ${layer.name}` : `Tematizar ${layer.name}`,
-                title: !themeable.length && ready
-                    ? "Sem atributos para tematizar"
-                    : themeOn ? "Remover tema" : "Tematizar (cores por atributo; ajuste em Estilos)",
-                disabled: !ready || !themeable.length,
-                dataset: { focusKey: `theme:${layer.id}` },
-                onclick: () => store.setTheme(layer.id, { visible: !layer.theme.visible })
-            }, ICONS.theme());
-
-            /* Com tema ligado: escolha do atributo e legenda (cor · valor · quantidade). */
-            const themeBlock = themeOn && layer.theme.legend
-                ? buildThemeBlock(store, layer, themeable)
-                : null;
-
-            /*
-               Com rótulos ligados: um seletor por linha do rótulo (um
-               atributo por linha, na ordem), remover linha (×) e
-               "+ Adicionar linha" (até LABEL_MAX_LINES).
-            */
-            const labelField = labelsOn ? buildLabelFields(store, layer) : null;
+            const badges = [
+                themeOn ? ["Tema", `Tema por ${layer.theme.field}`] : null,
+                labelsOn ? ["Rótulos", "Rótulos ligados"] : null
+            ].filter(Boolean).map(([text, title]) => el("span", { class: "layer-badge", text, title }));
 
             const name = el("button", {
                 type: "button",
@@ -300,7 +265,9 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                 text: layer.name,
                 dataset: { focusKey: `active:${layer.id}` },
                 disabled: layer.status !== "ready",
-                onclick: () => store.setActiveLayer(layer.id)
+                onclick: () => store.setActiveLayer(layer.id),
+                /* Como no QGIS: duplo clique no nome abre as propriedades da camada. */
+                ondblclick: () => onProperties(layer.id)
             });
 
             const symbol = buildLayerSymbol(layer);
@@ -316,15 +283,15 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                     text: metaText(layer)
                 });
 
-            const info = el("button", {
+            const properties = el("button", {
                 type: "button",
-                class: "layer-toggle layer-info-button",
-                "aria-label": `Propriedades de ${layer.name}`,
+                class: "layer-toggle layer-properties-button",
+                "aria-label": `Propriedades de ${layer.name}: simbologia, rótulos e campos`,
                 title: "Propriedades da camada",
                 disabled: !ready,
-                dataset: { focusKey: `info:${layer.id}` },
-                onclick: () => onIdentify(layer.id)
-            }, ICONS.info());
+                dataset: { focusKey: `properties:${layer.id}` },
+                onclick: () => onProperties(layer.id)
+            }, ICONS.properties());
 
             const remove = layer.source === "file" || layer.status === "error"
                 ? el("button", {
@@ -345,11 +312,9 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
                 el("div", { class: `layer-row${shown ? "" : " is-hidden"}` }, [
                     /* Nome + quantidade à esquerda; ações à direita. */
                     symbol,
-                    el("span", { class: "layer-title" }, [name, meta]),
-                    el("span", { class: "layer-actions" }, [visibility, theme, labels, info, remove])
+                    el("span", { class: "layer-title" }, [name, meta, ...badges]),
+                    el("span", { class: "layer-actions" }, [visibility, properties, remove])
                 ]),
-                labelField,
-                themeBlock,
                 error
             ]);
         }));
@@ -370,6 +335,8 @@ export function createLayerPanel(store, { onAddFile, onIdentify }) {
     store.on("view", renderLayers);
     store.on("labels", renderLayers);
     store.on("theme", renderLayers);
+    /* Cor ou preenchimento mudou: o símbolo ao lado do nome acompanha. */
+    store.on("symbol", renderLayers);
 
     renderLayers();
 }
