@@ -35,7 +35,7 @@
         crossorigin=""
     >
 
-    <link rel="stylesheet" href="css/style.css?v=20261109n">
+    <link rel="stylesheet" href="css/style.css?v=20261111a">
 
     <!-- Tema escuro por padrão; o claro só vale se o usuário o escolheu. Aplicado antes da primeira pintura. O hash na CSP corresponde a este bloco. -->
     <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
@@ -175,8 +175,8 @@
                     <!-- Simbologia: Como a camada aparece: cores e tema, rótulos, pop-ups e efeitos. -->
                     <div class="toolbar-group" role="group" aria-labelledby="tb-group-style">
                     <p class="toolbar-group-title" id="tb-group-style">Simbologia</p>
-                    <button type="button" class="toolbar-item" aria-label="Estilos" data-tooltip="Estilos" data-panel-toggle="styles" aria-controls="panel-styles" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-estilos-ui"/></svg><span class="toolbar-label">Estilos</span></button>
-                    <button type="button" class="toolbar-item" aria-label="Rótulos" data-tooltip="Rótulos" data-panel-toggle="labels" aria-controls="panel-labels" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-rotulos"/></svg><span class="toolbar-label">Rótulos</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Estilos" data-tooltip="Estilos (Propriedades da camada)" data-properties-tab="symbology" aria-controls="panel-properties" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-estilos-ui"/></svg><span class="toolbar-label">Estilos</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Rótulos" data-tooltip="Rótulos (Propriedades da camada)" data-properties-tab="labels" aria-controls="panel-properties" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-rotulos"/></svg><span class="toolbar-label">Rótulos</span></button>
                     <button type="button" class="toolbar-item" aria-label="Pop-ups" data-tooltip="Pop-ups — em breve"  aria-disabled="true" data-soon><svg class="icon" aria-hidden="true"><use href="#ic-popups-ui"/></svg><span class="toolbar-label">Pop-ups</span><span class="toolbar-soon">Em breve</span></button>
                     <button type="button" class="toolbar-item" aria-label="Efeitos" data-tooltip="Efeitos — em breve"  aria-disabled="true" data-soon><svg class="icon" aria-hidden="true"><use href="#ic-efeitos"/></svg><span class="toolbar-label">Efeitos</span><span class="toolbar-soon">Em breve</span></button>
                     </div>
@@ -185,7 +185,7 @@
                     <div class="toolbar-group" role="group" aria-labelledby="tb-group-analysis">
                     <p class="toolbar-group-title" id="tb-group-analysis">Analisar</p>
                     <button type="button" class="toolbar-item" aria-label="Tabela de atributos" data-tooltip="Tabela de atributos" data-dashboard-tab="table" aria-controls="dashboard" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#ic-tabela"/></svg><span class="toolbar-label">Tabela de atributos</span></button>
-                    <button type="button" class="toolbar-item" aria-label="Campos" data-tooltip="Campos" data-panel-toggle="fields" aria-controls="panel-fields" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-campos"/></svg><span class="toolbar-label">Campos</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Campos" data-tooltip="Campos (Propriedades da camada)" data-properties-tab="fields" aria-controls="panel-properties" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-campos"/></svg><span class="toolbar-label">Campos</span></button>
                     <button type="button" class="toolbar-item" aria-label="Gráficos" data-tooltip="Gráficos" data-panel-toggle="charts" aria-controls="panel-charts" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-grafico-barras"/></svg><span class="toolbar-label">Gráficos</span></button>
                     </div>
 
@@ -241,12 +241,10 @@
 
                     <!-- Guia rápido: o que é a camada ativa e o que faz cada ícone (além das dicas dos ícones). -->
                     <footer class="sidebar-key">
-                        <p class="sidebar-key-text">Selecione o nome para tornar a camada <strong>ativa</strong>: ela alimenta busca, filtros, Analytics e o grupo Camada ativa da barra.</p>
+                        <p class="sidebar-key-text">Selecione o nome para tornar a camada <strong>ativa</strong>: ela alimenta busca, filtros e Analytics. <strong>Duplo clique</strong> no nome abre as propriedades (simbologia, rótulos, campos).</p>
                         <ul class="sidebar-key-list">
                             <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" stroke="currentColor" stroke-width="1.8"/></svg>Exibir</li>
-                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.9 1.8-1.8 0-1.2-1-1.6-1-2.6 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Tema</li>
-                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5V5h14v1.5M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Rótulos</li>
-                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 11v5.5M12 7.6v.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Propriedades</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="15" cy="7" r="2" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="12" r="2" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="17" r="2" stroke="currentColor" stroke-width="1.8"/></svg>Propriedades</li>
                         </ul>
                     </footer>
                 </div>
@@ -451,31 +449,42 @@
 
             <!-- ===== PAINÉIS DA DIREITA (camada ativa) ===== -->
 
-            <section class="side-panel side-panel-left" id="panel-styles" aria-labelledby="panel-styles-title">
-                <header class="side-panel-header">
-                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-estilos-ui"/></svg>
+            <!--
+                PROPRIEDADES DA CAMADA (js/ui/layer-properties.js): uma janela só
+                para tudo o que é de uma camada, como no QGIS. Abas à esquerda
+                (Informação, Simbologia, Rótulos, Campos), conteúdo à direita.
+                Não é modal: o mapa fica à vista e muda na hora; Cancelar desfaz
+                o que foi mudado desde que a janela abriu. Arrasta pelo cabeçalho.
+            -->
+            <section class="side-panel layer-window" id="panel-properties" role="dialog" aria-labelledby="panel-properties-title">
+                <header class="side-panel-header layer-window-header" id="layer-window-handle">
+                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-propriedades"/></svg>
                     <div class="side-panel-heading">
-                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-styles-title">Estilos</h2>
+                        <h2 class="side-panel-title" id="panel-properties-title">Propriedades da camada</h2>
                     </div>
-                    <button type="button" class="side-panel-close" data-panel-close="styles" aria-label="Fechar estilos" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
+                    <select class="layer-window-layer" id="layer-window-layer" aria-label="Camada" title="Camada"></select>
+                    <button type="button" class="side-panel-close" data-panel-close="properties" aria-label="Fechar propriedades (mantém as mudanças)" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
                 </header>
-                <div class="side-panel-body">
-                    <div id="styles-body"></div>
+
+                <div class="layer-window-main">
+                    <div class="layer-window-tabs" id="layer-window-tabs" role="tablist" aria-label="Seções das propriedades" aria-orientation="vertical">
+                        <button type="button" role="tab" class="layer-window-tab" id="lw-tab-info" data-tab="info" aria-controls="layer-window-body" aria-selected="true"><svg class="icon" aria-hidden="true"><use href="#ic-informacao"/></svg><span>Informação</span></button>
+                        <button type="button" role="tab" class="layer-window-tab" id="lw-tab-symbology" data-tab="symbology" aria-controls="layer-window-body" aria-selected="false" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="#ic-estilos-ui"/></svg><span>Simbologia</span></button>
+                        <button type="button" role="tab" class="layer-window-tab" id="lw-tab-labels" data-tab="labels" aria-controls="layer-window-body" aria-selected="false" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="#ic-rotulos"/></svg><span>Rótulos</span></button>
+                        <button type="button" role="tab" class="layer-window-tab" id="lw-tab-fields" data-tab="fields" aria-controls="layer-window-body" aria-selected="false" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="#ic-campos"/></svg><span>Campos</span></button>
+                    </div>
+
+                    <div class="layer-window-body" id="layer-window-body" role="tabpanel" aria-labelledby="lw-tab-info" tabindex="0"></div>
                 </div>
+
+                <footer class="layer-window-footer">
+                    <button type="button" class="button button-ghost" id="layer-window-reset" title="Volta esta aba ao padrão da camada">Restaurar padrão</button>
+                    <span class="layer-window-footer-space"></span>
+                    <button type="button" class="button" id="layer-window-cancel" title="Desfaz o que foi mudado desde que a janela abriu">Cancelar</button>
+                    <button type="button" class="button button-primary" id="layer-window-ok">OK</button>
+                </footer>
             </section>
 
-            <section class="side-panel side-panel-left" id="panel-labels" aria-labelledby="panel-labels-title">
-                <header class="side-panel-header">
-                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-rotulos"/></svg>
-                    <div class="side-panel-heading">
-                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-labels-title">Rótulos</h2>
-                    </div>
-                    <button type="button" class="side-panel-close" data-panel-close="labels" aria-label="Fechar rótulos" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
-                </header>
-                <div class="side-panel-body">
-                    <div id="labels-body"></div>
-                </div>
-            </section>
 
             <section class="side-panel side-panel-left" id="panel-search" aria-labelledby="panel-search-title">
                 <header class="side-panel-header">
@@ -775,70 +784,6 @@
                     </section>
                 </div>
             </section>
-
-            <section class="side-panel side-panel-center" id="panel-properties" role="dialog" aria-modal="true" aria-labelledby="panel-properties-title">
-                <header class="side-panel-header">
-                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-propriedades"/></svg>
-                    <div class="side-panel-heading">
-                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-properties-title">Propriedades</h2>
-                    </div>
-                    <button type="button" class="side-panel-close" data-panel-close="properties" aria-label="Fechar propriedades" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
-                </header>
-                <div class="side-panel-body">
-                    <dl class="layer-info-summary" id="layer-info-summary"></dl>
-
-                    <!-- Metadados: descrição do GeoJSON + .qmd do QGIS (some quando não há nada). -->
-                    <section class="layer-info-meta" id="layer-info-metadata" aria-label="Metadados" hidden>
-                        <h3 class="settings-title">Metadados</h3>
-                        <dl class="layer-info-meta-list" id="layer-info-metadata-list"></dl>
-                    </section>
-
-                    <section class="layer-info-fields" aria-labelledby="layer-properties-fields-title">
-                        <div class="layer-info-fields-heading">
-                            <h3 class="settings-title" id="layer-properties-fields-title">Campos</h3>
-                            <p class="panel-summary" id="layer-properties-fields-summary"></p>
-                        </div>
-                        <div class="layer-info-table-scroll">
-                            <table class="data-table layer-info-table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Atributo</th>
-                                        <th scope="col">Tipo</th>
-                                        <th scope="col">Preenchidos</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="layer-properties-attributes"></tbody>
-                            </table>
-                        </div>
-                    </section>
-                </div>
-            </section>
-
-            <section class="side-panel side-panel-center" id="panel-fields" role="dialog" aria-modal="true" aria-labelledby="panel-fields-title">
-                <header class="side-panel-header">
-                    <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-campos"/></svg>
-                    <div class="side-panel-heading">
-                        <p class="side-panel-kicker" data-active-layer-name></p><h2 class="side-panel-title" id="panel-fields-title">Campos</h2>
-                    </div>
-                    <button type="button" class="side-panel-close" data-panel-close="fields" aria-label="Fechar campos" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
-                </header>
-                <div class="side-panel-body">
-                    <p class="panel-summary" id="layer-fields-summary"></p>
-                    <div class="layer-info-table-scroll">
-                        <table class="data-table layer-info-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Atributo</th>
-                                    <th scope="col">Tipo</th>
-                                    <th scope="col">Preenchidos</th>
-                                </tr>
-                            </thead>
-                            <tbody id="layer-info-attributes"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
 
         <!--
             MODO APRESENTAÇÃO (js/ui/map-controls.js): puxadores discretos

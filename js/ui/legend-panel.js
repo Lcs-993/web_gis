@@ -68,6 +68,8 @@ export function createLegendPanel(store) {
     store.on("layers", render);
     store.on("view", render);
     store.on("theme", render);
+    /* Cor ou preenchimento mudou (Propriedades › Simbologia): o símbolo acompanha. */
+    store.on("symbol", render);
 
     render();
 }

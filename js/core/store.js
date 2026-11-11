@@ -12,6 +12,7 @@
      view       filtros/busca (termo ou opções) de uma camada mudaram (payload: layer)
      selection  feature selecionada mudou
      labels     rótulos de uma camada mudaram (payload: layer)
+     symbol     simbologia de uma camada mudou (payload: layer)
      theme      tema (categoria ou faixas) de uma camada mudou (payload: layer)
      basemap    mapa base mudou
      status     mensagem de status (payload: string)
@@ -26,6 +27,7 @@
    ============================================================ */
 
 import { createEmitter } from "./events.js";
+import { EMPTY_SYMBOL } from "../data/symbol.js";
 import { applyFilters } from "../data/filters.js";
 import { inferSchema } from "../data/schema.js";
 import { buildTheme, isThemeable, themeKind } from "../data/theme.js";
@@ -40,6 +42,12 @@ const EMPTY_VIEW = Object.freeze({
     matchSet: null,
     considered: []
 });
+
+
+/* Texto dos rótulos: tamanho (px), cor, negrito e halo (contorno que destaca do fundo). */
+export const LABEL_STYLE_DEFAULTS = Object.freeze({ size: 11, color: "#ffffff", bold: true, halo: true });
+
+export const LABEL_SIZE_LIMITS = Object.freeze({ min: 8, max: 24 });
 
 
 export function createStore() {
@@ -113,6 +121,10 @@ export function createStore() {
             id: definition.id,
             name: definition.name || definition.id,
             color: definition.color,
+            /* Cor do catálogo, para "Restaurar padrão" na simbologia. */
+            defaultColor: definition.color,
+            /* Simbologia alterada pelo usuário (null = padrão); ver js/data/symbol.js. */
+            symbol: { ...EMPTY_SYMBOL },
             url: definition.url || null,
             attribution: definition.attribution || null,
             icon: definition.icon || null,
@@ -138,7 +150,8 @@ export function createStore() {
                 fields: definition.labels
                     ? (definition.labels.fields || (definition.labels.field ? [definition.labels.field] : []))
                     : [],
-                minZoom: (definition.labels && definition.labels.minZoom) || null
+                minZoom: (definition.labels && definition.labels.minZoom) || null,
+                ...LABEL_STYLE_DEFAULTS
             },
             /* Fixa a camada no fim da lista do painel, mesmo com camadas adicionadas depois. */
             keepLast: Boolean(definition.keepLast),
@@ -315,6 +328,101 @@ export function createStore() {
         }
 
         emitter.emit("labels", layer);
+    };
+
+
+    /* ---------------- simbologia (símbolo único) ---------------- */
+
+    /*
+       Ajusta a simbologia: patch = { color?, fill?, fillOpacity?,
+       strokeColor?, strokeWidth?, pointSize?, opacity? }. "color" é a
+       cor principal (layer.color); o resto fica em layer.symbol.
+       null num campo volta ao padrão; patch null restaura tudo.
+    */
+    const setSymbol = (id, patch) => {
+        const layer = getLayer(id);
+
+        if (!layer) {
+            return;
+        }
+
+        if (patch === null) {
+            layer.symbol = { ...EMPTY_SYMBOL };
+            layer.color = layer.defaultColor;
+        } else {
+            const { color, ...rest } = patch;
+
+            if (color) {
+                layer.color = color;
+            }
+
+            layer.symbol = { ...layer.symbol, ...rest };
+        }
+
+        emitter.emit("symbol", layer);
+    };
+
+
+    /* ---------------- aparência: fotografar e desfazer ---------------- */
+
+    /*
+       Fotografia da aparência de uma camada (simbologia, rótulos e
+       tema), para a janela de Propriedades desfazer com "Cancelar".
+       Guarda também qual camada estava rotulada: ligar rótulos aqui
+       desliga os da outra, e cancelar precisa devolvê-los.
+    */
+    const snapshotAppearance = (id) => {
+        const layer = getLayer(id);
+
+        if (!layer) {
+            return null;
+        }
+
+        const labeled = state.layers.find((other) => other !== layer && other.labels.visible);
+
+        return {
+            id,
+            color: layer.color,
+            symbol: { ...layer.symbol },
+            labels: { ...layer.labels, fields: layer.labels.fields.slice() },
+            theme: {
+                visible: layer.theme.visible,
+                field: layer.theme.field,
+                options: {
+                    category: { ...layer.theme.options.category },
+                    numeric: { ...layer.theme.options.numeric }
+                }
+            },
+            labeledLayerId: labeled ? labeled.id : null
+        };
+    };
+
+    const restoreAppearance = (snapshot) => {
+        const layer = snapshot ? getLayer(snapshot.id) : null;
+
+        if (!layer) {
+            return;
+        }
+
+        layer.color = snapshot.color;
+        layer.symbol = { ...snapshot.symbol };
+        emitter.emit("symbol", layer);
+
+        setLabels(layer.id, snapshot.labels);
+
+        if (snapshot.labeledLayerId && !snapshot.labels.visible) {
+            setLabels(snapshot.labeledLayerId, { visible: true });
+        }
+
+        /* As opções dos dois tipos voltam antes: setTheme recalcula a legenda com elas. */
+        layer.theme = {
+            ...layer.theme,
+            options: {
+                category: { ...snapshot.theme.options.category },
+                numeric: { ...snapshot.theme.options.numeric }
+            }
+        };
+        setTheme(layer.id, { visible: snapshot.theme.visible, field: snapshot.theme.field });
     };
 
 
@@ -609,6 +717,9 @@ export function createStore() {
         removeLayer,
         setActiveLayer,
         setLabels,
+        setSymbol,
+        snapshotAppearance,
+        restoreAppearance,
         selectMany,
         setTheme,
         addFilter,

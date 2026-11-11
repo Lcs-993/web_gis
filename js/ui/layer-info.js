@@ -1,19 +1,18 @@
 /* ============================================================
-   PROPRIEDADES E CAMPOS DA CAMADA ATIVA (painéis à esquerda)
+   INFORMAÇÃO E CAMPOS DE UMA CAMADA
 
-   Propriedades: resumo (feições, geometria, origem, CRS,
-   extensão) e metadados (descrição do GeoJSON + .qmd do QGIS).
-   Campos: os atributos descobertos no schema, com tipo e
-   quantos valores preenchidos.
+   Conteúdo das abas Informação e Campos da janela de Propriedades
+   (js/ui/layer-properties.js), para qualquer camada:
 
-   Sempre da camada ativa: o "i" da linha da camada no painel
-   Camadas torna a camada ativa e abre Propriedades.
+   Informação: resumo (feições, geometria, origem, CRS, extensão)
+   e metadados (descrição do GeoJSON + .qmd do QGIS).
+   Campos: os atributos descobertos no schema, com tipo e quantos
+   valores preenchidos.
    ============================================================ */
 
-import { el, byId } from "./dom.js";
+import { el } from "./dom.js";
 import { formatCount, formatNumber, roleLabel } from "./format.js";
 import { loadQgisMetadata } from "../data/qgis-metadata.js";
-import { layerPendingState } from "./skeleton.js";
 
 /* Coordenada em graus com 4 casas (~10 m), vírgula decimal. */
 const degrees = (value) => value.toLocaleString("pt-BR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
@@ -43,15 +42,7 @@ const geometryText = (layer) => {
         : "—";
 };
 
-export function createLayerInfo(store, { isVisible = () => true } = {}) {
-    const summary = byId("layer-info-summary");
-    const body = byId("layer-info-attributes");
-    const propertiesBody = byId("layer-properties-attributes");
-    const fieldsSummary = byId("layer-fields-summary");
-    const propertiesFieldsSummary = byId("layer-properties-fields-summary");
-    const metaSection = byId("layer-info-metadata");
-    const metaList = byId("layer-info-metadata-list");
-
+export function createLayerInfo() {
     /* layerId → metadados do .qmd (null = sem arquivo ou ainda carregando). */
     const qgisCache = new Map();
 
@@ -72,7 +63,7 @@ export function createLayerInfo(store, { isVisible = () => true } = {}) {
        (título, resumo, palavras-chave, contato, idioma, links).
        Campos vazios não aparecem; sem nada, a seção some.
     */
-    const renderMetadata = (layer, qgis) => {
+    const buildMetadata = (layer, qgis) => {
         const rows = [];
         const add = (label, value) => {
             if (value && (!Array.isArray(value) || value.length)) {
@@ -94,14 +85,54 @@ export function createLayerInfo(store, { isVisible = () => true } = {}) {
             add("Descrição do arquivo", layer.metadata.description);
         }
 
-        metaList.replaceChildren(...rows);
-        metaSection.hidden = !rows.length;
+        return rows.length
+            ? el("section", { class: "layer-info-meta", "aria-label": "Metadados" }, [
+                el("h3", { class: "settings-title", text: "Metadados" }),
+                el("dl", { class: "layer-info-meta-list" }, rows)
+            ])
+            : null;
     };
 
-    const fieldRows = (layer) => {
+    /*
+       Aba Informação. onUpdate é chamado quando o .qmd do QGIS chega
+       (buscado uma vez por camada), para a aba se redesenhar.
+    */
+    const buildInfo = (layer, onUpdate) => {
+        const metadata = layer.metadata || {};
+        const qgis = qgisCache.get(layer.id) || null;
+
+        if (layer.source === "url" && !qgisCache.has(layer.id)) {
+            qgisCache.set(layer.id, null);
+            loadQgisMetadata(layer.url).then((data) => {
+                qgisCache.set(layer.id, data);
+
+                if (data && onUpdate) {
+                    onUpdate(layer.id);
+                }
+            });
+        }
+
+        return [
+            el("dl", { class: "layer-info-summary" }, [
+                item("Feições", formatCount(layer.features.length)),
+                item("Visíveis com filtros", formatCount(layer.view.filtered.length)),
+                item("Atributos", formatCount(layer.schema.attributes.length)),
+                item("Origem", sourceText(layer)),
+                wide("Geometria", geometryText(layer)),
+                /* Como o mapa lê os dados; o CRS de origem (QGIS) só se for outro. */
+                wide("Sistema de coordenadas", metadata.crs || "—"),
+                ...(qgis && qgis.crs && qgis.crs !== metadata.crs ? [wide("CRS de origem (QGIS)", qgis.crs)] : []),
+                wide("Extensão", bboxText(metadata.bbox))
+            ]),
+            buildMetadata(layer, qgis)
+        ];
+    };
+
+    /* Aba Campos: atributo, tipo e percentual preenchido. */
+    const buildFields = (layer) => {
         const total = layer.features.length;
 
-        return layer.schema.attributes.map((attribute) =>
+        const rows = layer.schema.attributes.map((attribute) =>
             el("tr", { class: attribute.role === "empty" ? "is-empty" : null }, [
                 el("td", { class: "layer-info-name", text: attribute.name }),
                 el("td", {}, el("span", {
@@ -115,72 +146,22 @@ export function createLayerInfo(store, { isVisible = () => true } = {}) {
                 })
             ])
         );
+
+        return [
+            el("p", {
+                class: "panel-summary",
+                text: `${formatCount(layer.schema.attributes.length)} atributos em ${formatCount(total)} feições`
+            }),
+            el("div", { class: "layer-info-table-scroll" }, el("table", { class: "data-table layer-info-table" }, [
+                el("thead", {}, el("tr", {}, [
+                    el("th", { scope: "col", text: "Atributo" }),
+                    el("th", { scope: "col", text: "Tipo" }),
+                    el("th", { scope: "col", text: "Preenchidos" })
+                ])),
+                el("tbody", {}, rows)
+            ]))
+        ];
     };
 
-    const render = () => {
-        const layer = store.getActiveLayer();
-
-        if (!layer || layer.status !== "ready") {
-            /* Esqueleto enquanto carrega; mensagem clara se falhou. Campos mostra o mesmo. */
-            summary.replaceChildren(layerPendingState(layer));
-            body.replaceChildren();
-            propertiesBody.replaceChildren();
-            fieldsSummary.replaceChildren(layerPendingState(layer));
-            propertiesFieldsSummary.replaceChildren(layerPendingState(layer));
-            metaSection.hidden = true;
-            return;
-        }
-
-        const metadata = layer.metadata || {};
-        const qgis = qgisCache.get(layer.id) || null;
-
-        summary.replaceChildren(
-            item("Feições", formatCount(layer.features.length)),
-            item("Visíveis com filtros", formatCount(layer.view.filtered.length)),
-            item("Atributos", formatCount(layer.schema.attributes.length)),
-            item("Origem", sourceText(layer)),
-            wide("Geometria", geometryText(layer)),
-            /* Como o mapa lê os dados; o CRS de origem (QGIS) só se for outro. */
-            wide("Sistema de coordenadas", metadata.crs || "—"),
-            ...(qgis && qgis.crs && qgis.crs !== metadata.crs ? [wide("CRS de origem (QGIS)", qgis.crs)] : []),
-            wide("Extensão", bboxText(metadata.bbox))
-        );
-
-        renderMetadata(layer, qgis);
-
-        const total = layer.features.length;
-        const rows = fieldRows(layer);
-        const fieldSummary = `${formatCount(layer.schema.attributes.length)} atributos em ${formatCount(total)} feições`;
-
-        fieldsSummary.replaceChildren(fieldSummary);
-        propertiesFieldsSummary.replaceChildren(fieldSummary);
-
-        body.replaceChildren(...rows);
-        propertiesBody.replaceChildren(...rows.map((row) => row.cloneNode(true)));
-
-        /* .qmd do QGIS: buscado uma vez por camada, na primeira vez que ela aparece aqui. */
-        if (layer.source === "url" && !qgisCache.has(layer.id)) {
-            qgisCache.set(layer.id, null);
-            loadQgisMetadata(layer.url).then((data) => {
-                qgisCache.set(layer.id, data);
-
-                if (store.state.activeLayerId === layer.id) {
-                    render();
-                }
-            });
-        }
-    };
-
-    /* Só redesenha com o painel à vista: a busca dispara "view" a cada tecla. */
-    const refresh = () => {
-        if (isVisible()) {
-            render();
-        }
-    };
-
-    store.on("layers", refresh);
-    store.on("active", refresh);
-    store.on("view", refresh);
-
-    return { render };
+    return { buildInfo, buildFields };
 }

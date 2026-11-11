@@ -133,3 +133,18 @@ O item 5 (menus só com "Em breve") continua aberto. Opções: ocultar menus sem
 ## Desempenho
 
 Nenhuma mudança toca o desenho do Leaflet (canvas, estilos, rótulos). O modo OU percorre as feições uma vez, como o E (para no primeiro predicado verdadeiro). Os KPIs fazem até três passadas O(n) sobre o conjunto ao renderizar o Resumo (o próprio agrupamento já é O(n)); com 3.388 feições, irrelevante. O popup é montado só ao abrir, com o mesmo número de nós de antes, mais dois botões. O `backdrop-filter` do popup vale para um único elemento pequeno. A folha de módulos é DOM estático, criado uma vez.
+
+---
+
+## 13. Propriedades da camada (11/11/2026) — P1 ✅
+
+**Problema.** As opções de uma camada estavam espalhadas: ícones na linha da camada (tema, rótulos, "i"), painéis Estilos e Rótulos na barra (só para a camada ativa) e janelas centrais de Propriedades e Campos, modais. Não havia como mudar cor, contorno ou opacidade.
+
+**Impacto UX.** Três lugares para a mesma coisa; as janelas modais escondiam o mapa justamente ao mexer na aparência; simbologia fixa no catálogo.
+
+**Solução aplicada.** Uma janela **Propriedades da camada**, no modelo do QGIS: abas verticais (Informação, Simbologia, Rótulos, Campos), para qualquer camada. Não modal e arrastável, com o mapa mudando na hora; **Cancelar** desfaz, **OK** mantém, **Restaurar padrão** por aba. Simbologia nova: preenchimento, cores, espessura, tamanho do ponto e opacidade da camada; rótulos com tamanho, cor, negrito, halo e zoom mínimo. A linha da camada ficou só com olho e propriedades (duplo clique no nome abre), com etiquetas de estado.
+
+**Diferença consciente em relação ao QGIS.** Lá as mudanças só valem em Aplicar/OK; aqui valem na hora (como o painel Estilo de camadas do QGIS) e Cancelar reverte.
+
+**Pendências.** As mudanças não são gravadas entre sessões. Em telas estreitas a `main` atual não tem layout responsivo (a barra superior se sobrepõe a 390 px): a janela se adapta, o resto da interface não.
+
