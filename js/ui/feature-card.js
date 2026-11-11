@@ -43,7 +43,16 @@ export function createFeatureCard({ onDismiss, onVisibilityChange } = {}) {
        nem reabre um cartão fechado à mão, salvo com reveal (o
        usuário clicou outra vez na feição).
     */
-    const show = (selectionKey, content, { reveal = false } = {}) => {
+    const show = (selectionKey, content, { reveal = false, wide = false } = {}) => {
+        /* Cartão largo (registro de coleta): a mudança de largura refaz o enquadramento do mapa. */
+        if (card.classList.contains("is-wide") !== wide) {
+            card.classList.toggle("is-wide", wide);
+
+            if (!card.hidden && onVisibilityChange) {
+                onVisibilityChange(true, card);
+            }
+        }
+
         if (key === selectionKey) {
             if (reveal) {
                 setVisible(true);

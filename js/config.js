@@ -14,7 +14,11 @@ export const MAP_OPTIONS = {
     zoom: 17,
     minZoom: 4,
     maxZoom: 18,
-    fitMaxZoom: 16
+    fitMaxZoom: 16,
+    /* Início: abertura e botão Início centralizam as camadas neste zoom. */
+    homeZoom: 11,
+    /* Ponto de coleta clicado: centraliza nele neste zoom. */
+    pointZoom: 17
 };
 
 /* Os dois serviços usam Web Mercator e não aceitam subdomínios. */
@@ -74,6 +78,28 @@ export const THEME_BASEMAPS = {
      unidade dividida em várias feições (ex.: talhão em várias
      partes). Com busca ativa, clicar numa parte seleciona todas as
      partes com os mesmos valores nesses atributos.
+   - popup: opcional; organização do cartão da feição (o pop-up):
+       { badge: "atributo", updated: "AAAA-MM-DD",
+         sections: [{ title, fields: [...], style }] }
+     badge: atributo mostrado como selo ao lado do título.
+     updated: data dos dados, no rodapé do cartão.
+     sections: seções na ordem (cada uma vira uma aba); style é
+     "grid" (duas colunas, padrão), "metrics" (números em cartão)
+     ou "timeline" (datas em linha do tempo). Atributos fora da
+     lista entram nas seções padrão pelo tipo (Informações,
+     Medidas, Histórico). Sem popup, só as seções padrão.
+     Com template: "coleta", o cartão é o de registro de campo
+     (js/ui/popup-collection.js): fields diz qual atributo faz cada
+     papel (code, type, target, level, result, status, date, by,
+     notes, photos — URLs separadas por ";" —, farm, plot, campaign,
+     updated, updatedBy) e related: { layer, fields } liga o ponto
+     ao polígono com os mesmos valores nesses atributos.
+   - selectionGroup: opcional, só para polígonos; atributo que
+     agrupa feições (ex.: "Fazenda"). Ao selecionar uma feição,
+     todas as do mesmo grupo ganham elevação no mapa: preenchimento
+     mais firme e sombra projetada, como um bloco acima do solo.
+   - theme: opcional; { field: "atributo" } liga o tema (cores por
+     valor) desse atributo na abertura.
    - icon: opcional, só para pontos. Desenha cada ponto com uma
      imagem em vez de um círculo. Para os marcadores ilustrados
      (usina, daninhas, pragas, fogo, chuva, vento):
@@ -116,6 +142,44 @@ export const LAYERS = [
         labels: { visible: true, fields: ["Fazenda"], minZoom: 13 }
     },
     {
+        /*
+           DEMONSTRAÇÃO: 45 coletas FICTÍCIAS (pragas, doenças, daninhas,
+           qualidade e condição da lavoura) dentro de talhões reais, com
+           fotos ilustrativas em assets/coletas_demo/. Só para avaliar o
+           pop-up de coleta; remover quando houver a camada real.
+        */
+        id: "coletas_demo",
+        name: "Coletas de campo (demonstração)",
+        url: "geojson/coletas_demo.geojson",
+        color: "#f2c14e",
+        visible: true,
+        /* Pontos coloridos pelo tipo de coleta já na abertura. */
+        theme: { field: "Tipo" },
+        popup: {
+            template: "coleta",
+            /* Papel de cada atributo no pop-up (nome do atributo no arquivo). */
+            fields: {
+                code: "Código",
+                type: "Tipo",
+                target: "Alvo",
+                level: "Nível",
+                result: "Resultado",
+                status: "Status",
+                date: "Data da coleta",
+                by: "Responsável",
+                notes: "Observações",
+                photos: "Fotos",
+                farm: "Fazenda",
+                plot: "Talhão",
+                campaign: "Campanha",
+                updated: "Atualizado em",
+                updatedBy: "Atualizado por"
+            },
+            /* Polígono relacionado: o talhão com a mesma Fazenda + Talhão. */
+            related: { layer: "pol_talhoes", fields: ["Fazenda", "Talhão"] }
+        }
+    },
+    {
         id: "pol_talhoes",
         name: "Talhões",
         /*
@@ -134,7 +198,21 @@ export const LAYERS = [
         /* Sempre a última da lista, mesmo com arquivos adicionados depois. */
         keepLast: true,
         /* Um talhão pode vir em várias feições: Fazenda + Talhão identificam o talhão inteiro. */
-        partFields: ["Fazenda", "Talhão"]
+        partFields: ["Fazenda", "Talhão"],
+        /* Talhão selecionado: a fazenda inteira "sobe" com sombra projetada. */
+        selectionGroup: "Fazenda",
+        /* Cartão da feição: estágio como selo; produção e histórico em seções próprias. */
+        popup: {
+            badge: "Estágio de corte",
+            updated: "2026-11-07",
+            /* PROVISÓRIO: série NDVI fictícia só para avaliar o frontend (js/data/ndvi-mock.js). Apagar quando houver dado real. */
+            ndvi: "simulado",
+            sections: [
+                { title: "Informações", fields: ["Proprietário", "Talhão", "Origem da cana", "Variedade", "Área (ha.)", "Classificação", "Distância (Km)"] },
+                { title: "Produção", style: "metrics", fields: ["Estágio de corte", "Produção (t.)", "TCH"] },
+                { title: "Histórico", style: "timeline", fields: ["Data de plantio"] }
+            ]
+        }
     }
 ];
 

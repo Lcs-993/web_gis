@@ -17,6 +17,7 @@
 
 import { labelAnchor } from "./label-anchor.js";
 import { baseFillOpacity, resolveSymbol } from "../data/symbol.js";
+import { getAttribute, isEmpty, normalizeText } from "../data/values.js";
 
 const STATE_DEFAULT = 0;
 const STATE_MATCH = 1;
@@ -24,6 +25,8 @@ const STATE_SELECTED = 2;
 const STATE_SELECTED_MATCH = 3;
 /* Busca ativa e a feição não casa com ela: esmaecida. */
 const STATE_DIMMED = 4;
+/* Fora do grupo elevado (ex.: talhão de outra fazenda, com um talhão selecionado): recua um pouco. */
+const STATE_OUTSIDE = 5;
 
 const isSelectedState = (state) => state === STATE_SELECTED || state === STATE_SELECTED_MATCH;
 
@@ -91,6 +94,17 @@ const styleFor = (symbol, color, state, kind, themed = false) => {
             /* Quase some: fica só um vestígio da forma, para não competir com os achados. */
             opacity: (isPoint ? 0.2 : filled ? 0.07 : 0.3) * layerOpacity,
             fillOpacity: (isPoint ? 0.15 : themed ? 0.05 : 0.03) * layerOpacity
+        };
+    }
+
+    /* Fora do grupo elevado: mais apagada que o normal, mas ainda legível (não some como na busca). */
+    if (state === STATE_OUTSIDE) {
+        return {
+            ...base,
+            color: strokeColor,
+            weight: symbol.strokeWidth,
+            opacity: symbol.strokeOpacity * 0.45 * layerOpacity,
+            fillOpacity: fill * 0.4 * layerOpacity
         };
     }
 
@@ -202,6 +216,23 @@ export function createMapView(L, element, { options, basemaps }) {
 
     labelPane.style.zIndex = "450";
     labelPane.style.pointerEvents = "none";
+
+    /*
+       Elevação do grupo da seleção (ex.: a fazenda do talhão
+       selecionado; config.js: selectionGroup). As feições do grupo
+       são redesenhadas, sem contorno e com preenchimento mais firme,
+       num canvas próprio logo abaixo das camadas; o painel inteiro
+       projeta uma sombra (CSS drop-shadow, .leaflet-elevated-pane).
+       A sombra sai da forma unida do grupo, como a "Sombra projetada"
+       do QGIS, e cai sobre o terreno e os vizinhos. As feições
+       originais seguem por cima: seleção, pontos e cliques não mudam.
+    */
+    const elevatedPane = map.createPane("elevated");
+
+    elevatedPane.style.zIndex = "390";
+    elevatedPane.style.pointerEvents = "none";
+
+    const elevatedRenderer = L.canvas({ pane: "elevated", padding: 0.5 });
 
     /* layerId → { group, paths, shown, styles, points, color, attribution, onMap, labels… } */
     const entries = new Map();
@@ -670,24 +701,43 @@ export function createMapView(L, element, { options, basemaps }) {
             setEntryOnMap(entry, layer.visible);
         });
 
-        raiseOutlines();
+        listOrder = layers.map((layer) => layer.id);
+        restack();
+        /* Camada ligada/desligada: a elevação aparece ou some junto. */
+        scheduleElevation();
         notifyContent();
 
         return created;
     };
 
     /*
-       Camadas de contorno (referência) ficam sempre por cima das de
-       preenchimento: são só linhas e não recebem clique, então não
-       escondem nem bloqueiam nada. Refeito quando uma camada volta
-       ao mapa ou feições reentram após um filtro.
+       Ordem de desenho (e de clique) no canvas compartilhado. Sem
+       isto, valia a ordem em que as camadas terminavam de carregar:
+       uma camada leve de pontos, carregada antes, ficava sob os
+       talhões e o clique abria o talhão.
+       De baixo para cima: polígonos, linhas, pontos e, por último,
+       as camadas de contorno (referência, sem clique). No mesmo
+       nível, vale a ordem do painel Camadas (a de cima, por cima).
+       A de baixo de tudo não é mexida (costuma ser a mais pesada).
+       Refeito quando camadas entram, feições reentram após um
+       filtro ou uma feição selecionada sobe (bringToFront).
     */
-    const raiseOutlines = () => {
-        entries.forEach((entry) => {
-            if (entry.outline && entry.onMap) {
+    const KIND_RANK = { polygon: 0, line: 1, point: 2 };
+    let listOrder = [];
+
+    const restack = () => {
+        const rank = (entry) => entry.outline ? 3 : KIND_RANK[entry.symbol.kind] ?? 0;
+        const stack = listOrder
+            .map((id, index) => ({ entry: entries.get(id), index }))
+            .filter(({ entry }) => entry && entry.onMap)
+            .sort((a, b) => rank(a.entry) - rank(b.entry) || b.index - a.index);
+
+        stack.slice(1).forEach(({ entry }) => {
+            if (entry.haloGroup) {
                 entry.haloGroup.bringToFront();
-                entry.group.bringToFront();
             }
+
+            entry.group.bringToFront();
         });
     };
 
@@ -700,12 +750,83 @@ export function createMapView(L, element, { options, basemaps }) {
         }
     };
 
+    /* ---------------- elevação do grupo da seleção ---------------- */
+
+    const ELEVATED_FILL = 0.55;
+    let elevation = null;
+    let elevationSelection = null;
+    let elevationFrame = 0;
+
+    /* Valor do atributo de grupo (comparável), ou null se vazio. */
+    const groupKeyOf = (layer, uid) => {
+        const value = getAttribute(layer.features[uid], layer.selectionGroup);
+
+        return isEmpty(value) ? null : normalizeText(value);
+    };
+
+    const updateElevation = () => {
+        if (elevation) {
+            elevation.remove();
+            elevation = null;
+        }
+
+        const selection = elevationSelection;
+        const entry = selection ? entries.get(selection.layerId) : null;
+
+        if (!entry || !entry.groupSet || !entry.onMap) {
+            return;
+        }
+
+        const layer = entry.layer;
+        const themed = entry.themeColors !== null;
+        const copies = [];
+
+        entry.groupSet.forEach((uid) => {
+            if (!entry.paths[uid] || !entry.shown[uid] || entry.styles[uid] === STATE_DIMMED) {
+                return;
+            }
+
+            try {
+                copies.push(L.GeoJSON.geometryToLayer(layer.features[uid], {
+                    renderer: elevatedRenderer,
+                    interactive: false,
+                    stroke: false,
+                    fill: true,
+                    fillColor: themed ? entry.themeColors[uid] : entry.color,
+                    fillOpacity: ELEVATED_FILL * entry.symbol.opacity
+                }));
+            } catch (error) {
+                /* Geometria que o Leaflet não desenha: fica sem elevação. */
+            }
+        });
+
+        if (copies.length) {
+            elevation = L.layerGroup(copies).addTo(map);
+        }
+    };
+
+    /* Um quadro por atualização: restyle roda por feição, em laço. */
+    const scheduleElevation = () => {
+        if (!elevationFrame) {
+            elevationFrame = requestAnimationFrame(() => {
+                elevationFrame = 0;
+                updateElevation();
+            });
+        }
+    };
+
     const restyle = (entry, uid, state) => {
         if (entry.styles[uid] === state) {
             return;
         }
 
         entry.styles[uid] = state;
+
+        /* Cor, tema, filtro ou busca mudaram na camada elevada: a elevação acompanha. */
+        if (entry.groupSet && elevationSelection && elevationSelection.layerId === entry.layer.id) {
+            scheduleElevation();
+        }
+
         const themed = entry.themeColors !== null;
         const color = themed ? entry.themeColors[uid] : entry.color;
 
@@ -719,7 +840,8 @@ export function createMapView(L, element, { options, basemaps }) {
 
             entry.halos[uid].setStyle({
                 opacity: (state === STATE_DIMMED ? OUTLINE_HALO.opacity * 0.35 : OUTLINE_HALO.opacity) * visible,
-                weight: entry.symbol.strokeWidth + 1.7
+                /* Halo estreito (1 px além da linha): a linha da fazenda não engrossa à vista. */
+                weight: entry.symbol.strokeWidth + 1
             });
         }
 
@@ -758,7 +880,12 @@ export function createMapView(L, element, { options, basemaps }) {
         }
 
         /* Busca ativa em outra camada: esta inteira esmaece (Fazendas, Unidade Industrial…). */
-        return otherLayerSearching(layer.id) ? STATE_DIMMED : STATE_DEFAULT;
+        if (otherLayerSearching(layer.id)) {
+            return STATE_DIMMED;
+        }
+
+        /* Um grupo elevado nesta camada: quem está fora dele recua. */
+        return entry.groupSet && !entry.groupSet.has(uid) ? STATE_OUTSIDE : STATE_DEFAULT;
     };
 
     /* Liga/desliga o esmaecimento das outras camadas quando a busca de uma começa ou termina. */
@@ -833,8 +960,13 @@ export function createMapView(L, element, { options, basemaps }) {
             drawLabels(entry);
         }
 
-        raiseOutlines();
+        restack();
         syncSearchFocus(layer);
+
+        /* Filtro tirou ou devolveu feições do grupo elevado. */
+        if (elevationSelection && elevationSelection.layerId === layer.id) {
+            scheduleElevation();
+        }
         notifyContent();
     };
 
@@ -851,7 +983,15 @@ export function createMapView(L, element, { options, basemaps }) {
             const next = new Set(mine ? selection.uids : []);
             const nextPrimary = mine ? selection.uid : null;
 
-            if (entry.selectedUid === nextPrimary && previous.size === next.size &&
+            /* Grupo elevado (selectionGroup): as feições com o mesmo valor do selecionado. */
+            const groupable = mine && layer.selectionGroup && entry.symbol.kind === "polygon" && entry.symbol.fill;
+            const keys = groupable
+                ? new Set(selection.uids.map((uid) => groupKeyOf(layer, uid)).filter((key) => key !== null))
+                : null;
+            const groupId = keys && keys.size ? Array.from(keys).sort().join("|") : null;
+            const groupChanged = groupId !== (entry.groupId || null);
+
+            if (!groupChanged && entry.selectedUid === nextPrimary && previous.size === next.size &&
                 Array.from(next).every((uid) => previous.has(uid))) {
                 return;
             }
@@ -859,20 +999,36 @@ export function createMapView(L, element, { options, basemaps }) {
             entry.selectedUid = nextPrimary;
             entry.selectedSet = next;
 
-            /* Repinta só o que mudou de estado (entrou ou saiu da seleção). */
-            const changed = new Set([...previous, ...next]);
+            if (groupChanged) {
+                entry.groupId = groupId;
+                entry.groupSet = groupId
+                    ? new Set(layer.features.map((_, uid) => uid).filter((uid) => keys.has(groupKeyOf(layer, uid))))
+                    : null;
 
-            changed.forEach((uid) => {
-                if (entry.paths[uid] && entry.shown[uid]) {
-                    restyle(entry, uid, stateOf(entry, layer, uid));
-                }
-            });
+                /* Entrou, saiu ou trocou de grupo: todas as feições mudam (dentro sobe, fora recua). */
+                restyleAll(entry, layer);
+            } else {
+                /* Repinta só o que mudou de estado (entrou ou saiu da seleção). */
+                const changed = new Set([...previous, ...next]);
+
+                changed.forEach((uid) => {
+                    if (entry.paths[uid] && entry.shown[uid]) {
+                        restyle(entry, uid, stateOf(entry, layer, uid));
+                    }
+                });
+            }
 
             /* A selecionada ganha prioridade de rótulo. */
             if (entry.labels) {
                 drawLabels(entry);
             }
         });
+
+        /* O polígono selecionado subiu (bringToFront): os pontos voltam para cima dele. */
+        restack();
+
+        elevationSelection = selection || null;
+        scheduleElevation();
     };
 
 
@@ -896,6 +1052,30 @@ export function createMapView(L, element, { options, basemaps }) {
         });
 
         return true;
+    };
+
+    /*
+       Leva um ponto ao centro da área livre do mapa (descontando os
+       painéis e o cartão da feição, em insets). Com zoom, vai também
+       para esse zoom; sem ele, mantém o atual.
+    */
+    const centerOn = ([lng, lat], zoom = null) => {
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return;
+        }
+
+        map.invalidateSize({ animate: false });
+
+        const level = Number.isFinite(zoom)
+            ? Math.min(map.getMaxZoom(), Math.max(map.getMinZoom(), zoom))
+            : map.getZoom();
+        const offset = L.point(
+            (insets.left - insets.right) / 2,
+            (insets.top - insets.bottom) / 2
+        );
+        const target = map.project(L.latLng(lat, lng), level).subtract(offset);
+
+        map.setView(map.unproject(target, level), level, { animate: map.getSize().x > 0 });
     };
 
     const fitFeatures = (layerId, uids, maxZoom = options.fitMaxZoom + 1) => {
@@ -954,7 +1134,33 @@ export function createMapView(L, element, { options, basemaps }) {
     };
 
     /* Repõe o enquadramento total das camadas ligadas (botão Home e carga inicial). */
-    const fitExtent = () => fitBounds(extentBounds(), options.fitMaxZoom);
+    /*
+       Início (abertura, botão Início e Analytics sem foco): o centro
+       da extensão das camadas ligadas, no zoom fixo de options.homeZoom
+       (config.js), descontando os painéis abertos. Sem homeZoom, cabe
+       a extensão inteira.
+    */
+    const fitExtent = () => {
+        const bounds = extentBounds();
+
+        if (!Number.isFinite(options.homeZoom)) {
+            return fitBounds(bounds, options.fitMaxZoom);
+        }
+
+        if (!bounds.isValid()) {
+            return false;
+        }
+
+        map.invalidateSize({ animate: false });
+
+        const zoom = options.homeZoom;
+        const offset = L.point((insets.left - insets.right) / 2, (insets.top - insets.bottom) / 2);
+        const target = map.project(bounds.getCenter(), zoom).subtract(offset);
+
+        map.setView(map.unproject(target, zoom), zoom, { animate: map.getSize().x > 0 });
+
+        return true;
+    };
 
     const hasExtent = () => extentBounds().isValid();
 
@@ -994,6 +1200,7 @@ export function createMapView(L, element, { options, basemaps }) {
         setSymbol,
         setTheme,
         fitFeatures,
+        centerOn,
         fitExtent,
         hasExtent,
         onFeatureClick: (handler) => { handlers.featureClick = handler; },

@@ -24,6 +24,7 @@ import { BREAK_METHODS, RAMP_TYPES, listRamps, rampGradient, rampName } from "..
 import { SYMBOL_LIMITS, baseFillOpacity, resolveSymbol } from "../data/symbol.js";
 import { LABEL_SIZE_LIMITS } from "../core/store.js";
 import { formatCount } from "./format.js";
+import { openColorPicker } from "./color-picker.js";
 
 /* Número digitado (aceita vírgula decimal): "3,77" → 3.77; inválido → null. */
 const parseTyped = (text) => {
@@ -157,33 +158,55 @@ export function createAppearanceEditor(store, { rerender, quiet }) {
         ]);
     };
 
-    /* Linha "rótulo + cor": amostra clicável (seletor do sistema) e o código da cor. */
+    /*
+       Linha "rótulo + cor": amostra clicável e o código da cor. A
+       amostra abre o seletor do app (js/ui/color-picker.js), não o
+       do sistema: enquanto se escolhe, o mapa muda sem redesenhar a
+       aba; ao fechar, a cor final é gravada.
+    */
     const colorRow = ({ label, value, focusKey, disabled, hint, onChange }) => {
         const code = el("span", { class: "prop-value prop-color-code", text: String(value).toUpperCase() });
         const live = throttled((color) => quiet(() => onChange(color)));
+        const paint = (color) => {
+            well.style.setProperty("--swatch", color);
+            code.textContent = color.toUpperCase();
+        };
 
-        return el("label", { class: "prop-row" }, [
+        const well = el("button", {
+            type: "button",
+            class: "prop-color",
+            disabled: Boolean(disabled),
+            "aria-haspopup": "dialog",
+            "aria-expanded": "false",
+            "aria-label": `${label}: ${String(value).toUpperCase()}. Escolher cor`,
+            dataset: { focusKey },
+            onclick: () => openColorPicker(well, {
+                value,
+                title: label,
+                onInput: (color) => {
+                    paint(color);
+                    live(color);
+                },
+                onChange: (color) => {
+                    paint(color);
+                    onChange(color);
+                }
+            })
+        });
+
+        paint(value);
+
+        return el("div", { class: "prop-row" }, [
             el("span", { class: "prop-label" }, [
                 el("span", { text: label }),
                 hint ? el("span", { class: "settings-hint", text: hint }) : null
             ]),
-            el("input", {
-                type: "color",
-                class: "prop-color",
-                value,
-                disabled: Boolean(disabled),
-                dataset: { focusKey },
-                oninput: (event) => {
-                    code.textContent = event.target.value.toUpperCase();
-                    live(event.target.value);
-                },
-                onchange: (event) => onChange(event.target.value)
-            }),
+            well,
             code
         ]);
     };
 
-    /* input type="color" só aceita #rrggbb: cores nomeadas ou hsl() do catálogo viram hex. */
+    /* O seletor trabalha em #rrggbb: cores nomeadas ou hsl() do catálogo viram hex. */
     const toHex = (color) => {
         if (/^#[0-9a-f]{6}$/i.test(color || "")) {
             return color.toLowerCase();

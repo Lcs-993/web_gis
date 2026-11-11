@@ -36,7 +36,16 @@ export const SYMBOL_LIMITS = Object.freeze({
     pointSize: { min: 2, max: 20, step: 1 }
 });
 
-const POLYGON_STROKE = "#ffffff";
+/*
+   Espessuras padrão do contorno de polígonos: a divisa dos talhões
+   (com preenchimento) e o contorno das camadas de referência
+   (style "outline", ex.: Fazendas), um terço mais grosso que ela.
+*/
+export const POLYGON_STROKE_WIDTH = 0.8;
+export const OUTLINE_STROKE_WIDTH = POLYGON_STROKE_WIDTH * 4 / 3;
+
+/* TESTE: divisa preta (antes "#ffffff", branca). Para voltar, troque aqui. */
+const POLYGON_STROKE = "#000000";
 const POINT_STROKE = "#1d1d1f";
 
 /* Geometria predominante: decide quais controles fazem sentido. */
@@ -75,7 +84,13 @@ export function resolveSymbol(layer) {
         strokeColor: colorOnStroke
             ? layer.color
             : custom.strokeColor ?? (kind === "point" ? POINT_STROKE : POLYGON_STROKE),
-        strokeWidth: custom.strokeWidth ?? (kind === "line" ? 2 : colorOnStroke ? 1.3 : kind === "point" ? 1 : 0.8),
+        strokeWidth: custom.strokeWidth ?? (
+            kind === "line" ? 2
+                : kind === "point" ? 1
+                    : outline && !fill ? OUTLINE_STROKE_WIDTH
+                        : colorOnStroke ? 1.3
+                            : POLYGON_STROKE_WIDTH
+        ),
         /* Divisa branca fina e translúcida por padrão; cor escolhida pelo usuário entra cheia. */
         strokeOpacity: colorOnStroke ? 1 : custom.strokeColor !== null ? 1 : kind === "point" ? 0.95 : 0.55,
         pointSize: custom.pointSize ?? 5,

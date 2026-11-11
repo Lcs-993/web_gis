@@ -130,6 +130,14 @@ export function createToolbars(store, { onAction, dashboardTabs, onLayoutChange 
     };
 
 
+    /* Estados que mudam fora dos painéis (ex.: Minha localização, ligada quando a posição chega): o indicador acompanha. */
+    new MutationObserver(() => refreshIndicator(left)).observe(left, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["aria-pressed", "aria-expanded"]
+    });
+
+
     /* ---------------- expandir / recolher (esquerda) ---------------- */
 
     const setExpanded = (on, { save = true } = {}) => {

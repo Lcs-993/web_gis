@@ -22,6 +22,7 @@ import { createStatusBar } from "./ui/status.js";
 import { createLoadingOverlay } from "./ui/loading.js";
 import { createModuleMenu } from "./ui/module-menu.js";
 import { buildPopup } from "./ui/popup.js";
+import { buildCollectionPopup } from "./ui/popup-collection.js";
 import { createFeatureCard } from "./ui/feature-card.js";
 import { createToolbars } from "./ui/toolbar.js";
 import { createLayerTools } from "./ui/layer-tools.js";
@@ -31,7 +32,7 @@ import { createFilterMenu } from "./ui/filter-menu.js";
 import { createChartsPanel } from "./ui/charts-panel.js";
 import { createContextMenu } from "./ui/context-menu.js";
 import { formatCount, formatValue } from "./ui/format.js";
-import { getAttribute, isEmpty } from "./data/values.js";
+import { getAttribute, isEmpty, normalizeText } from "./data/values.js";
 
 const store = createStore();
 const status = createStatusBar(store);
@@ -57,6 +58,7 @@ const createNullMapView = () => {
         setTheme: noop,
         setSymbol: noop,
         fitFeatures: () => false,
+        centerOn: noop,
         fitExtent: () => false,
         hasExtent: () => false,
         onFeatureClick: noop,
@@ -184,7 +186,9 @@ const LEFT_PANELS = [
     ["legend", "panel-legend"],
     ["charts", "panel-charts"],
     ["filters", "filter-panel"],
-    ["search", "panel-search"]
+    ["search", "panel-search"],
+    /* Mapa base: botão no grupo Mapa da barra esquerda. */
+    ["basemap", "panel-basemap"]
 ];
 
 /*
@@ -226,6 +230,17 @@ const syncPropertiesTriggers = () => {
 };
 let layerProperties = null;
 
+/*
+   Fecha todo pop-up aberto: o cartão da feição (aqui) e, pelo
+   evento "webgis:close-popups", os que vivem em outros módulos
+   (foto ampliada, seletor de cor). Menus suspensos e de contexto
+   já fecham com o clique que abriu a tabela.
+*/
+const closePopups = () => {
+    featureCard.hide();
+    document.dispatchEvent(new CustomEvent("webgis:close-popups"));
+};
+
 /* Largura ocupada pelo painel aberto de um lado (o mapa enquadra fora dele). */
 const panelInset = (group) => {
     const open = group.find(([id]) => panels.isOpen(id));
@@ -238,8 +253,6 @@ const panels = createPanels([
     ...sidePanel(LEFT_PANELS, "left-panel-open"),
     /* popover: foco entra na janela ao abrir e o clique fora (no fundo escurecido) fecha. */
     ...sidePanel(CENTER_PANELS, "center-panel-open").map((panel) => ({ ...panel, popover: true })),
-    /* Mapa base: janela ao lado dos controles do mapa; convive com as da esquerda e fecha com clique fora. */
-    { id: "basemap", element: "panel-basemap", useHidden: false, popover: true },
     /*
        Propriedades da camada: janela flutuante, não modal (o mapa
        muda à vista) e convive com as da esquerda e com o Analytics.
@@ -285,9 +298,28 @@ const panels = createPanels([
                 dashboard.onOpen();
             }
 
-            /* Seleção já existente: com o Analytics, vai também para a linha da tabela; sem ele, o cartão ganha "Mostrar na tabela". */
+            /*
+               Abrir a tabela fecha os pop-ups, sejam quais forem (cartão da
+               feição, foto ampliada, seletor de cor, menus), e a janela da
+               lateral esquerda (Camadas, Legenda, Gráficos, Filtro,
+               Pesquisa, Mapa base): a tabela ganha a largura toda.
+            */
+            if (open) {
+                closePopups();
+                LEFT_PANELS.forEach(([panel]) => {
+                    if (panels.isOpen(panel)) {
+                        panels.close(panel);
+                    }
+                });
+            }
+
+            /*
+               Seleção já existente: com o Analytics aberto, vai só para a
+               linha da tabela (sem cartão); ao fechar, o cartão volta, com
+               "Ver na tabela".
+            */
             if (store.state.selection) {
-                presentSelection(store.state.selection);
+                presentSelection(store.state.selection, { card: !open });
             }
 
             /*
@@ -364,7 +396,7 @@ const fitToFocus = () => {
    feições selecionadas: sem cartão (seria só de uma delas), salvo
    partes da mesma unidade.
 */
-const presentSelection = (selection, { reveal = false } = {}) => {
+const presentSelection = (selection, { reveal = false, card = true } = {}) => {
     const inTable = Boolean(
         dashboard &&
         panels.isOpen("dashboard") &&
@@ -378,7 +410,8 @@ const presentSelection = (selection, { reveal = false } = {}) => {
     const layer = store.getLayer(selection.layerId);
     const feature = store.getSelectedFeature();
 
-    if (!(selection.uids.length === 1 || selection.parts) || !layer || !feature) {
+    /* card: false — só a linha da tabela (ao abrir o Analytics, os pop-ups fecham). */
+    if (!card || !(selection.uids.length === 1 || selection.parts) || !layer || !feature) {
         featureCard.hide();
         return;
     }
@@ -386,7 +419,7 @@ const presentSelection = (selection, { reveal = false } = {}) => {
     const { layerId, uid } = selection;
 
     /* A chave inclui o modo: ao abrir ou fechar o Analytics, o conteúdo troca ("Mostrar na tabela" só faz sentido fora dela). */
-    featureCard.show(`${inTable ? "tabela" : "mapa"}:${layerId}:${uid}`, buildPopup(layer, feature, {
+    const actions = {
         onZoom: () => mapView.fitFeatures(layerId, [uid], MAP_OPTIONS.fitMaxZoom + 1),
         /* Abre o Analytics na camada da feição: a tabela vai até a linha. */
         onShowInTable: dashboard && !inTable
@@ -394,13 +427,79 @@ const presentSelection = (selection, { reveal = false } = {}) => {
                 store.setActiveLayer(layerId);
 
                 if (panels.isOpen("dashboard")) {
-                    presentSelection(store.state.selection);
+                    /* Ir para a tabela fecha os pop-ups, como ao abri-la. */
+                    closePopups();
+                    presentSelection(store.state.selection, { card: false });
                 } else {
                     panels.open("dashboard");
                 }
             }
             : null
-    }), { reveal });
+    };
+    const isCollection = Boolean(layer.popup && layer.popup.template === "coleta");
+
+    featureCard.show(
+        `${inTable ? "tabela" : "mapa"}:${layerId}:${uid}`,
+        isCollection
+            ? buildCollectionPopup(layer, feature, { ...actions, related: relatedFeatures(layer, feature) })
+            : buildPopup(layer, feature, actions),
+        { reveal, wide: isCollection }
+    );
+};
+
+/*
+   Polígono relacionado a um ponto (config.js: popup.related): as
+   feições da outra camada com os mesmos valores nos atributos
+   indicados (ex.: Fazenda + Talhão). "Ver no mapa" enquadra todas.
+*/
+const relatedFeatures = (layer, feature) => {
+    const rule = layer.popup && layer.popup.related;
+    const target = rule ? store.getLayer(rule.layer) : null;
+
+    if (!target || target.status !== "ready" || !Array.isArray(rule.fields) || !rule.fields.length) {
+        return null;
+    }
+
+    const wanted = rule.fields.map((field) => getAttribute(feature, field));
+
+    if (wanted.some(isEmpty)) {
+        return null;
+    }
+
+    const key = wanted.map((value) => normalizeText(value)).join("\u0000");
+    const uids = [];
+
+    target.features.forEach((candidate, index) => {
+        if (rule.fields.map((field) => normalizeText(getAttribute(candidate, field) ?? "")).join("\u0000") === key) {
+            uids.push(index);
+        }
+    });
+
+    return {
+        count: uids.length,
+        onLocate: () => {
+            if (!target.visible) {
+                store.setLayerVisible(target.id, true);
+            }
+
+            mapView.fitFeatures(target.id, uids, MAP_OPTIONS.fitMaxZoom);
+        }
+    };
+};
+
+/*
+   Ponto de coleta (popup.template "coleta") clicado: depois que o
+   cartão abre (e o mapa sabe a largura dele), o ponto vai para o
+   centro da área livre, no zoom MAP_OPTIONS.pointZoom (17).
+*/
+const centerCollectionPoint = (layerId, uid) => {
+    const layer = store.getLayer(layerId);
+    const feature = layer ? layer.features[uid] : null;
+
+    if (layer && layer.popup && layer.popup.template === "coleta" &&
+        feature && feature.geometry && feature.geometry.type === "Point") {
+        mapView.centerOn(feature.geometry.coordinates, MAP_OPTIONS.pointZoom);
+    }
 };
 
 mapView.onFeatureClick(({ layerId, uid }) => {
@@ -409,10 +508,11 @@ mapView.onFeatureClick(({ layerId, uid }) => {
 
     if (current && current.layerId === layerId && current.uid === uid && (current.uids.length === 1 || current.parts)) {
         presentSelection(current, { reveal: true });
-        return;
+    } else {
+        store.select(layerId, uid);
     }
 
-    store.select(layerId, uid);
+    centerCollectionPoint(layerId, uid);
 });
 
 mapView.onEmptyClick(() => store.select(null));
@@ -496,6 +596,12 @@ const loadLayer = async (definition, loader) => {
 
         /* Schema, índice de busca e desenho rodam aqui, ainda com "Preparando" na tela. */
         store.setLayerData(layer.id, data);
+
+        /* Tema pedido no catálogo (config.js: theme.field), ligado na abertura. */
+        if (definition.theme && definition.theme.field) {
+            store.setTheme(layer.id, { visible: true, field: definition.theme.field });
+        }
+
         store.setStatus(`${layer.name}: ${formatCount(data.features.length)} feições`);
         notifications.notify(`${layer.name}: ${formatCount(data.features.length)} feições carregadas`, "success");
 

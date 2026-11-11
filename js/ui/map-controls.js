@@ -1,7 +1,7 @@
 /*
-   Controles do mapa (coluna única no pé da barra direita, ou no
-   canto do mapa com a barra recolhida; js/ui/toolbar.js): minha
-   localização, início e zoom. O botão Apresentar (barra superior)
+   Controles do mapa, no grupo Navegar da barra de ferramentas da
+   esquerda (index.html; js/ui/toolbar.js): minha localização,
+   início e zoom; o Mapa base fica no grupo Mapa. O botão Apresentar (barra superior)
    põe a aplicação em tela cheia. E o painel Mapa base (barra
    esquerda), com uma miniatura de cada serviço.
 
@@ -31,8 +31,8 @@ export function createMapControls(store, mapView, basemaps) {
         const ready = mapView.hasExtent();
 
         homeButton.disabled = !ready;
-        homeButton.title = ready ? "Início: extensão total das camadas" : "Nenhuma camada ligada para enquadrar";
-        homeButton.setAttribute("aria-label", homeButton.title);
+        homeButton.dataset.tooltip = ready ? "Início: extensão total das camadas" : "Nenhuma camada ligada para enquadrar";
+        homeButton.setAttribute("aria-label", homeButton.dataset.tooltip);
     };
 
     homeButton.addEventListener("click", () => mapView.fitExtent());
@@ -98,8 +98,8 @@ export function createMapControls(store, mapView, basemaps) {
 
     /*
        Modo apresentação: em tela cheia, a barra superior e a barra
-       esquerda somem (ficam só o mapa, a caixa de busca e os
-       controles). Levar o mouse até a borda (topo ou esquerda) traz a
+       esquerda (com os controles do mapa) somem: ficam o mapa e a
+       caixa de busca; zoom pela roda do mouse ou + e −. Levar o mouse até a borda (topo ou esquerda) traz a
        barra de volta, por cima do mapa; ela some de novo pouco depois
        que o mouse sai, salvo com um menu ou cartão dela aberto.
        O foco do teclado (Tab) também revela a barra.
@@ -320,9 +320,13 @@ export function createMapControls(store, mapView, basemaps) {
 /* Sem Leaflet (CDN bloqueada): os controles ficam inertes. */
 export function disableMapControls() {
     /* A busca (fora destes controles) segue funcionando: ela trabalha nos dados, não no mapa. */
-    document.querySelectorAll(".map-controls button").forEach((button) => {
-        button.disabled = true;
-        button.title = "Mapa indisponível";
-        button.setAttribute("aria-label", "Mapa indisponível");
+    ["basemap-button", "locate-button", "home-button", "zoom-in-button", "zoom-out-button"].forEach((id) => {
+        const button = byId(id);
+
+        if (button) {
+            button.disabled = true;
+            button.dataset.tooltip = "Mapa indisponível";
+            button.setAttribute("aria-label", "Mapa indisponível");
+        }
     });
 }
