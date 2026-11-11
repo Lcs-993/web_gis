@@ -157,6 +157,10 @@ export function createStore() {
             keepLast: Boolean(definition.keepLast),
             /* Atributos que juntam as partes de uma mesma unidade (config.js). */
             partFields: Array.isArray(definition.partFields) ? definition.partFields : [],
+            /* Organização do cartão da feição: selo, seções e data dos dados (config.js; js/ui/popup.js). */
+            popup: definition.popup || null,
+            /* Atributo que agrupa a seleção (ex.: "Fazenda"): o grupo do selecionado ganha elevação no mapa. */
+            selectionGroup: definition.selectionGroup || null,
             /* Tema: atributo, legenda calculada e as opções de cada tipo (rampa, classes…). */
             theme: {
                 visible: false,

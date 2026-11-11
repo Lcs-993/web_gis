@@ -148,7 +148,7 @@
                 Só ícones (48 px) ou ícone + rótulo (240 px), pelo botão do
                 rodapé, pelo ☰ ou pela tecla [. Itens "Em breve" ficam
                 desabilitados. js/ui/toolbar.js.
-                Blocos por função, de cima para baixo: Mapa, Consultar,
+                Blocos por função, de cima para baixo: Mapa, Navegar, Consultar,
                 Camada (propriedades da camada ativa, como o painel de
                 configurações de camada do ArcGIS) e Analisar; no pé, Conta,
                 Configurações, Sobre e expandir. Com a barra expandida, cada bloco mostra o
@@ -158,12 +158,22 @@
                 <div class="toolbar-scroll">
                     <span class="toolbar-indicator" aria-hidden="true"></span>
 
-                    <!-- Mapa: Conteúdo do mapa: camadas e legenda (o mapa base fica nos controles do mapa). -->
+                    <!-- Mapa: Conteúdo do mapa: camadas, legenda e mapa base. -->
                     <div class="toolbar-group" role="group" aria-labelledby="tb-group-map">
                     <p class="toolbar-group-title" id="tb-group-map">Mapa</p>
                     <button type="button" class="toolbar-item" aria-label="Camadas" data-tooltip="Camadas" data-panel-toggle="layers" aria-controls="sidebar" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-camadas-ui"/></svg><span class="toolbar-label">Camadas</span></button>
                     <button type="button" class="toolbar-item" aria-label="Adicionar camada" data-tooltip="Adicionar camada (GeoJSON, KML, KMZ)" data-action="open-file"><svg class="icon" aria-hidden="true"><use href="#ic-adicionar-camada"/></svg><span class="toolbar-label">Adicionar camada</span></button>
                     <button type="button" class="toolbar-item" aria-label="Legenda" data-tooltip="Legenda" data-panel-toggle="legend" aria-controls="panel-legend" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-legenda"/></svg><span class="toolbar-label">Legenda</span></button>
+                    <button type="button" class="toolbar-item" id="basemap-button" aria-label="Mapa base" data-tooltip="Mapa base" data-panel-toggle="basemap" aria-controls="panel-basemap" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-mapa-base-ui"/></svg><span class="toolbar-label">Mapa base</span></button>
+                    </div>
+
+                    <!-- Navegar: os antigos controles do canto do mapa (js/ui/map-controls.js). Atalhos: + e − zoom. -->
+                    <div class="toolbar-group" role="group" aria-labelledby="tb-group-nav">
+                    <p class="toolbar-group-title" id="tb-group-nav">Navegar</p>
+                    <button type="button" class="toolbar-item" id="locate-button" aria-label="Minha localização" data-tooltip="Minha localização" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#ic-localizacao"/></svg><span class="toolbar-label">Minha localização</span></button>
+                    <button type="button" class="toolbar-item" id="home-button" aria-label="Início: extensão total das camadas" data-tooltip="Início: extensão total das camadas" disabled><svg class="icon" aria-hidden="true"><use href="#ic-inicio"/></svg><span class="toolbar-label">Início</span></button>
+                    <button type="button" class="toolbar-item" id="zoom-in-button" aria-label="Aumentar zoom" data-tooltip="Aumentar zoom (+)" aria-keyshortcuts="+"><svg class="icon" aria-hidden="true"><use href="#ic-zoom-mais"/></svg><span class="toolbar-label">Aumentar zoom</span></button>
+                    <button type="button" class="toolbar-item" id="zoom-out-button" aria-label="Reduzir zoom" data-tooltip="Reduzir zoom (−)" aria-keyshortcuts="-"><svg class="icon" aria-hidden="true"><use href="#ic-zoom-menos"/></svg><span class="toolbar-label">Reduzir zoom</span></button>
                     </div>
 
                     <!-- Consultar: Achar feições: pesquisa avançada (a caixa de busca fica no mapa) e filtros. -->
@@ -254,8 +264,8 @@
                 </div>
             </section>
 
-            <!-- Mapa base: abre ao lado dos controles do mapa (botão acima do zoom); clique fora fecha. -->
-            <section class="side-panel side-panel-basemap" id="panel-basemap" aria-labelledby="panel-basemap-title">
+            <!-- Mapa base: painel da esquerda, como Camadas e Legenda (botão no grupo Mapa da barra). -->
+            <section class="side-panel side-panel-left side-panel-basemap" id="panel-basemap" aria-labelledby="panel-basemap-title">
                 <header class="side-panel-header">
                     <svg class="icon side-panel-icon" aria-hidden="true"><use href="#ic-mapa-base-ui"/></svg>
                     <div class="side-panel-heading">
@@ -645,37 +655,6 @@
                 </div>
             </section>
 
-
-            <!--
-                CONTROLES DO MAPA: uma coluna de vidro com divisórias.
-                Flutuam no canto inferior direito do mapa.
-                Atalhos: + e − zoom (F, apresentar, fica na barra superior).
-            -->
-            <div class="map-controls" role="toolbar" aria-label="Controles do mapa" aria-orientation="vertical">
-                <div class="control-stack">
-                    <button id="basemap-button" type="button" title="Mapa base" aria-label="Mapa base" data-panel-toggle="basemap" aria-controls="panel-basemap" aria-expanded="false">
-                        <svg class="icon" aria-hidden="true"><use href="#ic-mapa-base-ui"/></svg>
-                    </button>
-                </div>
-
-                <div class="control-stack">
-                    <button id="locate-button" type="button" title="Minha localização" aria-label="Minha localização">
-                        <svg class="icon" aria-hidden="true"><use href="#ic-localizacao"/></svg>
-                    </button>
-
-                    <button id="home-button" type="button" title="Início: extensão total das camadas" aria-label="Início: extensão total das camadas" disabled>
-                        <svg class="icon" aria-hidden="true"><use href="#ic-inicio"/></svg>
-                    </button>
-
-                    <button id="zoom-in-button" type="button" title="Aumentar zoom (+)" aria-label="Aumentar zoom" aria-keyshortcuts="+">
-                        <svg class="icon" aria-hidden="true"><use href="#ic-zoom-mais"/></svg>
-                    </button>
-
-                    <button id="zoom-out-button" type="button" title="Reduzir zoom (−)" aria-label="Reduzir zoom" aria-keyshortcuts="-">
-                        <svg class="icon" aria-hidden="true"><use href="#ic-zoom-menos"/></svg>
-                    </button>
-                </div>
-            </div>
 
             <div class="map-status" id="map-status" role="status" hidden></div>
 

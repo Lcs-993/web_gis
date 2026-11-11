@@ -53,6 +53,24 @@ export const rampName = (id) => {
 };
 
 
+/*
+   Paletas de cores avulsas (window.PALETAS, do mesmo rampas.js:
+   ArcGIS Color Palette e AutoCAD Color Index, convertidas dos .gpl
+   em assets/rampas_de_cores/fontes). Devolve [{ name, color }] em
+   hex, na ordem do arquivo; vazia se a paleta não carregou.
+*/
+export const paletteColors = (id) => {
+    const palette = typeof window !== "undefined" && window.PALETAS && window.PALETAS[id];
+
+    return palette
+        ? palette.cores.map(({ nome, cor }) => ({
+            name: String(nome),
+            color: `#${cor.slice(0, 3).map((n) => Math.round(n).toString(16).padStart(2, "0")).join("")}`
+        }))
+        : [];
+};
+
+
 /* ---------------- cor numa posição da rampa ---------------- */
 
 const stopsOf = (ramp, invert) => invert
