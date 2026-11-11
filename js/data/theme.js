@@ -76,8 +76,9 @@ export const categoryColor = (index) => {
 
     const n = index - CATEGORY_PALETTE.length;
     const hue = Math.round((n * GOLDEN_ANGLE + 20) % 360);
-    const saturation = [72, 58, 85][n % 3];
-    const lightness = [55, 68, 45][Math.floor(n / 3) % 3];
+    /* Saturação contida, no tom da paleta terrosa (antes 58–85%, que gerava cores neon). */
+    const saturation = [48, 36, 58][n % 3];
+    const lightness = [55, 68, 44][Math.floor(n / 3) % 3];
 
     return hslToHex(hue, saturation, lightness);
 };

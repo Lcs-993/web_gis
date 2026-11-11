@@ -75,6 +75,30 @@ const LABEL_MAX_LINES = 4;
    círculo (pontos), traço (linhas), só contorno (camadas de
    referência) ou quadrado preenchido.
 */
+/* Tipo de geometria, no plural ("Polígonos"), para a linha de baixo da camada (Camadas e Legenda). */
+export const geometryNoun = (layer) => {
+    const types = Object.keys(layer.geometryTypes || {}).join(" ");
+
+    if (/Polygon/.test(types)) {
+        return "Polígonos";
+    }
+
+    if (/LineString/.test(types)) {
+        return "Linhas";
+    }
+
+    return /Point/.test(types) ? "Pontos" : "Feições";
+};
+
+/* "3.388 feições", ou "456 de 3.388 feições" com filtro ou busca. */
+export const featureCountText = (layer) => {
+    const total = layer.features.length;
+    const shown = layer.view.filtered.length;
+    const unit = total === 1 ? "feição" : "feições";
+
+    return shown === total ? `${formatCount(total)} ${unit}` : `${formatCount(shown)} de ${formatCount(total)} ${unit}`;
+};
+
 export const buildLayerSymbol = (layer) => {
     const types = Object.keys(layer.geometryTypes || {}).join(" ");
     const kind = layer.icon
@@ -211,21 +235,6 @@ export function createLayerPanel(store, { onAddFile, onProperties }) {
         addButton.addEventListener("click", () => fileInput.click());
     }
 
-    /* Tipo de geometria, no plural, para a linha de baixo da camada. */
-    const geometryNoun = (layer) => {
-        const types = Object.keys(layer.geometryTypes || {}).join(" ");
-
-        if (/Polygon/.test(types)) {
-            return "Polígonos";
-        }
-
-        if (/LineString/.test(types)) {
-            return "Linhas";
-        }
-
-        return /Point/.test(types) ? "Pontos" : "Feições";
-    };
-
     /*
        Linha de baixo (como a do ArcGIS): "Polígonos · 3.388 feições",
        ou "Polígonos · 456 de 3.388 feições" com filtro ou busca.
@@ -239,12 +248,7 @@ export function createLayerPanel(store, { onAddFile, onProperties }) {
             return "Erro ao carregar";
         }
 
-        const total = layer.features.length;
-        const shown = layer.view.filtered.length;
-        const unit = total === 1 ? "feição" : "feições";
-        const count = shown === total ? `${formatCount(total)} ${unit}` : `${formatCount(shown)} de ${formatCount(total)} ${unit}`;
-
-        return `${geometryNoun(layer)} · ${count}`;
+        return `${geometryNoun(layer)} · ${featureCountText(layer)}`;
     };
 
     /* Recria a lista sem perder o foco do teclado. */
