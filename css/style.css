@@ -1437,7 +1437,7 @@ ol {
    ============================================================ */
 
 .sidebar-section {
-    margin-bottom: 18px;
+    margin-bottom: 0;
 }
 
 .sidebar-empty {
@@ -1447,38 +1447,78 @@ ol {
     line-height: 1.5;
 }
 
+/*
+   Lista de camadas no padrão da janela Propriedades (macOS) com a
+   leitura da lista de camadas do ArcGIS: um grupo com filetes entre
+   as linhas; cada camada em duas linhas (nome sobre tipo e
+   quantidade); seleção da camada ativa em cinza discreto. O olho
+   fica sempre à vista, em tom neutro; rótulos e propriedades
+   aparecem ao passar o mouse (ou ficam, se ligados).
+*/
+.layer-list {
+    padding: 4px;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: 10px;
+    background: var(--glass-bg-strong);
+}
+
 .layer-item {
-    border-radius: 8px;
+    position: relative;
+    border-radius: 7px;
+}
+
+.layer-item + .layer-item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 36px;
+    right: 8px;
+    border-top: 0.5px solid var(--border-hairline);
+}
+
+.layer-item.is-active,
+.layer-item.is-active + .layer-item::before,
+.layer-item:hover + .layer-item::before {
+    border-color: transparent;
 }
 
 .layer-item.is-active {
-    background: var(--active-bg);
+    background: var(--fill-segment-hover);
+}
+
+.layer-item.is-active + .layer-item::before {
+    border-top-color: transparent;
+}
+
+.layer-item:not(.is-active):hover {
+    background: var(--hover-bg);
 }
 
 .layer-row {
+    min-height: 44px;
     display: flex;
     align-items: center;
-    gap: 9px;
-    padding: 6px 8px;
-    color: var(--color-text-label);
+    gap: 10px;
+    padding: 5px 6px 5px 10px;
+    color: var(--text);
 }
 
-/* Botões de ícone da linha da camada: olho (visibilidade) e T (rótulos). */
+/* Botões de ícone da linha: rótulos, propriedades e o olho (visibilidade). */
 .layer-toggle {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 7px;
-    color: var(--color-text-subtle);
-    transition: color var(--dur) ease, background-color var(--dur) ease;
+    border-radius: 6px;
+    color: var(--text-muted);
+    transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease, opacity var(--dur-fast) ease;
 }
 
 .layer-toggle svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
 }
 
 .layer-toggle:hover:not(:disabled) {
@@ -1486,10 +1526,25 @@ ol {
     color: var(--text);
 }
 
-/* Ligado (olho, rótulos): verde, inclusive com o mouse em cima, para o estado não sumir ao clicar. */
-.layer-toggle[aria-pressed="true"],
-.layer-toggle[aria-pressed="true"]:hover:not(:disabled) {
-    color: var(--brand-green);
+/* Rótulos ligados: o T fica à vista, na cor de destaque. O olho aberto é neutro (o normal é estar visível). */
+.layer-labels[aria-pressed="true"],
+.layer-labels[aria-pressed="true"]:hover:not(:disabled) {
+    color: var(--accent-text);
+}
+
+.layer-visibility[aria-pressed="false"] {
+    color: var(--text-disabled);
+}
+
+/* Rótulos (desligados) e propriedades: só com o mouse na linha ou o foco nela. */
+.layer-labels[aria-pressed="false"],
+.layer-properties-button {
+    opacity: 0;
+}
+
+.layer-item:hover .layer-toggle,
+.layer-item:focus-within .layer-toggle {
+    opacity: 1;
 }
 
 .layer-toggle:disabled {
@@ -1501,12 +1556,18 @@ ol {
     opacity: 0.5;
 }
 
-/* Nome e quantidade ocupam o espaço livre; o nome encurta com "…" se preciso. */
+/* Nome (com etiquetas) sobre tipo e quantidade; o nome encurta com "…" se preciso. */
 .layer-title {
     flex: 1 1 auto;
     min-width: 0;
+    display: grid;
+    gap: 1px;
+}
+
+.layer-title-line {
+    min-width: 0;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 6px;
 }
 
@@ -1514,7 +1575,7 @@ ol {
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 1px;
 }
 
 /* Rótulo com várias linhas: título, uma linha por atributo, "+ Adicionar linha". */
@@ -1878,6 +1939,7 @@ ol {
     white-space: nowrap;
     color: inherit;
     font-size: 13px;
+    font-weight: 500;
 }
 
 .layer-name[aria-pressed="true"] {
@@ -1888,9 +1950,9 @@ ol {
 /* Símbolo da camada (cor e tipo de geometria), antes do nome. */
 .layer-symbol {
     flex: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
 }
 
 .layer-symbol.is-fill {
@@ -1933,10 +1995,8 @@ ol {
 /* Guia rápido no pé da aba Camadas. */
 .sidebar-key {
     display: grid;
-    gap: 8px;
-    margin: 14px 8px 0;
-    padding-top: 12px;
-    border-top: 0.5px solid var(--border-hairline);
+    gap: 6px;
+    margin: 2px 4px 0;
     color: var(--color-text-subtle);
     font-size: 11px;
     line-height: 1.45;
@@ -1966,10 +2026,13 @@ ol {
 }
 
 .layer-meta {
-    flex: 0 0 auto;
-    color: var(--color-text-subtle);
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-muted);
     font-size: 11px;
     font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .layer-meta.is-error,
@@ -5259,13 +5322,25 @@ th[aria-sort="descending"] .table-sort::after {
 /* Etiquetas de estado na linha da camada (tema e rótulos ligados). */
 .layer-badge {
     flex: none;
-    padding: 1px 6px;
+    padding: 0 6px;
     border-radius: var(--radius-pill);
-    background: var(--accent-soft);
-    color: var(--accent-text);
+    background: var(--fill-segment);
+    color: var(--text-muted);
     font-size: 10px;
     font-weight: 600;
-    line-height: 1.5;
+    line-height: 16px;
+}
+
+/* "Ativa": a única etiqueta na cor de destaque. */
+.layer-badge.is-active {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+}
+
+/* "+" do cabeçalho do painel Camadas, ao lado do ×. */
+.side-panel-add .icon {
+    width: 16px;
+    height: 16px;
 }
 
 /* Cartão de vidro dentro do painel de vidro: a hierarquia vem do aninhamento. */
