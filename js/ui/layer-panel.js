@@ -204,21 +204,47 @@ export const buildThemeBlock = (store, layer, themeable, { showField = true } = 
 export function createLayerPanel(store, { onAddFile, onProperties }) {
     const list = byId("layer-list");
     const fileInput = byId("layer-file-input");
+    const addButton = byId("layer-add-button");
 
-    /* Quantidade de feições entre parênteses, logo após o nome: "(3.343)" ou "(456 de 3.343)" com filtro. */
+    /* "+" do cabeçalho: o mesmo seletor de arquivo de Mapa › Adicionar camada. */
+    if (addButton) {
+        addButton.addEventListener("click", () => fileInput.click());
+    }
+
+    /* Tipo de geometria, no plural, para a linha de baixo da camada. */
+    const geometryNoun = (layer) => {
+        const types = Object.keys(layer.geometryTypes || {}).join(" ");
+
+        if (/Polygon/.test(types)) {
+            return "Polígonos";
+        }
+
+        if (/LineString/.test(types)) {
+            return "Linhas";
+        }
+
+        return /Point/.test(types) ? "Pontos" : "Feições";
+    };
+
+    /*
+       Linha de baixo (como a do ArcGIS): "Polígonos · 3.388 feições",
+       ou "Polígonos · 456 de 3.388 feições" com filtro ou busca.
+    */
     const metaText = (layer) => {
         if (layer.status === "loading") {
-            return "(carregando…)";
+            return "Carregando…";
         }
 
         if (layer.status === "error") {
-            return "(erro)";
+            return "Erro ao carregar";
         }
 
         const total = layer.features.length;
         const shown = layer.view.filtered.length;
+        const unit = total === 1 ? "feição" : "feições";
+        const count = shown === total ? `${formatCount(total)} ${unit}` : `${formatCount(shown)} de ${formatCount(total)} ${unit}`;
 
-        return shown === total ? `(${formatCount(total)})` : `(${formatCount(shown)} de ${formatCount(total)})`;
+        return `${geometryNoun(layer)} · ${count}`;
     };
 
     /* Recria a lista sem perder o foco do teclado. */
@@ -281,6 +307,9 @@ export function createLayerPanel(store, { onAddFile, onProperties }) {
             const badges = themeOn
                 ? [el("span", { class: "layer-badge", text: "Tema", title: `Tema por ${layer.theme.field}` })]
                 : [];
+            const activeTag = active
+                ? [el("span", { class: "layer-badge is-active", text: "Ativa", title: "Camada ativa: alimenta busca, filtros e Analytics" })]
+                : [];
 
             const name = el("button", {
                 type: "button",
@@ -335,10 +364,13 @@ export function createLayerPanel(store, { onAddFile, onProperties }) {
 
             return el("li", { class: `layer-item${active ? " is-active" : ""}` }, [
                 el("div", { class: `layer-row${shown ? "" : " is-hidden"}` }, [
-                    /* Nome + quantidade à esquerda; ações à direita. */
+                    /* Símbolo · nome (e etiquetas) sobre tipo e quantidade · ações. */
                     symbol,
-                    el("span", { class: "layer-title" }, [name, meta, ...badges]),
-                    el("span", { class: "layer-actions" }, [visibility, labels, properties, remove])
+                    el("span", { class: "layer-title" }, [
+                        el("span", { class: "layer-title-line" }, [name, ...activeTag, ...badges]),
+                        meta
+                    ]),
+                    el("span", { class: "layer-actions" }, [labels, properties, remove, visibility])
                 ]),
                 error
             ]);

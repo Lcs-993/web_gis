@@ -35,7 +35,7 @@
         crossorigin=""
     >
 
-    <link rel="stylesheet" href="css/style.css?v=20261111e">
+    <link rel="stylesheet" href="css/style.css?v=20261111f">
 
     <!-- Tema escuro por padrão; o claro só vale se o usuário o escolheu. Aplicado antes da primeira pintura. O hash na CSP corresponde a este bloco. -->
     <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
@@ -234,6 +234,7 @@
                     <div class="side-panel-heading">
                         <h2 class="side-panel-title" id="layer-list-title">Camadas</h2>
                     </div>
+                    <button type="button" class="side-panel-close side-panel-add" id="layer-add-button" aria-label="Adicionar camada" title="Adicionar camada (GeoJSON, KML, KMZ)"><svg class="icon" aria-hidden="true"><use href="#ic-adicionar"/></svg></button>
                     <button type="button" class="side-panel-close" data-panel-close="layers" aria-label="Fechar camadas" title="Fechar (Esc)"><svg class="icon" aria-hidden="true"><use href="#ic-fechar"/></svg></button>
                 </header>
                 <div class="side-panel-body">
@@ -243,7 +244,7 @@
 
                     <!-- Guia rápido: o que é a camada ativa e o que faz cada ícone (além das dicas dos ícones). -->
                     <footer class="sidebar-key">
-                        <p class="sidebar-key-text">Selecione o nome para tornar a camada <strong>ativa</strong>: ela alimenta busca, filtros e Analytics. <strong>Duplo clique</strong> no nome abre as propriedades (simbologia, rótulos, campos).</p>
+                        <p class="sidebar-key-text">Clique no nome para tornar a camada <strong>ativa</strong> (busca, filtros e Analytics); <strong>duplo clique</strong> abre as propriedades.</p>
                         <ul class="sidebar-key-list">
                             <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" stroke="currentColor" stroke-width="1.8"/></svg>Exibir</li>
                             <li><svg class="icon" aria-hidden="true"><use href="#ic-rotulos"/></svg>Rótulos</li>
