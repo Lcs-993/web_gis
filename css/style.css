@@ -5597,36 +5597,98 @@ th[aria-sort="descending"] .table-sort::after {
     font-weight: 600;
 }
 
+/*
+   Legenda no padrão do painel Camadas: um grupo com filetes entre
+   as camadas; nome sobre "Polígonos · 3.388 feições" (ou "Por
+   atributo · …" com tema); classes alinhadas ao nome.
+*/
+.legend-group {
+    padding: 4px;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: 10px;
+    background: var(--glass-bg-strong);
+}
+
 .legend-card {
+    position: relative;
     display: grid;
-    gap: 8px;
-    padding: 10px 12px;
+    gap: 6px;
+    padding: 8px 8px 8px 10px;
+}
+
+.legend-card + .legend-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 36px;
+    right: 8px;
+    border-top: 0.5px solid var(--border-hairline);
 }
 
 .legend-card-header {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+/* Recuo do tamanho do símbolo: o nome fica alinhado com o das camadas sem tema. */
+.legend-card-spacer {
+    flex: none;
+    width: 16px;
+}
+
+.legend-card-heading {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    gap: 1px;
 }
 
 .legend-card-name {
-    flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     color: var(--text);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .legend-card-field {
+    min-width: 0;
+    overflow: hidden;
     color: var(--text-muted);
-    font-size: 11.5px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
+/* Classes do tema: recuadas até o nome, linhas de 22 px, quantidade à direita. */
 .legend-card .legend {
-    padding: 0;
+    /* minmax(0, 1fr): um nome comprido encurta com "…" em vez de alargar a lista e empurrar as quantidades. */
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    max-height: 320px;
+    padding: 0 2px 2px 26px;
+}
+
+.legend-card .legend-item {
+    min-height: 22px;
+    padding: 2px 0;
+    color: var(--text);
+}
+
+.legend-card .legend-item.is-muted {
+    color: var(--text-muted);
+}
+
+.legend-card .legend-swatch {
+    border-color: rgba(0, 0, 0, 0.18);
+}
+
+.legend-card .legend-count {
+    color: var(--text-muted);
 }
 
 .layer-info-filled {

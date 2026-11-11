@@ -384,7 +384,11 @@ trocar de atributo e voltar mantém a rampa. Os valores iniciais ficam em
 41 invertida (vermelho no menor, verde no maior), 5 classes por Jenks.
 
 A legenda (aba Simbologia e painel Legenda) mostra cada valor ou faixa
-com a cor e a quantidade. Vazios ficam em cinza escuro. Busca e seleção mantêm
+com a cor e a quantidade. Vazios ficam em cinza escuro. O painel Legenda segue
+o padrão do painel Camadas: um grupo só, cada camada com o nome sobre o tipo e
+a quantidade ("Polígonos · 3.388 feições" ou "Por atributo · …" com tema).
+Acima de 12 categorias, as cores são geradas com saturação contida, no tom da
+paleta terrosa. Busca e seleção mantêm
 as cores do tema: os realces mexem só em contorno e opacidade. O botão fica
 desabilitado em camadas sem atributo de categoria nem numérico.
 
