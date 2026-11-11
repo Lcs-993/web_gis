@@ -138,7 +138,7 @@ export const buildLabelFields = (store, layer) => {
     }
 
     return el("div", { class: "layer-label-fields" }, [
-        el("span", { class: "field-label", text: "Rótulo" }),
+        el("span", { class: "field-label", text: "Atributos" }),
         el("div", { class: "layer-label-lines" }, lines)
     ]);
 };

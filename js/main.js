@@ -598,6 +598,8 @@ const MODULE_ACTIONS = {
     toolbar: () => toolbars && toolbars.toggle(),
     fullscreen: () => mapControls && mapControls.toggleFullscreen(),
     analytics: (tab) => dashboardTabs.toggle(tab),
+    /* Janela Propriedades da camada ativa, na aba pedida (info, symbology, labels, fields). */
+    propriedades: (tab) => layerProperties && layerProperties.open({ layer: store.state.activeLayerId, tab: tab || "info" }),
     basemap: (id) => store.setBasemap(id)
 };
 

@@ -18,7 +18,7 @@
     <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" href="assets/png/favcon_red_green.png">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="css/style.css?v=20261109n">
+    <link rel="stylesheet" href="css/style.css?v=20261111e">
 
     <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
 
@@ -262,14 +262,14 @@
                 <p>O WebGIS é feito para <strong>computador</strong> (tela grande, mouse e teclado): é um painel para analisar e apresentar os dados. No celular, o uso será pelo <strong>aplicativo de campo</strong>, que envia os dados coletados no talhão para cá.</p>
                 <ul>
                     <li><strong>Apresentar</strong> (canto superior direito, ou <kbd>F</kbd>): tela cheia só com o mapa, a caixa de busca e os controles; as barras somem. Leve o mouse até o <strong>topo</strong> da tela para ver a barra superior, ou até a <strong>borda esquerda</strong> para a barra de ferramentas; elas somem de novo quando o mouse sai. Os pequenos traços claros no topo e na borda esquerda marcam esses lugares. Para sair: <kbd>Esc</kbd>, <kbd>F</kbd> ou <strong>Sair</strong> na barra superior.</li>
-                    <li><strong>Barra superior:</strong> ☰ (mostra os nomes na barra da esquerda), a marca WebGIS, os menus <strong>Monitoramento</strong>, <strong>Operação</strong>, <strong>Análises</strong>, <strong>Ferramentas</strong> e <strong>Ajuda</strong> e, à direita, tema claro/escuro e o botão <strong>Apresentar</strong>. As notificações ficam no cartão da <strong>Conta</strong> (pé da barra esquerda); um sininho no ícone do usuário avisa quando há novidade.</li>
+                    <li><strong>Barra superior:</strong> ☰ (mostra os nomes na barra da esquerda), a marca WebGIS, os menus <strong>Monitoramento</strong>, <strong>Operação</strong>, <strong>Análises</strong>, <strong>Ferramentas</strong>, <strong>Mapa</strong>, <strong>Exibir</strong> e <strong>Ajuda</strong> e, à direita, tema claro/escuro e o botão <strong>Apresentar</strong>. As notificações ficam no cartão da <strong>Conta</strong> (pé da barra esquerda); um sininho no ícone do usuário avisa quando há novidade.</li>
                     <li><strong>Barra da esquerda:</strong> todas as ferramentas, em blocos por função (com a barra expandida, cada bloco mostra o título):
                         <strong>Mapa</strong> (camadas, adicionar camada, legenda);
                         <strong>Consultar</strong> (<strong>Pesquisar</strong>, que abre a pesquisa avançada, e <strong>Filtro</strong>);
-                        <strong>Simbologia</strong> (<strong>Estilos</strong>, rótulos, pop-ups e efeitos);
-                        <strong>Analisar</strong> (tabela de atributos, campos e gráficos).
+                        <strong>Camada</strong> (<strong>Propriedades</strong>, <strong>Estilos</strong>, <strong>Rótulos</strong> e <strong>Campos</strong> da camada ativa; pop-ups e efeitos em breve);
+                        <strong>Analisar</strong> (tabela de atributos e gráficos).
                         No pé, a conta (com as notificações), as configurações e o sobre.</li>
-                    <li><strong>Desenho, salvar mapa, favoritos, compartilhar, incorporar, aplicativos e imprimir</strong> ficam no menu <strong>Ferramentas</strong>; análise espacial, no menu <strong>Análises</strong>.</li>
+                    <li>Menu <strong>Ferramentas</strong>: busca, pesquisa avançada, propriedades/estilos/rótulos da camada, medir, desenho e configurações. Menu <strong>Mapa</strong>: adicionar camada, salvar, favoritos, exportar KML, imprimir, compartilhar, incorporar e aplicativos. Menu <strong>Exibir</strong>: mapa base, aparência (tema e transparência), barra lateral e Apresentar. Análise espacial fica no menu <strong>Análises</strong>.</li>
                     <li><strong>Controles do mapa:</strong> minha localização, início e zoom, no canto inferior direito do mapa.</li>
                     <li><strong>Rodapé:</strong> status (“Pronto”, “Carregando…”), coordenadas do cursor (ou do centro) e zoom. As fontes dos dados ficam no <strong>Sobre</strong>.</li>
                 </ul>
@@ -289,7 +289,7 @@
                 <p>Uma janela só para tudo o que é de uma camada, com abas à esquerda. O seletor no cabeçalho troca de camada sem fechar.</p>
                 <table class="help-table">
                     <tr><th>Informação</th><td>Feições, geometria, sistema de coordenadas, extensão e metadados.</td></tr>
-                    <tr><th>Simbologia</th><td>Tipo (símbolo único, categorizado ou graduado), cor e opacidade do preenchimento, cor e espessura do contorno, tamanho do ponto e a opacidade da camada inteira.</td></tr>
+                    <tr><th>Simbologia</th><td>Estilo (símbolo único, categorias ou graduado, com amostra do símbolo), cor e opacidade do preenchimento, cor e espessura do contorno, tamanho do ponto e a opacidade da camada inteira.</td></tr>
                     <tr><th>Rótulos</th><td>Ligar, escolher os atributos, tamanho e cor do texto, negrito, halo e a partir de qual zoom aparecem.</td></tr>
                     <tr><th>Campos</th><td>A lista de atributos com o tipo e quanto está preenchido.</td></tr>
                 </table>
@@ -308,7 +308,7 @@
                 </ul>
                 <h3>Tema</h3>
                 <ul>
-                    <li>Em <strong>Propriedades da camada › Simbologia</strong> (ou pelo botão <strong>Estilos</strong> da barra), escolha o tipo <strong>Categorizado</strong> ou <strong>Graduado</strong> e o atributo.</li>
+                    <li>Em <strong>Propriedades da camada › Simbologia</strong> (ou pelo botão <strong>Estilos</strong> da barra), escolha o estilo <strong>Categorias</strong> ou <strong>Graduado</strong> e o atributo.</li>
                     <li><strong>Categorias</strong> (ex.: Variedade): uma cor para cada valor.</li>
                     <li><strong>Valores numéricos</strong> (ex.: Área (ha.)): as feições são divididas em faixas, da cor do menor valor à do maior.</li>
                     <li>Na mesma aba você personaliza: <strong>Cores</strong> (escolha uma rampa na lista), <strong>Inverter cores</strong> e, nos números, a <strong>Classificação</strong> (quebras naturais, quantis, intervalos iguais ou manual) e o número de <strong>Classes</strong> (digite de 1 a 32).</li>
@@ -389,7 +389,7 @@
                 <h2>Exportar</h2>
                 <table class="help-table">
                     <tr><th>Exportar CSV</th><td>No rodapé da Tabela. A tabela como está: com filtro ou busca, só as feições filtradas, na ordem atual; sem filtro, todos os dados. Abre no Excel/LibreOffice.</td></tr>
-                    <tr><th>Exportar KML</th><td>Em <strong>Ferramentas › Exportar KML</strong>, na barra superior. Para uma feição só, clique nela com o botão direito e escolha <strong>Exportar KML</strong>. A camada ativa como está no mapa, para Google Earth ou QGIS: mesmas feições do CSV, com as cores do tema e uma pasta por categoria. O rótulo vira o nome de cada feição; ao clicar numa feição no Google Earth, abre um balão com os atributos organizados.</td></tr>
+                    <tr><th>Exportar KML</th><td>Em <strong>Mapa › Exportar KML</strong>, na barra superior. Para uma feição só, clique nela com o botão direito e escolha <strong>Exportar KML</strong>. A camada ativa como está no mapa, para Google Earth ou QGIS: mesmas feições do CSV, com as cores do tema e uma pasta por categoria. O rótulo vira o nome de cada feição; ao clicar numa feição no Google Earth, abre um balão com os atributos organizados.</td></tr>
                 </table>
                 <p>O nome do arquivo termina em <strong>_filtrado</strong> ou <strong>_completo</strong>.</p>
             </section>
@@ -418,7 +418,7 @@
             <section class="help-section" id="modulos">
                 <h2>Módulos</h2>
                 <p>Os menus da barra superior reúnem os módulos. Os marcados como <strong>Em breve</strong> ainda estão em implementação: queimadas, clima, pragas, vigor da vegetação, safra e colheita, plantio, aplicações, logística (frota em tempo real), produtividade, raio de abrangência, medir e imprimir. O mesmo vale para favoritos, salvar, compartilhar, incorporar, efeitos, pop-ups, desenho, registrar ocorrência, aplicativos e conta.</p>
-                <p>Em <strong>Configurações</strong> (pé da barra esquerda ou menu Ferramentas) escolha o tema e ligue <strong>Reduzir transparência</strong> se o mapa ficar lento sob os painéis. No tema claro ele já vem ligado; a escolha fica guardada separadamente para cada tema. Ao trocar o tema, o mapa de fundo acompanha: <strong>claro</strong> abre em Ruas e <strong>escuro</strong> em Satélite (depois dá para trocar em <strong>Mapa base</strong>).</p>
+                <p>Em <strong>Configurações</strong> (pé da barra esquerda, menu Ferramentas ou Exibir › Aparência) escolha o tema e ligue <strong>Reduzir transparência</strong> se o mapa ficar lento sob os painéis. No tema claro ele já vem ligado; a escolha fica guardada separadamente para cada tema. Ao trocar o tema, o mapa de fundo acompanha: <strong>claro</strong> abre em Ruas e <strong>escuro</strong> em Satélite (depois dá para trocar em <strong>Mapa base</strong>).</p>
             </section>
 
             <section class="help-section" id="teclado">

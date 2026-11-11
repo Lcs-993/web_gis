@@ -21,7 +21,7 @@
 
     /* Mantém sincronizado com --color-bg de cada tema. */
     const THEME_COLOR = {
-        light: "#f5f5f7",
+        light: "#e9e5de",
         dark: "#1c1c1e"
     };
 
@@ -101,13 +101,23 @@
     /* Avisa a interface (painel Configurações) que o tema mudou. */
     const announce = () => document.dispatchEvent(new CustomEvent("webgis:theme"));
 
+    const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const setTheme = (theme) => {
         const next = theme === LIGHT ? LIGHT : DARK;
+        const change = () => {
+            apply(next);
+            store(next);
+            applySemBlur();
+            announce();
+        };
 
-        apply(next);
-        store(next);
-        applySemBlur();
-        announce();
+        /* Escuro ↔ claro em ~0,45 s de esmaecimento, em vez de um clarão instantâneo. */
+        if (next !== currentTheme() && document.startViewTransition && !reducedMotion()) {
+            document.startViewTransition(change);
+        } else {
+            change();
+        }
     };
 
 

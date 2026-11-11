@@ -35,7 +35,7 @@
         crossorigin=""
     >
 
-    <link rel="stylesheet" href="css/style.css?v=20261111c">
+    <link rel="stylesheet" href="css/style.css?v=20261111e">
 
     <!-- Tema escuro por padrão; o claro só vale se o usuário o escolheu. Aplicado antes da primeira pintura. O hash na CSP corresponde a este bloco. -->
     <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
@@ -148,9 +148,10 @@
                 Só ícones (48 px) ou ícone + rótulo (240 px), pelo botão do
                 rodapé, pelo ☰ ou pela tecla [. Itens "Em breve" ficam
                 desabilitados. js/ui/toolbar.js.
-                Blocos por função, de cima para baixo: Mapa, Camada ativa,
-                Consultar, Simbologia, Analisar; no pé, Conta, Configurações,
-                Sobre e expandir. Com a barra expandida, cada bloco mostra o
+                Blocos por função, de cima para baixo: Mapa, Consultar,
+                Camada (propriedades da camada ativa, como o painel de
+                configurações de camada do ArcGIS) e Analisar; no pé, Conta,
+                Configurações, Sobre e expandir. Com a barra expandida, cada bloco mostra o
                 título.
             -->
             <nav class="toolbar toolbar-left" id="toolbar-left" aria-label="Barra de ferramentas">
@@ -172,20 +173,21 @@
                     <button type="button" class="toolbar-item" aria-label="Filtro" data-tooltip="Filtro" data-panel-toggle="filters" aria-controls="filter-panel" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-filtro"/></svg><span class="toolbar-label">Filtro</span><span class="badge toolbar-badge" data-filter-count hidden></span></button>
                     </div>
 
-                    <!-- Simbologia: Como a camada aparece: cores e tema, rótulos, pop-ups e efeitos. -->
+                    <!-- Camada: propriedades da camada ativa (janela Propriedades): informação, estilos, rótulos, campos; pop-ups e efeitos em breve. -->
                     <div class="toolbar-group" role="group" aria-labelledby="tb-group-style">
-                    <p class="toolbar-group-title" id="tb-group-style">Simbologia</p>
+                    <p class="toolbar-group-title" id="tb-group-style">Camada</p>
+                    <button type="button" class="toolbar-item" aria-label="Propriedades" data-tooltip="Propriedades da camada" data-properties-tab="info" aria-controls="panel-properties" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-propriedades"/></svg><span class="toolbar-label">Propriedades</span></button>
                     <button type="button" class="toolbar-item" aria-label="Estilos" data-tooltip="Estilos (Propriedades da camada)" data-properties-tab="symbology" aria-controls="panel-properties" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-estilos-ui"/></svg><span class="toolbar-label">Estilos</span></button>
                     <button type="button" class="toolbar-item" aria-label="Rótulos" data-tooltip="Rótulos (Propriedades da camada)" data-properties-tab="labels" aria-controls="panel-properties" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-rotulos"/></svg><span class="toolbar-label">Rótulos</span></button>
+                    <button type="button" class="toolbar-item" aria-label="Campos" data-tooltip="Campos (Propriedades da camada)" data-properties-tab="fields" aria-controls="panel-properties" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-campos"/></svg><span class="toolbar-label">Campos</span></button>
                     <button type="button" class="toolbar-item" aria-label="Pop-ups" data-tooltip="Pop-ups — em breve"  aria-disabled="true" data-soon><svg class="icon" aria-hidden="true"><use href="#ic-popups-ui"/></svg><span class="toolbar-label">Pop-ups</span><span class="toolbar-soon">Em breve</span></button>
                     <button type="button" class="toolbar-item" aria-label="Efeitos" data-tooltip="Efeitos — em breve"  aria-disabled="true" data-soon><svg class="icon" aria-hidden="true"><use href="#ic-efeitos"/></svg><span class="toolbar-label">Efeitos</span><span class="toolbar-soon">Em breve</span></button>
                     </div>
 
-                    <!-- Analisar: Atributos da camada ativa: campos, tabela de atributos e gráficos. A camada ativa se escolhe clicando no nome dela no painel Camadas. -->
+                    <!-- Analisar: dados da camada ativa: tabela de atributos e gráficos. A camada ativa se escolhe clicando no nome dela no painel Camadas. -->
                     <div class="toolbar-group" role="group" aria-labelledby="tb-group-analysis">
                     <p class="toolbar-group-title" id="tb-group-analysis">Analisar</p>
                     <button type="button" class="toolbar-item" aria-label="Tabela de atributos" data-tooltip="Tabela de atributos" data-dashboard-tab="table" aria-controls="dashboard" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#ic-tabela"/></svg><span class="toolbar-label">Tabela de atributos</span></button>
-                    <button type="button" class="toolbar-item" aria-label="Campos" data-tooltip="Campos (Propriedades da camada)" data-properties-tab="fields" aria-controls="panel-properties" aria-expanded="false" data-needs-layer><svg class="icon" aria-hidden="true"><use href="#ic-campos"/></svg><span class="toolbar-label">Campos</span></button>
                     <button type="button" class="toolbar-item" aria-label="Gráficos" data-tooltip="Gráficos" data-panel-toggle="charts" aria-controls="panel-charts" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#ic-grafico-barras"/></svg><span class="toolbar-label">Gráficos</span></button>
                     </div>
 
