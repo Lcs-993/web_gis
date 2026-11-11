@@ -1476,7 +1476,9 @@ ol {
     color: var(--text);
 }
 
-.layer-toggle[aria-pressed="true"] {
+/* Ligado (olho, rótulos): verde, inclusive com o mouse em cima, para o estado não sumir ao clicar. */
+.layer-toggle[aria-pressed="true"],
+.layer-toggle[aria-pressed="true"]:hover:not(:disabled) {
     color: var(--brand-green);
 }
 
