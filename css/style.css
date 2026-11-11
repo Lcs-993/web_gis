@@ -2980,6 +2980,10 @@ ol {
     --chart-4: #eda100;
     --chart-5: #e87ba4;
     --chart-muted: #a3a3a8;
+    /* Percentuais impressos dentro das partes: preto passa de 4,5:1 em
+       toda a paleta (4,8:1 no azul, o pior caso). */
+    --chart-on: #000000;
+    --chart-on-muted: #000000;
 }
 
 [data-theme="dark"] {
@@ -2990,6 +2994,10 @@ ol {
     --chart-4: #c98500;
     --chart-5: #d55181;
     --chart-muted: #636366;
+    /* Preto: ≥ 5,3:1 em toda a paleta escura; no cinza escuro de
+       "Outros" só o branco passa (6:1). */
+    --chart-on: #000000;
+    --chart-on-muted: #ffffff;
 }
 
 .chart-card {
@@ -3128,10 +3136,9 @@ ol {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
+    color: var(--chart-on);
     font-size: 11px;
     font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .chart-donut {
@@ -3207,10 +3214,15 @@ ol {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    color: #ffffff;
+    color: var(--chart-on);
     font-size: 10px;
     font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* "Outros" (cinza liso): cor de texto própria em cada tema. */
+.chart-segment.is-muted,
+.chart-stack-part.is-muted {
+    color: var(--chart-on-muted);
 }
 
 .chart-stack-part:hover {

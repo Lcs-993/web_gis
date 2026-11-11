@@ -116,7 +116,7 @@ function segmented(items) {
 
     const bar = el("div", { class: "chart-segmented" }, items.map((item, index) => {
         const share = total > 0 ? Math.max(0, item.value || 0) / total : 0;
-        const segment = el("span", { class: "chart-segment", title: tooltip(item) });
+        const segment = el("span", { class: `chart-segment${item.muted ? " is-muted" : ""}`, title: tooltip(item) });
 
         segment.style.flexGrow = String(share);
         segment.style.background = sliceColor(item, index);
@@ -247,7 +247,11 @@ function groupMarks(group, series, colors, mode, scale, axis) {
             return null;
         }
 
-        const mark = el("span", { class: "chart-stack-part", title: partTip(group, series[index], part) });
+        const serie = series[index];
+        const mark = el("span", {
+            class: `chart-stack-part${serie.muted || serie.empty ? " is-muted" : ""}`,
+            title: partTip(group, serie, part)
+        });
         const ratio = mode === "normalized"
             ? (total > 0 ? part.value / total : 0)
             : (scale > 0 ? part.value / scale : 0);
@@ -255,7 +259,8 @@ function groupMarks(group, series, colors, mode, scale, axis) {
         mark.style.background = colors[index];
         mark.style[axis] = `${ratio * 100}%`;
 
-        if (mode === "normalized" && ratio >= 0.12) {
+        /* Sem percentual sobre as listras de "(vazio)": nenhuma cor de texto lê bem ali (a dica mostra o valor). */
+        if (mode === "normalized" && ratio >= 0.12 && !serie.empty) {
             mark.textContent = `${Math.round(ratio * 100)}%`;
         }
 
