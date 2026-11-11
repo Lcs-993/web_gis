@@ -74,7 +74,8 @@
     /* Alertas. --danger é o vermelho Bambuí (fundos e ícones);
        --danger-text é a versão legível como texto em cada tema. */
     --danger: #e53935;
-    --danger-contrast: #ffffff;
+    /* Texto sobre --danger: vermelho quase preto (4,7:1). O branco dava só 4,2:1. */
+    --danger-contrast: #1f0000;
     --danger-text: #ff6f6b;
     --warning: #f5a524;
     --info: #4ea8ff;
@@ -195,7 +196,8 @@
     --color-surface-opaque: #f7f7f9;
     --color-map-bg: #d9ddd9;
 
-    --color-text-subtle: #8e8e93;
+    /* Mais escuro que o do tema escuro: #8e8e93 dava só 3:1 sobre o fundo claro; este dá 4,7:1. */
+    --color-text-subtle: #6e6e73;
     --color-text-label: #3a3a3c;
     --color-field-label: var(--accent-text);
 
