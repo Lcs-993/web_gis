@@ -126,8 +126,8 @@ export const LAYERS = [
         url: "geojson/pol_talhoes.geojson",
         attribution:
             'Dados: <a href="https://github.com/Lcs-993/meus_layers">meus_layers</a>',
-        /* Verde-cana (tom das lavouras na imagem de satélite). */
-        color: "#4fae3c",
+        /* Palha de cana: tom terroso que se destaca do verde das lavouras no satélite. */
+        color: "#d9b56b",
         visible: true,
         /* Camada ativa na abertura (busca, filtros e dashboard). */
         active: true,
@@ -140,7 +140,7 @@ export const LAYERS = [
 
 /* Paleta usada para camadas sem cor definida (arquivos locais). */
 export const LAYER_PALETTE = [
-    "#f4c95d", "#4dd0e1", "#ff8a65", "#ba68c8", "#81c784", "#f06292"
+    "#d9693f", "#4f86b8", "#5e9e4a", "#c784a8", "#f2c14e", "#9a3b5c"
 ];
 
 /*

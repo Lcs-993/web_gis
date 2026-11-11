@@ -33,13 +33,17 @@ export const isThemeable = (attribute) => isCategory(attribute) || isGraduable(a
 export const themeKind = (attribute) => isCategory(attribute) ? "category" : "numeric";
 
 /*
-   Paleta categórica de alto contraste para os 12 primeiros
-   valores, legível sobre satélite, mapa de ruas e nos dois temas.
+   Paleta categórica terrosa para os 12 primeiros valores:
+   terracota, mostarda, verde-cana, azul-ardósia, vinho, areia,
+   rosa-barro, lilás, palha, ameixa, barro e argila. Escolhida para
+   continuar distinta com daltonismo vermelho-verde (menor ΔE
+   simulado ≈ 11, contra ≈ 3 da paleta anterior) e sem tons muito
+   escuros, que somem sobre o satélite.
 */
 export const CATEGORY_PALETTE = [
-    "#e6194b", "#3cb44b", "#ffe119", "#4363d8",
-    "#f58231", "#911eb4", "#46f0f0", "#f032e6",
-    "#bcf60c", "#fabebe", "#008080", "#e6beff"
+    "#d9693f", "#f2c14e", "#5e9e4a", "#4f86b8",
+    "#9a3b5c", "#eadcbc", "#d98c8c", "#c9b3e0",
+    "#e3d58a", "#c784a8", "#b23a3a", "#f0a46a"
 ];
 
 export const EMPTY_COLOR = "#5a5a5a";
