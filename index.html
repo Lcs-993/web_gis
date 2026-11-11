@@ -35,7 +35,7 @@
         crossorigin=""
     >
 
-    <link rel="stylesheet" href="css/style.css?v=20261111a">
+    <link rel="stylesheet" href="css/style.css?v=20261111c">
 
     <!-- Tema escuro por padrão; o claro só vale se o usuário o escolheu. Aplicado antes da primeira pintura. O hash na CSP corresponde a este bloco. -->
     <script>(function(){var t="dark";try{if(localStorage.getItem("webgis-theme")==="light"){t="light";}}catch(e){}document.documentElement.setAttribute("data-theme",t);})();</script>
@@ -244,7 +244,8 @@
                         <p class="sidebar-key-text">Selecione o nome para tornar a camada <strong>ativa</strong>: ela alimenta busca, filtros e Analytics. <strong>Duplo clique</strong> no nome abre as propriedades (simbologia, rótulos, campos).</p>
                         <ul class="sidebar-key-list">
                             <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" stroke="currentColor" stroke-width="1.8"/></svg>Exibir</li>
-                            <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="15" cy="7" r="2" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="12" r="2" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="17" r="2" stroke="currentColor" stroke-width="1.8"/></svg>Propriedades</li>
+                            <li><svg class="icon" aria-hidden="true"><use href="#ic-rotulos"/></svg>Rótulos</li>
+                            <li><svg class="icon" aria-hidden="true"><use href="#ic-propriedades"/></svg>Propriedades</li>
                         </ul>
                     </footer>
                 </div>

@@ -3,10 +3,10 @@
 
    Lista as camadas do store: símbolo, nome (clique = camada
    ativa, a que alimenta busca, filtros e dashboard; duplo clique =
-   propriedades), contagem, visibilidade (olho) e o botão de
-   Propriedades (js/ui/layer-properties.js), onde ficam
-   simbologia, rótulos, informação e campos. Tema e rótulos
-   ligados aparecem como etiquetas ao lado do nome.
+   propriedades), contagem, visibilidade (olho), rótulos (T) e o
+   botão de Propriedades (js/ui/layer-properties.js), onde ficam
+   simbologia, ajustes dos rótulos, informação e campos. Tema
+   ligado aparece como etiqueta ao lado do nome.
    ============================================================ */
 
 import { el, byId } from "./dom.js";
@@ -39,17 +39,28 @@ const icon = (paths) => {
     return svg;
 };
 
+/* Ícone do sprite do index.html (<symbol id="ic-…">): mesmo traço e grade dos da barra. */
+const spriteIcon = (id) => {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    const use = document.createElementNS(SVG_NS, "use");
+
+    svg.setAttribute("class", "icon");
+    svg.setAttribute("aria-hidden", "true");
+    use.setAttribute("href", `#${id}`);
+    svg.appendChild(use);
+
+    return svg;
+};
+
 const EYE = "M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z";
 const PUPIL = "M12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z";
 
 const ICONS = {
     eyeOpen: () => icon([EYE, PUPIL]),
     eyeClosed: () => icon([EYE, PUPIL, "M4 4l16 16"]),
-    /* Controles deslizantes: propriedades da camada. */
-    properties: () => icon([
-        "M4 7h9M17 7h3", "M4 12h3M11 12h9", "M4 17h11M19 17h1",
-        "M15 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z", "M9 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z", "M17 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"
-    ])
+    /* Rótulos e propriedades: ícones do conjunto do app (sprite ic-*, design system). */
+    label: () => spriteIcon("ic-rotulos"),
+    properties: () => spriteIcon("ic-propriedades")
 };
 
 const LABEL_MAX_LINES = 4;
@@ -250,12 +261,26 @@ export function createLayerPanel(store, { onAddFile, onProperties }) {
                 onclick: () => store.setLayerVisible(layer.id, !layer.visible)
             }, shown ? ICONS.eyeOpen() : ICONS.eyeClosed());
 
-            /* Estado resumido ao lado do nome: tema e rótulos ligados (ajustes na janela de Propriedades). */
+            /*
+               Liga/desliga os rótulos direto na lista (atalho mais usado);
+               atributos, texto e zoom mínimo ficam em Propriedades › Rótulos.
+            */
+            const labels = el("button", {
+                type: "button",
+                class: "layer-toggle layer-labels",
+                "aria-pressed": String(labelsOn),
+                "aria-label": labelsOn ? `Ocultar rótulos de ${layer.name}` : `Exibir rótulos de ${layer.name}`,
+                title: labelsOn ? "Ocultar rótulos" : "Exibir rótulos (ajustes em Propriedades › Rótulos)",
+                disabled: !ready,
+                dataset: { focusKey: `labels:${layer.id}` },
+                onclick: () => store.setLabels(layer.id, { visible: !layer.labels.visible })
+            }, ICONS.label());
+
+            /* Tema ligado: etiqueta ao lado do nome (ajustes em Propriedades › Simbologia). Rótulos já têm o botão T. */
             const themeOn = layer.theme.visible && ready;
-            const badges = [
-                themeOn ? ["Tema", `Tema por ${layer.theme.field}`] : null,
-                labelsOn ? ["Rótulos", "Rótulos ligados"] : null
-            ].filter(Boolean).map(([text, title]) => el("span", { class: "layer-badge", text, title }));
+            const badges = themeOn
+                ? [el("span", { class: "layer-badge", text: "Tema", title: `Tema por ${layer.theme.field}` })]
+                : [];
 
             const name = el("button", {
                 type: "button",
@@ -313,7 +338,7 @@ export function createLayerPanel(store, { onAddFile, onProperties }) {
                     /* Nome + quantidade à esquerda; ações à direita. */
                     symbol,
                     el("span", { class: "layer-title" }, [name, meta, ...badges]),
-                    el("span", { class: "layer-actions" }, [visibility, properties, remove])
+                    el("span", { class: "layer-actions" }, [visibility, labels, properties, remove])
                 ]),
                 error
             ]);
