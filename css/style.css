@@ -4484,6 +4484,79 @@ th[aria-sort="descending"] .table-sort::after {
     height: 18px;
 }
 
+/*
+   Marca e ações não encolhem: o espaço que falta sai dos menus.
+   Quando os menus não cabem entre as duas (medido em
+   js/ui/module-menu.js), a barra ganha .is-compact e eles viram um
+   único botão "Módulos".
+*/
+.topbar .brand,
+.topbar-actions {
+    flex: none;
+}
+
+.topbar .brand-name {
+    white-space: nowrap;
+}
+
+.module-menu-compact-group {
+    display: none;
+}
+
+.topbar.is-compact .module-menu-group {
+    display: none;
+}
+
+.topbar.is-compact .module-menu-compact-group {
+    display: block;
+}
+
+.topbar.is-compact .module-menu {
+    position: static;
+    margin-left: 0;
+    transform: none;
+}
+
+/* Celular: espaços menores e "Apresentar" só com o ícone. */
+@media (max-width: 600px) {
+    .topbar {
+        gap: 8px;
+        padding: 0 6px 0 4px;
+    }
+
+    .topbar-start {
+        gap: 6px;
+    }
+
+    .topbar .brand {
+        gap: 6px;
+    }
+
+    .topbar .brand-logo {
+        margin: 0;
+    }
+
+    .topbar .brand-name {
+        font-size: 19px;
+    }
+
+    .module-menu-trigger {
+        padding: 0 8px;
+    }
+
+    .topbar-present-button {
+        width: 34px;
+        height: 34px;
+        justify-content: center;
+        margin-left: 0;
+        padding: 0;
+    }
+
+    .topbar-present-label {
+        display: none;
+    }
+}
+
 /* Tema: lua no claro (ativa o escuro), sol no escuro (ativa o claro). */
 .theme-toggle .theme-icon-sun,
 [data-theme="dark"] .theme-toggle .theme-icon-moon {
@@ -6179,6 +6252,17 @@ th[aria-sort="descending"] .table-sort::after {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Título de seção (ex.: nome de cada módulo no menu "Módulos"). */
+.menu-heading {
+    padding: 6px 8px 2px 28px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .menu-trail {
