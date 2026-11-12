@@ -7634,3 +7634,16 @@ th[aria-sort="descending"] .table-sort::after {
     grid-column: 3;
     justify-self: center;
 }
+
+/* Configurações → App de campo (servidor das coletas). */
+.campo-servidor {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+}
+
+.campo-servidor .field-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+}

@@ -447,6 +447,40 @@ KML e KMZ são convertidos para GeoJSON ao abrir (`js/data/kml.js` e
   imagens internos são ignorados;
 - estilos do KML (cores, ícones) não são usados: vale a simbologia da camada.
 
+### App de campo (coletas reais)
+
+As fichas coletadas no celular pelo **aplicativo de campo**
+([-app-campo-agronomico](https://github.com/Lcs-993/-app-campo-agronomico))
+chegam ao servidor dele (pasta `backend/` daquele repositório), que publica
+camadas GeoJSON. Com o endereço desse servidor definido, o WebGIS carrega essas
+camadas **no lugar da demonstração** "Coletas de campo (demonstração)":
+
+| Camada | O que mostra |
+| --- | --- |
+| **Coletas do app de campo** | Uma feição por ficha, no mesmo cartão de coleta da demonstração: tipo, alvo, nível, resultado (II, ninfas/m, % de tocos brocados), status de corte, responsável, fotos e o talhão relacionado. Visível e com tema por **Tipo** na abertura |
+| CQ · Liberação de corte (talhões) | Talhões pela última ficha de CQ, com tema por **Liberação de corte** |
+| Cigarrinha · Ninfas/m (talhões) | Talhões pela última ficha de cigarrinha, com tema por **Acima do NDE** |
+| Pragas do solo (talhões) | Talhões pela última ficha de pragas do solo, com tema por **Alerta de praga crítica** |
+| Pontos · Pragas do solo, Pontos · Cigarrinha-da-raiz, Amostras · CQ da broca | Cada ponto ou amostra das fichas, com as contagens |
+
+As camadas de talhões e de pontos começam ocultas (liga pelo olho no painel
+Camadas). O endereço do servidor vem, nesta ordem, de:
+
+1. `?campo=<endereço>` (e `&campo_chave=<chave>`, se o servidor exigir chave de
+   leitura) na URL do WebGIS. Fica guardado no navegador e some da barra de endereço.
+   Ex.: `https://lcs-993.github.io/web_gis/?campo=https://campo.suaempresa.com.br`;
+2. **Configurações → App de campo** (Testar, Salvar e recarregar, Remover),
+   guardado só neste navegador;
+3. `CAMPO_API.url` em `js/config.js`: o endereço oficial, para todos, quando o
+   servidor estiver publicado.
+
+Sem endereço, nada muda. As definições das camadas ficam em `CAMPO_LAYERS`
+(`js/config.js`) e a leitura do endereço em `js/data/campo-api.js`. O servidor
+precisa estar em **HTTPS** (a CSP só libera `https:` e, para testes no
+computador, `http://localhost` e `http://127.0.0.1`) e liberar a origem do
+WebGIS no CORS (`CORS_ORIGENS` do backend; `https://lcs-993.github.io` já vem
+liberado).
+
 ---
 
 ## Arquitetura
@@ -558,6 +592,8 @@ pan e zoom. Os estilos são atualizados apenas nas feições cujo estado mudou.
 - Content-Security-Policy em `<meta>`: scripts só do próprio site, do unpkg e
   do script de tema (por hash). Ao alterar o script inline do `<head>`,
   recalcule o hash na CSP.
+- `connect-src` e `img-src` aceitam `https:` e, só para testar o servidor do
+  app de campo no computador, `http://localhost:*` e `http://127.0.0.1:*`.
 - Todo texto vindo dos dados entra no DOM como `textContent`.
 - CSV protegido contra injeção de fórmula.
 

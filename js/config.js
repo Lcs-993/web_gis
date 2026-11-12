@@ -228,6 +228,112 @@ export const LAYERS = [
     }
 ];
 
+/*
+   APP DE CAMPO (repositório -app-campo-agronomico, pasta backend/)
+
+   O servidor do app de campo publica as fichas coletadas como
+   camadas GeoJSON. Com um servidor definido, as camadas abaixo
+   entram no lugar da demonstração "coletas_demo" (mesma posição
+   na lista). O endereço vem, nesta ordem, de ?campo=<url> na URL,
+   de Configurações → App de campo (guardado no navegador) ou de
+   CAMPO_API.url. Sem endereço, nada muda. Ver js/data/campo-api.js.
+
+   - CAMPO_API.url: endereço oficial do servidor (HTTPS), quando
+     estiver publicado. Ex.: "https://campo.suaempresa.com.br".
+   - CAMPO_API.chave: chave de leitura do servidor, se ele exigir
+     (CHAVE_LEITURA no backend). Fica visível no código do site.
+   - CAMPO_LAYERS: mesmas opções de LAYERS, com "camada" (nome da
+     camada no servidor, GET /api/v1/camadas) no lugar de "url".
+     Os atributos chegam com nomes legíveis (rotulos=pt).
+*/
+export const CAMPO_API = {
+    url: "",
+    chave: ""
+};
+
+export const CAMPO_LAYERS = [
+    {
+        /* Uma feição por ficha, no formato do cartão de coleta (mesmos atributos da demonstração). */
+        id: "campo_coletas",
+        camada: "coletas",
+        name: "Coletas do app de campo",
+        color: "#f2c14e",
+        visible: true,
+        theme: { field: "Tipo" },
+        popup: {
+            template: "coleta",
+            fields: {
+                code: "Código",
+                type: "Tipo",
+                target: "Alvo",
+                level: "Nível",
+                result: "Resultado",
+                status: "Status",
+                date: "Data da coleta",
+                by: "Responsável",
+                notes: "Observações",
+                photos: "Fotos",
+                farm: "Fazenda",
+                plot: "Talhão",
+                campaign: "Campanha",
+                updated: "Atualizado em",
+                updatedBy: "Atualizado por"
+            },
+            related: { layer: "pol_talhoes", fields: ["Fazenda", "Talhão"] }
+        }
+    },
+    {
+        /* Talhões pela última ficha de CQ: II e liberação de corte. */
+        id: "campo_talhoes_cq",
+        camada: "talhoes_cq_broca",
+        name: "CQ · Liberação de corte (talhões)",
+        color: "#c0504d",
+        visible: false,
+        theme: { field: "Liberação de corte" },
+        popup: { subtitle: "Talhão", badge: "Liberação de corte" }
+    },
+    {
+        id: "campo_talhoes_cigarrinha",
+        camada: "talhoes_cigarrinha",
+        name: "Cigarrinha · Ninfas/m (talhões)",
+        color: "#4f86b8",
+        visible: false,
+        theme: { field: "Acima do NDE" },
+        popup: { subtitle: "Talhão", badge: "Acima do NDE" }
+    },
+    {
+        id: "campo_talhoes_pragas_solo",
+        camada: "talhoes_pragas_solo",
+        name: "Pragas do solo (talhões)",
+        color: "#9a3b5c",
+        visible: false,
+        theme: { field: "Alerta de praga crítica" },
+        popup: { subtitle: "Talhão", badge: "Alerta de praga crítica" }
+    },
+    {
+        /* Pontos e amostras de cada ficha, com as contagens. */
+        id: "campo_pontos_pragas_solo",
+        camada: "pontos_pragas_solo",
+        name: "Pontos · Pragas do solo",
+        color: "#d9693f",
+        visible: false
+    },
+    {
+        id: "campo_pontos_cigarrinha",
+        camada: "pontos_cigarrinha",
+        name: "Pontos · Cigarrinha-da-raiz",
+        color: "#5e9e4a",
+        visible: false
+    },
+    {
+        id: "campo_amostras_cq",
+        camada: "amostras_cq_broca",
+        name: "Amostras · CQ da broca",
+        color: "#c784a8",
+        visible: false
+    }
+];
+
 /* Paleta usada para camadas sem cor definida (arquivos locais). */
 export const LAYER_PALETTE = [
     "#d9693f", "#4f86b8", "#5e9e4a", "#c784a8", "#f2c14e", "#9a3b5c"
