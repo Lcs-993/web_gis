@@ -28,6 +28,34 @@ responsivo.
   coleta e consulta dados no talhão e se integra a este WebGIS (os dados do
   campo chegam aqui para análise e apresentação).
 
+### Fotos das coletas (contrato com o app de campo)
+
+O pop-up de coleta (`js/ui/popup-collection.js`) mostra as fotos por um
+`<img>` comum: **aceita qualquer formato que o navegador abre** (JPG, PNG,
+WebP, SVG). As fotos do celular (JPG) entram **sem conversão**. Os SVG de
+`assets/coletas_demo/` são só ilustrações dos dados fictícios.
+
+- **Campo:** o atributo mapeado como `photos` no `popup.fields` da camada
+  (na demonstração, `Fotos`) traz os caminhos **separados por `;`**, na ordem
+  em que aparecem na galeria (a primeira é a foto principal).
+- **Caminho:** relativo ao site (`fotos/COL-2026-0001-1.jpg`) ou URL
+  `https://` (ex.: Supabase Storage). A CSP já permite `img-src 'self' https:`;
+  `http://` puro é bloqueado.
+- **Tamanho:** o WebGIS baixa a foto inteira; ele não redimensiona. Quem
+  reduz é o **app de campo, antes de enviar**.
+
+Parâmetros a deixar **configuráveis no app de campo** (valores sugeridos):
+
+| Parâmetro | Sugestão | Por quê |
+|---|---|---|
+| Lado maior da foto | 1600 px | nítida em tela cheia no desktop |
+| Formato | JPG (WebP opcional) | nativo do celular; WebP é ~30% menor |
+| Qualidade | 80 | ~200–400 KB por foto, contra 3–8 MB do original |
+| Miniatura (opcional) | 400 px | galeria do pop-up carrega mais rápido |
+| Fotos por coleta | até 6 | limita o envio no 4G do campo |
+| Metadados EXIF | remover GPS/aparelho; manter data e orientação | a posição já vai na geometria do ponto; evita expor dados do aparelho |
+| Nome do arquivo | `<Código da coleta>-<n>.jpg` | liga a foto à coleta sem depender de pasta |
+
 ---
 
 ## Como executar
