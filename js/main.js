@@ -27,12 +27,13 @@ import { createFeatureCard } from "./ui/feature-card.js";
 import { createToolbars } from "./ui/toolbar.js";
 import { createLayerTools } from "./ui/layer-tools.js";
 import { createLegendPanel } from "./ui/legend-panel.js";
-import { createNotifications, createSettingsPanel, plainText, renderAboutCredits } from "./ui/app-panels.js";
+import { createCampoSettings, createNotifications, createSettingsPanel, plainText, renderAboutCredits } from "./ui/app-panels.js";
 import { createFilterMenu } from "./ui/filter-menu.js";
 import { createChartsPanel } from "./ui/charts-panel.js";
 import { createContextMenu } from "./ui/context-menu.js";
 import { formatCount, formatValue } from "./ui/format.js";
 import { getAttribute, isEmpty, normalizeText } from "./data/values.js";
+import { camadasDoCampo, servidorCampo } from "./data/campo-api.js";
 
 const store = createStore();
 const status = createStatusBar(store);
@@ -40,6 +41,7 @@ const loading = createLoadingOverlay();
 const notifications = createNotifications();
 
 createSettingsPanel();
+createCampoSettings();
 
 
 /* ---------------- mapa (ou stub, sem Leaflet) ---------------- */
@@ -639,7 +641,7 @@ const addFile = async (file) => {
     const layer = await loadLayer({
         id: `arquivo-${Date.now()}-${fileCounter}`,
         name: file.name.replace(/\.(geojson|json|kml|kmz)$/i, ""),
-        color: LAYER_PALETTE[(LAYERS.length + fileCounter) % LAYER_PALETTE.length],
+        color: LAYER_PALETTE[(CAMADAS_INICIAIS.length + fileCounter) % LAYER_PALETTE.length],
         source: "file",
         visible: true
     }, (onProgress) => loadFromFile(file, { onProgress }));
@@ -892,7 +894,16 @@ window.WebGIS = Object.freeze({
     addLayer: (definition) => loadLayer(definition, (onProgress) => loadFromUrl(definition.url, { onProgress }))
 });
 
-Promise.all(LAYERS.map((definition, index) =>
+/*
+   Com o servidor do app de campo definido, as camadas do campo entram
+   no lugar da demonstração de coletas (ver CAMPO_API em config.js).
+*/
+const SERVIDOR_CAMPO = servidorCampo();
+const CAMADAS_INICIAIS = SERVIDOR_CAMPO
+    ? LAYERS.flatMap((definition) => (definition.id === "coletas_demo" ? camadasDoCampo(SERVIDOR_CAMPO) : [definition]))
+    : LAYERS;
+
+Promise.all(CAMADAS_INICIAIS.map((definition, index) =>
     loadLayer(
         { ...definition, color: definition.color || LAYER_PALETTE[index % LAYER_PALETTE.length] },
         (onProgress) => loadFromUrl(definition.url, { onProgress })
