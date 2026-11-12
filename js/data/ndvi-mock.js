@@ -15,44 +15,17 @@
    apague essa linha (e este arquivo, quando houver dado real).
    ============================================================ */
 
-import { getAttribute } from "./values.js";
+import { unitRandom } from "./mock-random.js";
 
 export const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-
-/* FNV-1a 32 bits: texto → semente. */
-const hash = (text) => {
-    let h = 0x811c9dc5;
-
-    for (let i = 0; i < text.length; i++) {
-        h ^= text.charCodeAt(i);
-        h = Math.imul(h, 0x01000193);
-    }
-
-    return h >>> 0;
-};
-
-/* mulberry32: gerador pseudoaleatório pequeno e determinístico. */
-const random = (seed) => () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-};
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
 /* [{ month: "Jan", value: 0.42 }, …] — 12 meses. */
 export function simulatedNdvi(layer, feature) {
-    const keyFields = layer.partFields && layer.partFields.length ? layer.partFields : null;
-    const key = keyFields
-        ? keyFields.map((name) => String(getAttribute(feature, name) ?? "")).join("|")
-        : JSON.stringify(feature.properties || {});
-    const next = random(hash(`${layer.id}:${key}`));
+    const next = unitRandom(layer, feature);
 
-    /* Mês do corte entre abril (3) e novembro (10). */
+    /* Mês do corte entre abril (3) e novembro (10); o mesmo da produção e do histórico simulados. */
     const harvest = 3 + Math.floor(next() * 8);
     const floor = 0.18 + next() * 0.08;
     const peak = 0.72 + next() * 0.14;

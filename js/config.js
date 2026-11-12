@@ -82,6 +82,11 @@ export const THEME_BASEMAPS = {
        { badge: "atributo", updated: "AAAA-MM-DD",
          sections: [{ title, fields: [...], style }] }
      badge: atributo mostrado como selo ao lado do título.
+     subtitle: atributo mostrado logo abaixo do título.
+     kicker: false tira a linha "CAMADA · ATRIBUTO" do topo.
+     areaField: atributo com a área em ha (produção simulada).
+     ndvi / production / history: "simulado" liga seções com dados
+     fictícios (selo "Simulado"); provisório, até haver dado real.
      updated: data dos dados, no rodapé do cartão.
      sections: seções na ordem (cada uma vira uma aba); style é
      "grid" (duas colunas, padrão), "metrics" (números em cartão)
@@ -203,8 +208,15 @@ export const LAYERS = [
         selectionGroup: "Fazenda",
         /* Cartão da feição: estágio como selo; produção e histórico em seções próprias. */
         popup: {
+            /* Sem "TALHÕES · FAZENDA" no topo: a fazenda é o título e o talhão, o subtítulo. */
+            kicker: false,
+            subtitle: "Talhão",
             badge: "Estágio de corte",
             updated: "2026-11-07",
+            areaField: "Área (ha.)",
+            /* PROVISÓRIO: produção e operações da safra fictícias (js/data/season-mock.js), enquanto os atributos estão vazios. */
+            production: "simulado",
+            history: "simulado",
             /* PROVISÓRIO: série NDVI fictícia só para avaliar o frontend (js/data/ndvi-mock.js). Apagar quando houver dado real. */
             ndvi: "simulado",
             sections: [
