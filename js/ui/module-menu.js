@@ -13,6 +13,10 @@
    (também de dentro do menu aberto); Esc fecha e devolve o foco ao
    botão. Com um menu aberto, passar o mouse sobre outro botão troca
    de menu.
+
+   Tela estreita (celular): os botões não cabem ao lado da marca. Um
+   botão único "Menus" assume o lugar deles (a troca é só por CSS) e
+   abre uma lista com todos os menus, cada um como uma seção.
    ============================================================ */
 
 import { el } from "./dom.js";
@@ -57,13 +61,71 @@ export function createModuleMenu(container, { getMenus, onAction } = {}) {
         dataset: { menu: menu.id }
     }, [el("span", { text: menu.label }), chevron()]));
 
-    container.replaceChildren(...triggers.map((trigger) => el("div", { class: "module-menu-group" }, trigger)));
+    const compact = el("button", {
+        type: "button",
+        class: "module-menu-trigger module-menu-compact",
+        id: "module-menu-compact-button",
+        "aria-haspopup": "menu",
+        "aria-expanded": "false"
+    }, [el("span", { text: "Menus" }), chevron()]);
+
+    container.replaceChildren(
+        ...triggers.map((trigger) => el("div", { class: "module-menu-group" }, trigger)),
+        el("div", { class: "module-menu-group module-menu-compact-group" }, compact)
+    );
 
     const close = () => {
         if (handle) {
             handle.close();
         }
     };
+
+    /* Todos os menus numa lista só, um título de seção por menu. */
+    const openCompact = ({ focus = null } = {}) => {
+        const items = getMenus().flatMap((menu, index) => [
+            ...(index ? [{ separator: true }] : []),
+            { heading: menu.label },
+            ...menu.items
+        ]);
+
+        close();
+        openIndex = triggers.length;
+        compact.setAttribute("aria-expanded", "true");
+
+        handle = openMenu({
+            items,
+            anchor: compact,
+            label: "Menus",
+            focus,
+            onAction,
+            onClose: () => {
+                compact.setAttribute("aria-expanded", "false");
+
+                if (openIndex === triggers.length) {
+                    openIndex = -1;
+                    handle = null;
+                }
+            }
+        });
+    };
+
+    compact.addEventListener("click", () => {
+        if (openIndex === triggers.length) {
+            close();
+        } else {
+            openCompact();
+        }
+    });
+
+    compact.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openCompact({ focus: "first" });
+        } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            openCompact({ focus: "last" });
+        }
+    });
 
     const open = (index, { focus = null } = {}) => {
         const current = getMenus()[index];
@@ -114,7 +176,7 @@ export function createModuleMenu(container, { getMenus, onAction } = {}) {
         });
 
         trigger.addEventListener("pointerenter", () => {
-            if (openIndex !== -1 && openIndex !== index) {
+            if (openIndex !== -1 && openIndex !== index && openIndex !== triggers.length) {
                 open(index);
             }
         });

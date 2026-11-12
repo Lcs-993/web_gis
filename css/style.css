@@ -4484,6 +4484,50 @@ th[aria-sort="descending"] .table-sort::after {
     height: 18px;
 }
 
+/* ---------- Barra superior em telas estreitas ----------
+   Os sete menus precisam de ~1175 px ao lado da marca e das ações.
+   Abaixo disso, um botão único "Menus" (js/ui/module-menu.js) abre
+   todos eles numa lista; no celular, "Apresentar" fica só no ícone. */
+
+.module-menu-compact-group {
+    display: none;
+}
+
+@media (max-width: 1179px) {
+    .module-menu .module-menu-group {
+        display: none;
+    }
+
+    .module-menu .module-menu-compact-group {
+        display: block;
+    }
+}
+
+@media (max-width: 600px) {
+    .topbar {
+        gap: 8px;
+        padding: 0 8px 0 10px;
+    }
+
+    .topbar-start {
+        gap: 8px;
+    }
+
+    .module-menu {
+        margin-left: 0;
+    }
+
+    .topbar-present-button {
+        width: 32px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .topbar-present-label {
+        display: none;
+    }
+}
+
 /* Tema: lua no claro (ativa o escuro), sol no escuro (ativa o claro). */
 .theme-toggle .theme-icon-sun,
 [data-theme="dark"] .theme-toggle .theme-icon-moon {
