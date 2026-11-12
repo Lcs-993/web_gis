@@ -4,10 +4,12 @@
    Montado a partir do schema da camada (nenhum atributo é
    conhecido de antemão), no desenho de um cartão de campo:
 
-   1. Cabeçalho: "CAMADA · ATRIBUTO" em versalete, o título da
-      feição em destaque e, se a camada pedir (popup.badge), um
-      selo de estado ao lado. O título é o 1º atributo do rótulo da
-      camada, se houver; senão, o 1º de texto/categoria preenchido.
+   1. Cabeçalho: "CAMADA · ATRIBUTO" em versalete (some com
+      popup.kicker = false), o título da feição em destaque, um
+      subtítulo logo abaixo (popup.subtitle: atributo, ex.: o
+      talhão) e, se a camada pedir (popup.badge), um selo de estado
+      ao lado. O título é o 1º atributo do rótulo da camada, se
+      houver; senão, o 1º de texto/categoria preenchido.
    2. Abas: uma por seção; clicar rola até ela e a aba acompanha
       a rolagem (todas as seções ficam à vista, empilhadas).
    3. Seções, em três estilos:
@@ -22,12 +24,18 @@
       data dos dados no rodapé.
 
    Nada é inventado: seção sem atributo preenchido não aparece.
+   Exceção provisória, sempre com o selo "Simulado": popup.ndvi,
+   popup.production e popup.history = "simulado" geram NDVI,
+   produção e histórico da safra fictícios (js/data/*-mock.js)
+   para avaliar o desenho. Produção e Histórico simulados só
+   entram se a seção de mesmo nome não tiver dado real.
    ============================================================ */
 
 import { el } from "./dom.js";
 import { formatValue } from "./format.js";
 import { getAttribute, isEmpty, toNumber, toTime } from "../data/values.js";
 import { MONTHS, simulatedNdvi } from "../data/ndvi-mock.js";
+import { simulatedSeason } from "../data/season-mock.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -215,6 +223,112 @@ const ndviChart = (series) => {
     ]);
 };
 
+/* ---------------- produção e histórico da safra (simulados) ---------------- */
+
+const SIM_TITLE = "Dados fictícios, só para avaliar a interface";
+
+const number = (value, digits = 1) =>
+    value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+const shortDate = (time) =>
+    new Date(time).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" });
+
+const simulatedSection = (title, season, content) => ({
+    title,
+    node: el("section", { class: "feature-section", id: `feature-section-${++sectionCounter}`, "aria-label": title }, [
+        el("h4", { class: "feature-section-title" }, [
+            `${title} `,
+            el("span", { class: "feature-section-note", text: `(safra ${season.season})` }),
+            el("span", { class: "feature-sim-badge", title: SIM_TITLE, text: "Simulado" })
+        ]),
+        content
+    ])
+});
+
+/*
+   Produção: números da safra num cartão (estágio, TCH com a
+   variação sobre a safra anterior, produção, ATR, TAH) e as datas
+   de colheita abaixo. Área sem cana: em reforma, com o plantio.
+*/
+const productionView = (season) => {
+    const p = season.production;
+    const metric = (label, value, unit = null, note = null) => el("div", { class: "feature-metric" }, [
+        el("dt", { text: label }),
+        el("dd", {}, [value, unit ? el("span", { class: "feature-metric-unit", text: ` ${unit}` }) : null]),
+        note
+    ]);
+    const today = Date.now();
+    const when = (label, time) => el("div", { class: "feature-grid-item" }, [
+        el("dt", { text: label }),
+        el("dd", { text: shortDate(time) })
+    ]);
+
+    if (season.fallow) {
+        return el("div", { class: "feature-production" }, [
+            el("dl", { class: "feature-metrics" }, [
+                metric("Estágio", p.stage),
+                p.area !== null ? metric("Área", number(p.area, 2), "ha") : null
+            ]),
+            el("p", { class: "feature-production-note", text: "Sem cana nesta safra: área em reforma do canavial." }),
+            el("dl", { class: "feature-grid" }, [when("1ª colheita prevista", p.nextHarvest)])
+        ]);
+    }
+
+    const delta = p.previousTch ? ((p.tch - p.previousTch) / p.previousTch) * 100 : null;
+    const trend = delta === null
+        ? el("span", { class: "feature-metric-note", text: "1º corte: sem safra anterior" })
+        : el("span", {
+            class: `feature-metric-note ${delta >= 0 ? "is-up" : "is-down"}`,
+            title: `Safra anterior: ${number(p.previousTch)} t/ha`
+        }, `${delta >= 0 ? "▲" : "▼"} ${number(Math.abs(delta))}% sobre a safra anterior`);
+
+    return el("div", { class: "feature-production" }, [
+        el("dl", { class: "feature-metrics feature-metrics-wide" }, [
+            metric("Estágio", p.stage),
+            metric("TCH", number(p.tch), "t/ha", trend)
+        ]),
+        el("dl", { class: "feature-metrics" }, [
+            p.production !== null ? metric("Produção", number(p.production, 0), "t") : null,
+            metric("ATR", number(p.atr), "kg/t"),
+            metric("TAH", number(p.tah), "t/ha")
+        ]),
+        el("dl", { class: "feature-grid" }, [
+            p.harvest !== null ? when(p.harvest <= today ? "Colhido em" : "Colheita prevista", p.harvest) : null,
+            when("Próxima colheita", p.nextHarvest)
+        ])
+    ]);
+};
+
+/*
+   Histórico: as operações da safra em ordem de data, numa linha do
+   tempo. Feitas com ponto cheio; previstas com ponto vazado e
+   etiqueta; um marcador "Hoje" separa as duas partes.
+*/
+const historyView = (season) => {
+    const items = [];
+    let todayPlaced = false;
+
+    season.operations.forEach((operation) => {
+        if (!operation.done && !todayPlaced) {
+            todayPlaced = true;
+            items.push(el("li", { class: "feature-ops-today", "aria-label": "Hoje" }, el("span", { text: "Hoje" })));
+        }
+
+        items.push(el("li", { class: `feature-ops-item${operation.done ? "" : " is-planned"}` }, [
+            el("span", { class: "feature-ops-date", text: shortDate(operation.time) }),
+            el("span", { class: "feature-ops-title" }, [
+                operation.title,
+                operation.done ? null : el("span", { class: "feature-ops-tag", text: "Prevista" })
+            ]),
+            operation.detail ? el("span", { class: "feature-ops-detail", text: operation.detail }) : null
+        ]));
+    });
+
+    return items.length
+        ? el("ol", { class: "feature-ops", "aria-label": `Operações da safra ${season.season}` }, items)
+        : el("p", { class: "feature-production-note", text: "Nenhuma operação registrada nesta safra." });
+};
+
 /* Título curto da feição (o mesmo do cabeçalho do pop-up), ou null. */
 export function featureTitle(layer, feature) {
     const attributes = layer.schema.attributes.filter((attribute) => attribute.role !== "empty");
@@ -234,16 +348,21 @@ export function buildPopup(layer, feature, { onZoom = null, onShowInTable = null
     const titleAttribute = pickTitle(layer, attributes, feature);
     const badgeAttribute = attributes.find((attribute) =>
         attribute.name === options.badge && attribute !== titleAttribute && !isEmpty(valueOf(attribute))) || null;
-    const rest = attributes.filter((attribute) => attribute !== titleAttribute && attribute !== badgeAttribute);
+    const subtitleAttribute = attributes.find((attribute) =>
+        attribute.name === options.subtitle && attribute !== titleAttribute && !isEmpty(valueOf(attribute))) || null;
+    const rest = attributes.filter((attribute) =>
+        attribute !== titleAttribute && attribute !== badgeAttribute && attribute !== subtitleAttribute);
     const filled = rest.filter((attribute) => !isEmpty(valueOf(attribute)));
     const blank = rest.filter((attribute) => isEmpty(valueOf(attribute)));
 
     /* 1. Cabeçalho */
     const header = el("header", { class: "feature-popup-header" }, [
-        el("p", {
-            class: "feature-popup-layer",
-            text: titleAttribute ? `${layer.name} · ${titleAttribute.name}` : layer.name
-        }),
+        options.kicker === false
+            ? null
+            : el("p", {
+                class: "feature-popup-layer",
+                text: titleAttribute ? `${layer.name} · ${titleAttribute.name}` : layer.name
+            }),
         el("div", { class: "feature-popup-heading" }, [
             titleAttribute
                 ? el("h3", { class: "feature-popup-title", text: text(titleAttribute) })
@@ -254,7 +373,10 @@ export function buildPopup(layer, feature, { onZoom = null, onShowInTable = null
                     text(badgeAttribute)
                 ])
                 : null
-        ])
+        ]),
+        subtitleAttribute
+            ? el("p", { class: "feature-popup-subtitle", title: subtitleAttribute.name, text: text(subtitleAttribute) })
+            : null
     ]);
 
     /* 3. Seções */
@@ -301,10 +423,31 @@ export function buildPopup(layer, feature, { onZoom = null, onShowInTable = null
         };
     });
 
+    /*
+       Produção e Histórico da safra simulados (popup.production /
+       popup.history = "simulado"): entram logo depois da 1ª seção,
+       e só se a seção de mesmo nome não veio com dado real.
+    */
+    const hasReal = (title) => sections.some((section) => section.title === title);
+    const wantsProduction = options.production === "simulado" && !hasReal("Produção");
+    const wantsHistory = options.history === "simulado" && !hasReal("Histórico");
+
+    if (wantsProduction || wantsHistory) {
+        const season = simulatedSeason(layer, feature, { areaField: options.areaField || null });
+        const extra = [
+            wantsProduction ? simulatedSection("Produção", season, productionView(season)) : null,
+            wantsHistory ? simulatedSection("Histórico", season, historyView(season)) : null
+        ].filter(Boolean);
+
+        sections.splice(Math.min(1, sections.length), 0, ...extra);
+    }
+
     /* Análise espacial: série NDVI (por ora só a simulada, popup.ndvi = "simulado"). */
     if (options.ndvi === "simulado") {
         sections.push({
             title: "Análise espacial",
+            /* Aba curta: com Produção e Histórico, as quatro abas cabem na largura do cartão. */
+            tab: "NDVI",
             node: el("section", { class: "feature-section", id: `feature-section-${++sectionCounter}`, "aria-label": "Análise espacial" }, [
                 el("h4", { class: "feature-section-title" }, [
                     "Análise espacial ",
@@ -349,7 +492,7 @@ export function buildPopup(layer, feature, { onZoom = null, onShowInTable = null
                 setActive(index);
                 scroll.scrollTo({ top: section.node.offsetTop - 4, behavior: reduce ? "auto" : "smooth" });
             }
-        }, section.title));
+        }, section.tab || section.title));
 
         const setActive = (active) => tabs.forEach((tab, index) =>
             tab.setAttribute("aria-current", String(index === active)));

@@ -647,6 +647,7 @@ ol {
 }
 
 .feature-popup-header {
+    flex: none;
     padding: 14px 44px 10px 16px;
 }
 
@@ -679,6 +680,18 @@ ol {
     overflow-wrap: anywhere;
 }
 
+/* Subtítulo (popup.subtitle): o talhão, logo abaixo da fazenda. */
+.feature-popup-subtitle {
+    margin-top: 2px;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Selo de estado (popup.badge): pílula na cor de destaque com ponto. */
 .feature-badge {
     display: inline-flex;
@@ -701,7 +714,9 @@ ol {
 }
 
 /* Abas: texto discreto; a ativa em destaque, sublinhada. */
+/* flex: none: com overflow-x, a barra podia encolher até sumir num cartão alto. */
 .feature-tabs {
+    flex: none;
     display: flex;
     gap: 16px;
     padding: 0 16px;
@@ -898,6 +913,150 @@ ol {
 .feature-timeline-label {
     color: var(--text-muted);
     font-size: 11px;
+}
+
+/*
+   Produção da safra (simulada): dois cartões de números (o 1º com
+   estágio e TCH, mais largo) e as datas de colheita em grade.
+*/
+.feature-production {
+    display: grid;
+    gap: 10px;
+}
+
+.feature-metrics-wide {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+
+.feature-metric-unit {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.feature-metric-note {
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Variação sobre a safra anterior: seta e palavra dizem a direção; a cor só reforça. */
+.feature-metric-note.is-up {
+    color: var(--accent-text);
+}
+
+.feature-metric-note.is-down {
+    color: var(--danger-text);
+}
+
+.feature-production-note {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/*
+   Histórico da safra: linha do tempo em ordem de data. Feitas com
+   ponto cheio; previstas com ponto vazado, texto mais fraco e a
+   etiqueta "Prevista"; "Hoje" separa as duas partes.
+*/
+.feature-ops {
+    display: grid;
+    gap: 12px;
+    margin: 0 0 0 5px;
+    padding: 2px 0;
+    border-left: 2px solid var(--border-hairline);
+    list-style: none;
+}
+
+.feature-ops-item {
+    position: relative;
+    display: grid;
+    gap: 1px;
+    padding-left: 14px;
+}
+
+.feature-ops-item::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: -6px;
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.feature-ops-item.is-planned::before {
+    border-color: var(--text-muted);
+    border-style: dashed;
+    background: var(--glass-bg-solid);
+}
+
+.feature-ops-date {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.feature-ops-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.feature-ops-detail {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.feature-ops-item.is-planned .feature-ops-title {
+    color: var(--text-muted);
+}
+
+.feature-ops-tag {
+    padding: 0 6px;
+    border: 0.5px solid var(--border-hairline);
+    border-radius: var(--radius-pill);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+/* Marcador "Hoje": filete na cor de destaque cruzando o trilho. */
+.feature-ops-today {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: -6px;
+    color: var(--accent-text);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.feature-ops-today::before {
+    content: "";
+    width: 10px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--accent);
+}
+
+.feature-ops-today::after {
+    content: "";
+    flex: 1;
+    height: 0.5px;
+    background: var(--accent-soft);
 }
 
 .feature-info-empty {
