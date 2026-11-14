@@ -4484,72 +4484,43 @@ th[aria-sort="descending"] .table-sort::after {
     height: 18px;
 }
 
-/*
-   Marca e ações não encolhem: o espaço que falta sai dos menus.
-   Quando os menus não cabem entre as duas (medido em
-   js/ui/module-menu.js), a barra ganha .is-compact e eles viram um
-   único botão "Módulos".
-*/
-.topbar .brand,
-.topbar-actions {
-    flex: none;
-}
-
-.topbar .brand-name {
-    white-space: nowrap;
-}
+/* ---------- Barra superior em telas estreitas ----------
+   Os sete menus precisam de ~1175 px ao lado da marca e das ações.
+   Abaixo disso, um botão único "Menus" (js/ui/module-menu.js) abre
+   todos eles numa lista; no celular, "Apresentar" fica só no ícone. */
 
 .module-menu-compact-group {
     display: none;
 }
 
-.topbar.is-compact .module-menu-group {
-    display: none;
+@media (max-width: 1179px) {
+    .module-menu .module-menu-group {
+        display: none;
+    }
+
+    .module-menu .module-menu-compact-group {
+        display: block;
+    }
 }
 
-.topbar.is-compact .module-menu-compact-group {
-    display: block;
-}
-
-.topbar.is-compact .module-menu {
-    position: static;
-    margin-left: 0;
-    transform: none;
-}
-
-/* Celular: espaços menores e "Apresentar" só com o ícone. */
 @media (max-width: 600px) {
     .topbar {
         gap: 8px;
-        padding: 0 6px 0 4px;
+        padding: 0 8px 0 10px;
     }
 
     .topbar-start {
-        gap: 6px;
+        gap: 8px;
     }
 
-    .topbar .brand {
-        gap: 6px;
-    }
-
-    .topbar .brand-logo {
-        margin: 0;
-    }
-
-    .topbar .brand-name {
-        font-size: 19px;
-    }
-
-    .module-menu-trigger {
-        padding: 0 8px;
+    .module-menu {
+        margin-left: 0;
     }
 
     .topbar-present-button {
-        width: 34px;
-        height: 34px;
-        justify-content: center;
-        margin-left: 0;
+        width: 32px;
         padding: 0;
+        justify-content: center;
     }
 
     .topbar-present-label {
@@ -6254,17 +6225,6 @@ th[aria-sort="descending"] .table-sort::after {
     text-overflow: ellipsis;
 }
 
-/* Título de seção (ex.: nome de cada módulo no menu "Módulos"). */
-.menu-heading {
-    padding: 6px 8px 2px 28px;
-    color: var(--text-muted);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
 .menu-trail {
     grid-column: 4;
     display: flex;
@@ -7673,4 +7633,17 @@ th[aria-sort="descending"] .table-sort::after {
 .photo-lightbox-arrow.is-next {
     grid-column: 3;
     justify-self: center;
+}
+
+/* Configurações → App de campo (servidor das coletas). */
+.campo-servidor {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+}
+
+.campo-servidor .field-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
 }

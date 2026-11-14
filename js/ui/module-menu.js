@@ -14,10 +14,9 @@
    botão. Com um menu aberto, passar o mouse sobre outro botão troca
    de menu.
 
-   Tela estreita: quando os botões não cabem entre a marca e as
-   ações da barra, a barra recebe .is-compact e eles dão lugar a um
-   único botão "Módulos", cuja lista traz todos os menus, um após o
-   outro, com o nome de cada um como título de seção.
+   Tela estreita (celular): os botões não cabem ao lado da marca. Um
+   botão único "Menus" assume o lugar deles (a troca é só por CSS) e
+   abre uma lista com todos os menus, cada um como uma seção.
    ============================================================ */
 
 import { el } from "./dom.js";
@@ -62,17 +61,17 @@ export function createModuleMenu(container, { getMenus, onAction } = {}) {
         dataset: { menu: menu.id }
     }, [el("span", { text: menu.label }), chevron()]));
 
-    const compactTrigger = el("button", {
+    const compact = el("button", {
         type: "button",
         class: "module-menu-trigger module-menu-compact",
         id: "module-menu-compact-button",
         "aria-haspopup": "menu",
         "aria-expanded": "false"
-    }, [el("span", { text: "Módulos" }), chevron()]);
+    }, [el("span", { text: "Menus" }), chevron()]);
 
     container.replaceChildren(
         ...triggers.map((trigger) => el("div", { class: "module-menu-group" }, trigger)),
-        el("div", { class: "module-menu-group module-menu-compact-group" }, compactTrigger)
+        el("div", { class: "module-menu-group module-menu-compact-group" }, compact)
     );
 
     const close = () => {
@@ -80,6 +79,53 @@ export function createModuleMenu(container, { getMenus, onAction } = {}) {
             handle.close();
         }
     };
+
+    /* Todos os menus numa lista só, um título de seção por menu. */
+    const openCompact = ({ focus = null } = {}) => {
+        const items = getMenus().flatMap((menu, index) => [
+            ...(index ? [{ separator: true }] : []),
+            { heading: menu.label },
+            ...menu.items
+        ]);
+
+        close();
+        openIndex = triggers.length;
+        compact.setAttribute("aria-expanded", "true");
+
+        handle = openMenu({
+            items,
+            anchor: compact,
+            label: "Menus",
+            focus,
+            onAction,
+            onClose: () => {
+                compact.setAttribute("aria-expanded", "false");
+
+                if (openIndex === triggers.length) {
+                    openIndex = -1;
+                    handle = null;
+                }
+            }
+        });
+    };
+
+    compact.addEventListener("click", () => {
+        if (openIndex === triggers.length) {
+            close();
+        } else {
+            openCompact();
+        }
+    });
+
+    compact.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openCompact({ focus: "first" });
+        } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            openCompact({ focus: "last" });
+        }
+    });
 
     const open = (index, { focus = null } = {}) => {
         const current = getMenus()[index];
@@ -120,95 +166,6 @@ export function createModuleMenu(container, { getMenus, onAction } = {}) {
         return true;
     };
 
-    /* Todos os menus numa lista só: título de seção + itens, separados por filete. */
-    const openCompact = ({ focus = null } = {}) => {
-        const items = getMenus().flatMap((menu, index) => [
-            ...(index ? [{ separator: true }] : []),
-            { heading: menu.label },
-            ...menu.items
-        ]);
-
-        close();
-        openIndex = -2;
-        compactTrigger.setAttribute("aria-expanded", "true");
-
-        handle = openMenu({
-            items,
-            anchor: compactTrigger,
-            label: "Módulos",
-            focus,
-            onAction,
-            onClose: () => {
-                compactTrigger.setAttribute("aria-expanded", "false");
-
-                if (openIndex === -2) {
-                    openIndex = -1;
-                    handle = null;
-                }
-            }
-        });
-    };
-
-    compactTrigger.addEventListener("click", () => {
-        if (openIndex === -2) {
-            close();
-        } else {
-            openCompact();
-        }
-    });
-
-    compactTrigger.addEventListener("keydown", (event) => {
-        if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            openCompact({ focus: "first" });
-        } else if (event.key === "ArrowUp") {
-            event.preventDefault();
-            openCompact({ focus: "last" });
-        }
-    });
-
-    /*
-       Modo compacto: mede com os botões completos à mostra; se o
-       primeiro encosta na marca ou o último nas ações, compacta.
-    */
-    const topbar = container.closest(".topbar");
-    const brand = topbar ? topbar.querySelector(".brand") : null;
-    const actions = topbar ? topbar.querySelector(".topbar-actions") : null;
-    const MIN_GAP = 8;
-
-    const updateCompact = () => {
-        if (!topbar || !brand || !actions) {
-            return;
-        }
-
-        const wasCompact = topbar.classList.contains("is-compact");
-
-        topbar.classList.remove("is-compact");
-
-        const first = triggers[0].getBoundingClientRect();
-        const last = triggers[triggers.length - 1].getBoundingClientRect();
-        const compact = first.left < brand.getBoundingClientRect().right + MIN_GAP
-            || last.right > actions.getBoundingClientRect().left - MIN_GAP;
-
-        topbar.classList.toggle("is-compact", compact);
-
-        if (compact !== wasCompact) {
-            close();
-        }
-    };
-
-    updateCompact();
-
-    if (typeof ResizeObserver === "function" && topbar) {
-        new ResizeObserver(updateCompact).observe(topbar);
-    } else {
-        window.addEventListener("resize", updateCompact);
-    }
-
-    if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(updateCompact);
-    }
-
     triggers.forEach((trigger, index) => {
         trigger.addEventListener("click", () => {
             if (openIndex === index) {
@@ -219,7 +176,7 @@ export function createModuleMenu(container, { getMenus, onAction } = {}) {
         });
 
         trigger.addEventListener("pointerenter", () => {
-            if (openIndex !== -1 && openIndex !== index) {
+            if (openIndex !== -1 && openIndex !== index && openIndex !== triggers.length) {
                 open(index);
             }
         });

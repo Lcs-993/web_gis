@@ -11,12 +11,54 @@
 
 import { el, byId } from "./dom.js";
 import { createComingSoon } from "./coming-soon.js";
+import { salvarServidorCampo, servidorCampo, testarServidorCampo } from "../data/campo-api.js";
 
 const MAX_NOTIFICATIONS = 20;
 
 /* Atribuição em HTML (config.js) → texto puro, sem inserir HTML na página. */
 export const plainText = (html) =>
     html ? new DOMParser().parseFromString(html, "text/html").body.textContent.trim() : "";
+
+
+/* ---------------- configurações: servidor do app de campo ---------------- */
+
+export function createCampoSettings() {
+    const form = byId("campo-servidor-form");
+
+    if (!form) {
+        return;
+    }
+
+    const url = byId("campo-servidor-url");
+    const chave = byId("campo-servidor-chave");
+    const situacao = byId("campo-servidor-situacao");
+    const teste = byId("campo-servidor-teste");
+    const atual = servidorCampo();
+
+    if (atual) {
+        url.value = atual.url;
+        chave.value = atual.chave;
+        situacao.textContent = atual.origem === "config"
+            ? "Servidor oficial (config.js). Um endereço salvo aqui vale só para este navegador."
+            : "Servidor salvo neste navegador. As coletas do app de campo substituem a demonstração.";
+    }
+
+    byId("campo-servidor-testar").addEventListener("click", async () => {
+        teste.textContent = "Testando…";
+        teste.textContent = (await testarServidorCampo({ url: url.value, chave: chave.value })).mensagem;
+    });
+
+    byId("campo-servidor-remover").addEventListener("click", () => {
+        salvarServidorCampo({ url: "" });
+        location.reload();
+    });
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        salvarServidorCampo({ url: url.value, chave: chave.value });
+        location.reload();
+    });
+}
 
 
 /* ---------------- configurações ---------------- */

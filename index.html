@@ -20,7 +20,7 @@
     -->
     <meta
         http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' https://unpkg.com 'sha256-5VChX8X2tOFSpdbvpNxURqT/QXo24LC3D2YyUNdts7Y='; style-src 'self' https://unpkg.com 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'none'"
+        content="default-src 'self'; script-src 'self' https://unpkg.com 'sha256-5VChX8X2tOFSpdbvpNxURqT/QXo24LC3D2YyUNdts7Y='; style-src 'self' https://unpkg.com 'unsafe-inline'; img-src 'self' data: https: http://localhost:* http://127.0.0.1:*; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'none'"
     >
 
     <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
@@ -730,6 +730,28 @@
                                 <input type="checkbox" class="switch" id="settings-sem-blur">
                             </label>
                         </div>
+                    </section>
+
+                    <!-- Servidor do app de campo: as fichas coletadas entram como camadas (js/data/campo-api.js). -->
+                    <section class="settings-group" aria-labelledby="settings-campo">
+                        <h3 class="settings-title" id="settings-campo">App de campo</h3>
+                        <form class="glass-card campo-servidor" id="campo-servidor-form" novalidate>
+                            <p class="settings-hint" id="campo-servidor-situacao">Sem servidor: a camada de coletas mostrada é a demonstração.</p>
+                            <label class="field field-row">
+                                <span class="field-label">Endereço do servidor</span>
+                                <input type="url" id="campo-servidor-url" autocomplete="off" spellcheck="false" placeholder="https://campo.suaempresa.com.br">
+                            </label>
+                            <label class="field field-row">
+                                <span class="field-label">Chave de leitura (se o servidor exigir)</span>
+                                <input type="password" id="campo-servidor-chave" autocomplete="off">
+                            </label>
+                            <p class="settings-hint" id="campo-servidor-teste" role="status" aria-live="polite"></p>
+                            <div class="filter-save-buttons">
+                                <button type="button" class="button button-ghost" id="campo-servidor-remover">Remover</button>
+                                <button type="button" class="button button-ghost" id="campo-servidor-testar">Testar</button>
+                                <button type="submit" class="button button-primary">Salvar e recarregar</button>
+                            </div>
+                        </form>
                     </section>
 
                     <section class="settings-group" aria-labelledby="settings-keys">
