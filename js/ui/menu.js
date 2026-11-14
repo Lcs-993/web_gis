@@ -388,7 +388,7 @@ export function openMenu({ items, anchor = null, point = null, onAction, onClose
         const below = window.innerHeight - (box.bottom + 6) - 8;
 
         /*
-           Menu de botão (ex.: "Módulos" no celular) mais alto que a
+           Menu de botão (ex.: "Menus" no celular) mais alto que a
            tela: fica abaixo do botão e rola, em vez de subir por cima
            da barra. Com pouco espaço abaixo, vale o posicionamento normal.
         */
