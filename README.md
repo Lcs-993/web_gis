@@ -7,26 +7,33 @@ A aplicação é orientada aos dados. Nenhum nome de atributo está no código:
 cartão da feição, busca, filtros, dashboard, tabela e exportação são construídos a partir
 do schema descoberto em cada camada no momento da carga.
 
-HTML, CSS e JavaScript (ES modules), sem build e sem npm. A única dependência
-de código é o **Leaflet 1.9.4**, via CDN com verificação de integridade (SRI).
+HTML, CSS e JavaScript (ES modules), sem build e sem npm. A versão desktop
+carrega o **Leaflet 1.9.4** via CDN com verificação de integridade (SRI); a
+versão mobile inclui uma cópia local para funcionar offline.
 
 ---
 
-## Plataforma: só desktop
+## Plataformas: desktop e mobile separados
 
-O WebGIS é uma ferramenta **exclusivamente para desktop**: telas grandes,
-mouse e teclado. Funciona como um **painel** para analisar e **apresentar
-dados** (reuniões, telões, monitores de acompanhamento), não como site
-responsivo.
+A versão principal do WebGIS continua sendo uma ferramenta para desktop:
+telas grandes, mouse e teclado, com foco em análise e apresentação dos dados.
+Seu layout e suas funções não são adaptados para celular.
 
-- **Responsividade não é requisito.** Layout, densidade de informação e novas
-  funções são pensados para telas largas (referência: 1366 px de largura ou
-  mais). Não é preciso adaptar novas telas para celular ou tablet.
-- O código não tem regras de tela estreita (a gaveta, o menu compacto e os
-  ajustes de celular foram removidos em 08/11/2026). Não as reintroduza.
-- **O uso no celular será outro produto:** um **aplicativo de campo**, que
-  coleta e consulta dados no talhão e se integra a este WebGIS (os dados do
-  campo chegam aqui para análise e apresentação).
+A experiência mobile é um aplicativo web separado, o **WebGIS Campo**, com
+entrada própria em [`mobile/`](mobile/), manifesto, service worker e arquivos
+de interface independentes. É um navegador de campo — mapa, camadas, busca
+(por atributo, proximidade e coordenada), GPS com "em qual talhão estou",
+navegação até um destino com bússola, medição de distância e área, pontos e
+trilhas exportáveis em GPX/GeoJSON — sem os painéis de análise do desktop.
+Detalhes em [`mobile/README.md`](mobile/README.md).
+
+- Acesse `/mobile/` para abrir ou instalar o WebGIS Campo.
+- O service worker do mobile mantém o app e os GeoJSON locais disponíveis
+  offline após a primeira abertura conectada.
+- Sem conexão, as camadas, a busca e a navegação continuam disponíveis sobre
+  fundo neutro. O mapa-base de satélite depende do serviço online da Esri.
+- Mudanças na interface desktop devem continuar restritas aos arquivos da
+  raiz; não introduza regras mobile no CSS desktop.
 
 ---
 
