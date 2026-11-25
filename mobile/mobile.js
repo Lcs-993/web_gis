@@ -12,6 +12,7 @@ import { inferSchema } from "../js/data/schema.js";
 import { buildTheme, isThemeable, themeKind } from "../js/data/theme.js";
 import { labelAnchor } from "../js/map/label-anchor.js";
 import { camadasDoCampo, servidorCampo } from "../js/data/campo-api.js";
+import { especificacaoIcone } from "../js/map/marker-icons.js";
 import * as geo from "./geo.js";
 import { loadFieldData, newId, saveFieldData } from "./field-store.js";
 import { renderStyleControls } from "./symbology.js";
@@ -28,7 +29,7 @@ const WALK_MIN_STEP_M = 5;
 const WALK_MAX_ACCURACY_M = 25;
 const ARRIVAL_RADIUS_M = 10;
 const STORAGE = {
-    styles: "webgis-mobile-layer-styles",
+    styles: "webgis-mobile-layer-styles-v2",
     view: "webgis-mobile-view",
     basemap: "webgis-mobile-basemap",
     theme: "webgis-mobile-theme",
@@ -46,10 +47,31 @@ const BASEMAPS = {
     }
 };
 
+/*
+   Simbologia padrão igual à da abertura do desktop (js/data/symbol.js
+   e js/map/leaflet-view.js): divisa preta translúcida nos talhões,
+   contorno branco com halo escuro nas fazendas, pontos com borda
+   escura. Mudou lá? Ajuste aqui também.
+*/
+const POLYGON_STROKE_WIDTH = 0.8;
+const OUTLINE_STROKE_WIDTH = POLYGON_STROKE_WIDTH * 4 / 3;
+const OUTLINE_HALO = { color: "#000000", opacity: 0.45, fill: false, lineCap: "round", lineJoin: "round", interactive: false };
+const LABEL_LIMIT = 400;
+const LABEL_CHAR_WIDTH = 6.6;
+const LABEL_HEIGHT = 18;
+const LABEL_GAP = 4;
+
 const baseStyle = (overrides) => ({
-    mode: "single", field: "", fill: true, fillOpacity: 0.8, strokeColor: "#1d1d1f",
-    strokeWidth: 1.2, pointSize: 6, opacity: 1, ...overrides
+    mode: "single", field: "", fill: true, fillOpacity: 0.35, strokeColor: "#000000",
+    strokeWidth: POLYGON_STROKE_WIDTH, pointSize: 5, opacity: 1, ...overrides
 });
+const pointStyle = (overrides) => baseStyle({ fillOpacity: 0.85, strokeColor: "#1d1d1f", strokeWidth: 1, ...overrides });
+
+/* Ícone ilustrado do desktop (js/map/marker-icons.js), com caminho relativo a mobile/. */
+const markerIcon = (name, height) => {
+    const spec = especificacaoIcone(name, height);
+    return { ...spec, url: `../${spec.url}` };
+};
 
 const LOCAL_LAYERS = [
     {
@@ -57,7 +79,8 @@ const LOCAL_LAYERS = [
         name: "Unidade Industrial",
         url: "../geojson/usina.geojson",
         visible: true,
-        style: baseStyle({ color: "#3cb44b", fillOpacity: 0.85, strokeWidth: 1, pointSize: 7 })
+        icon: markerIcon("usina", 56),
+        style: pointStyle({ color: "#3cb44b" })
     },
     {
         id: "pol_fazendas",
@@ -65,21 +88,23 @@ const LOCAL_LAYERS = [
         url: "../geojson/pol_fazendas.geojson",
         visible: true,
         interactive: false,
-        style: baseStyle({ color: "#ffffff", fill: false, fillOpacity: 0, strokeColor: "#ffffff", strokeWidth: 1.1, pointSize: 5, opacity: 0.8 })
+        outline: true,
+        labels: { fields: ["Fazenda"], minZoom: 13 },
+        style: baseStyle({ color: "#ffffff", fill: false, fillOpacity: 0, strokeColor: "#ffffff", strokeWidth: OUTLINE_STROKE_WIDTH })
     },
     {
         id: "coletas_demo",
         name: "Coletas de campo (demonstração)",
         url: "../geojson/coletas_demo.geojson",
         visible: true,
-        style: baseStyle({ color: "#f2c14e", mode: "category", field: "Tipo", fillOpacity: 0.85, strokeWidth: 1.5 })
+        style: pointStyle({ color: "#f2c14e", mode: "category", field: "Tipo" })
     },
     {
         id: "pol_talhoes",
         name: "Talhões",
         url: "../geojson/pol_talhoes.geojson",
         visible: true,
-        style: baseStyle({ color: "#d9b56b", fillOpacity: 0.35, strokeColor: "#000000", strokeWidth: 0.8, pointSize: 5 })
+        style: baseStyle({ color: "#d9b56b" })
     }
 ];
 
@@ -98,11 +123,11 @@ function layerCatalog() {
         url: definition.url,
         remote: true,
         visible: Boolean(definition.visible),
+        kindDefaults: true,
         style: baseStyle({
             color: definition.color || "#f2c14e",
             mode: definition.theme?.field ? "category" : "single",
-            field: definition.theme?.field || "",
-            fillOpacity: 0.6
+            field: definition.theme?.field || ""
         })
     }));
     return { server, layers: LOCAL_LAYERS.flatMap((layer) => (layer.id === "coletas_demo" ? campo : [layer])) };
@@ -308,9 +333,10 @@ const map = L.map(mapElement, {
     tapTolerance: 20
 });
 
-for (const [name, zIndex] of [["toolsPane", 640], ["waypointPane", 655], ["gpsPane", 670]]) {
+for (const [name, zIndex] of [["labels", 450], ["toolsPane", 640], ["waypointPane", 655], ["gpsPane", 670]]) {
     map.createPane(name).style.zIndex = String(zIndex);
 }
+map.getPane("labels").style.pointerEvents = "none";
 map.getPane("gpsPane").style.pointerEvents = "none";
 
 /* Canvas com tolerância maior: tocar em pontos e linhas finas fica mais fácil com o dedo. */
@@ -394,6 +420,10 @@ const catalog = layerCatalog();
 const layerStates = new Map(catalog.layers.map((layer) => [layer.id, {
     ...layer,
     style: { ...layer.style },
+    defaultStyle: { ...layer.style },
+    haloLayer: null,
+    labelGroup: null,
+    styleStored: false,
     status: "idle",
     collection: null,
     schema: null,
@@ -418,6 +448,7 @@ function readStoredStyles() {
     for (const [id, values] of Object.entries(stored)) {
         const layer = layerStates.get(id);
         if (!layer || !values || typeof values !== "object") continue;
+        layer.styleStored = true;
         if (["single", "category", "numeric"].includes(values.mode)) layer.style.mode = values.mode;
         if (typeof values.field === "string") layer.style.field = values.field;
         if (typeof values.fill === "boolean") layer.style.fill = values.fill;
@@ -461,27 +492,61 @@ function buildLayerTheme(layer) {
         themeKind(attribute) === "numeric" ? { method: "intervalos-iguais", classes: 5 } : {});
 }
 
+/* Mesmas regras do desktop (styleFor em js/map/leaflet-view.js, estado normal). */
 function styleForFeature(layer, feature) {
-    const color = layer.theme?.colors[layer.featureIndexes?.get(feature)] || layer.style.color;
-    const style = {
-        color: layer.style.fill ? layer.style.strokeColor : color,
-        weight: layer.style.strokeWidth,
-        opacity: layer.style.opacity,
+    const { style } = layer;
+    const isPoint = layer.geometryKind === "point";
+    const filled = isPoint || (layer.geometryKind === "polygon" && style.fill);
+    const color = layer.theme?.colors[layer.featureIndexes?.get(feature)] || style.color;
+    /* Divisa padrão fina e translúcida; contorno sem preenchimento ou cor escolhida pelo usuário, cheios. */
+    const strokeOpacity = !filled ? 1
+        : style.strokeColor !== layer.defaultStyle.strokeColor ? 1
+            : isPoint ? 0.95 : 0.55;
+    const result = {
+        lineCap: "round",
+        lineJoin: "round",
+        fill: filled,
+        color: filled ? style.strokeColor : color,
+        weight: style.strokeWidth,
+        opacity: strokeOpacity * style.opacity,
         fillColor: color,
-        fillOpacity: layer.style.fill || layer.geometryKind === "point" ? layer.style.fillOpacity * layer.style.opacity : 0
+        fillOpacity: filled ? style.fillOpacity * style.opacity : 0
     };
-    if (layer.geometryKind === "point") style.radius = layer.style.pointSize;
-    return style;
+    if (isPoint) result.radius = style.pointSize;
+    return result;
 }
 
-const selectedStyle = (record) => ({
-    color: "#7fd063",
-    weight: Math.max(2.5, record.layer.style.strokeWidth + 1.5),
-    opacity: 1,
-    fillColor: "#5cb83f",
-    fillOpacity: record.layer.style.fill || record.layer.geometryKind === "point"
-        ? Math.max(0.35, record.layer.style.fillOpacity) : 0
-});
+/* Seleção do desktop: contorno branco forte e preenchimento mais firme. */
+function selectedStyle(record) {
+    const { style, geometryKind } = record.layer;
+    const isPoint = geometryKind === "point";
+    const themed = Boolean(record.layer.theme);
+    return {
+        lineCap: "round",
+        lineJoin: "round",
+        color: "#ffffff",
+        weight: isPoint ? 2.5 : Math.max(3, style.strokeWidth + 1.5),
+        opacity: 1,
+        fillOpacity: isPoint ? 1 : style.fill ? Math.min(1, style.fillOpacity + (themed ? 0.3 : 0.25)) : 0,
+        ...(isPoint ? { radius: style.pointSize + 3 } : {})
+    };
+}
+
+/* Marcadores com ícone não têm setStyle: a seleção vira uma classe CSS. */
+function applyRecordStyle(record, selected = false) {
+    const target = record.leafletLayer;
+    if (target.setStyle) {
+        target.setStyle(selected ? selectedStyle(record) : styleForFeature(record.layer, record.feature));
+    } else {
+        target.getElement?.()?.classList.toggle("is-selected", selected);
+        target.setOpacity?.(record.layer.style.opacity);
+    }
+}
+
+function haloStyle(layer) {
+    const visible = layer.outline && !layer.style.fill ? layer.style.opacity : 0;
+    return { ...OUTLINE_HALO, opacity: OUTLINE_HALO.opacity * visible, weight: layer.style.strokeWidth + 1 };
+}
 
 const pendingRefresh = new Set();
 let refreshFrame = 0;
@@ -491,10 +556,12 @@ function requestStyleRefresh(layer) {
     refreshFrame = window.requestAnimationFrame(() => {
         refreshFrame = 0;
         for (const pending of pendingRefresh) {
-            pending.records.forEach((record) => record.leafletLayer.setStyle(styleForFeature(pending, record.feature)));
+            pending.records.forEach((record) => applyRecordStyle(record));
+            pending.haloLayer?.setStyle(haloStyle(pending));
+            drawLabels(pending);
         }
         pendingRefresh.clear();
-        if (selectedRecord) selectedRecord.leafletLayer.setStyle(selectedStyle(selectedRecord));
+        if (selectedRecord) applyRecordStyle(selectedRecord, true);
     });
 }
 
@@ -550,11 +617,18 @@ function addLayerToMap(layer) {
         interactive,
         smoothFactor: 1.2,
         style: (feature) => styleForFeature(layer, feature),
-        pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-            renderer: dataRenderer,
-            interactive,
-            ...styleForFeature(layer, feature)
-        }),
+        pointToLayer: (feature, latlng) => (layer.icon
+            ? L.marker(latlng, {
+                interactive,
+                keyboard: false,
+                icon: L.icon({
+                    iconUrl: layer.icon.url,
+                    iconSize: layer.icon.size,
+                    iconAnchor: layer.icon.anchor,
+                    className: "feature-marker"
+                })
+            })
+            : L.circleMarker(latlng, { renderer: dataRenderer, interactive, ...styleForFeature(layer, feature) })),
         onEachFeature: (feature, leafletLayer) => {
             const record = {
                 feature,
@@ -575,7 +649,117 @@ function addLayerToMap(layer) {
             }
         }
     });
-    if (layer.visible) layer.mapLayer.addTo(map);
+    if (layer.outline) {
+        /* Halo escuro sob o contorno claro: legível sobre satélite claro ou escuro. */
+        layer.haloLayer = L.geoJSON(layer.collection, {
+            renderer: dataRenderer,
+            interactive: false,
+            smoothFactor: 1.2,
+            style: () => haloStyle(layer)
+        });
+    }
+    if (layer.labels) layer.labelGroup = L.layerGroup();
+    if (layer.visible) showLayer(layer);
+}
+
+function showLayer(layer) {
+    layer.haloLayer?.addTo(map);
+    layer.mapLayer.addTo(map);
+    layer.labelGroup?.addTo(map);
+    drawLabels(layer);
+    restack();
+}
+
+function hideLayer(layer) {
+    for (const item of [layer.haloLayer, layer.mapLayer, layer.labelGroup]) {
+        if (item && map.hasLayer(item)) map.removeLayer(item);
+    }
+}
+
+/*
+   Ordem de desenho no canvas, como no desktop: polígonos embaixo,
+   linhas, pontos e, por cima de tudo, as camadas de contorno
+   (fazendas). No mesmo nível, a de cima na lista fica por cima.
+   Sem isto valeria a ordem de carga, e os talhões (arquivo mais
+   pesado, o último a chegar) cobririam os limites das fazendas.
+*/
+const KIND_RANK = { polygon: 0, line: 1, point: 2 };
+const layerOrder = [...layerStates.keys()];
+
+function restack() {
+    const rank = (layer) => (layer.outline ? 3 : KIND_RANK[layer.geometryKind] ?? 0);
+    const stack = [...layerStates.values()]
+        .filter((layer) => layer.status === "ready" && layer.mapLayer && map.hasLayer(layer.mapLayer))
+        .sort((a, b) => rank(a) - rank(b) || layerOrder.indexOf(b.id) - layerOrder.indexOf(a.id));
+    stack.slice(1).forEach((layer) => {
+        layer.haloLayer?.bringToFront();
+        layer.mapLayer.bringToFront();
+    });
+}
+
+/* Rótulos com detecção de colisão, como no desktop (drawLabels em js/map/leaflet-view.js). */
+function drawLabels(layer) {
+    const group = layer.labelGroup;
+    if (!group) return;
+    group.clearLayers();
+    if (!layer.visible || layer.status !== "ready" || !map.hasLayer(group)) return;
+    if (layer.labels.minZoom && map.getZoom() < layer.labels.minZoom) return;
+
+    const bounds = map.getBounds();
+    const size = map.getSize();
+    const placed = [];
+    for (const record of layer.records) {
+        if (placed.length >= LABEL_LIMIT) break;
+        if (record.bbox && !bounds.intersects([[record.bbox[1], record.bbox[0]], [record.bbox[3], record.bbox[2]]])) continue;
+        const anchor = recordAnchor(record);
+        if (!anchor || !bounds.contains(anchor)) continue;
+        const text = layer.labels.fields
+            .map((field) => record.feature.properties?.[field])
+            .filter((value) => value !== null && value !== undefined && String(value).trim() !== "")
+            .join("\n");
+        if (!text) continue;
+
+        const lines = text.split("\n");
+        const longest = Math.max(...lines.map((line) => line.length));
+        const point = map.latLngToContainerPoint(anchor);
+        const halfWidth = (longest * LABEL_CHAR_WIDTH + 10) / 2 + LABEL_GAP;
+        const halfHeight = (LABEL_HEIGHT + (lines.length - 1) * 13) / 2 + LABEL_GAP;
+        const box = { left: point.x - halfWidth, right: point.x + halfWidth, top: point.y - halfHeight, bottom: point.y + halfHeight };
+        if (box.left < 0 || box.right > size.x || box.top < 0 || box.bottom > size.y) continue;
+        if (placed.some((other) => box.left < other.right && box.right > other.left && box.top < other.bottom && box.bottom > other.top)) continue;
+        placed.push(box);
+
+        const content = document.createElement("span");
+        content.className = "feature-label-text";
+        content.textContent = text;
+        L.marker(anchor, {
+            pane: "labels",
+            interactive: false,
+            keyboard: false,
+            icon: L.divIcon({ className: "feature-label", html: content, iconSize: null })
+        }).addTo(group);
+    }
+}
+
+let labelFrame = 0;
+map.on("moveend zoomend", () => {
+    window.cancelAnimationFrame(labelFrame);
+    labelFrame = window.requestAnimationFrame(() => {
+        for (const layer of layerStates.values()) drawLabels(layer);
+    });
+});
+
+/* Camadas do servidor de campo: padrão do desktop conforme a geometria, se o usuário não mudou o estilo. */
+function applyKindDefaults(layer) {
+    if (!layer.kindDefaults || layer.styleStored) return;
+    if (layer.geometryKind === "point") {
+        Object.assign(layer.style, { fillOpacity: 0.85, strokeColor: "#1d1d1f", strokeWidth: 1 });
+    } else if (layer.geometryKind === "polygon") {
+        Object.assign(layer.style, { fillOpacity: layer.style.mode === "single" ? 0.35 : 0.5 });
+    } else {
+        Object.assign(layer.style, { fill: false, strokeWidth: 2 });
+    }
+    layer.defaultStyle = { ...layer.style };
 }
 
 async function loadLayer(layer) {
@@ -592,10 +776,12 @@ async function loadLayer(layer) {
         }
         layer.collection = collection;
         layer.geometryKind = geometryKindOf(collection);
+        applyKindDefaults(layer);
         layer.schema = inferSchema(collection.features);
         buildLayerTheme(layer);
-        addLayerToMap(layer);
+        /* Pronta antes de entrar no mapa: rótulos e ordem de desenho só consideram camadas prontas. */
         layer.status = "ready";
+        addLayerToMap(layer);
         placeCache.key = "";
         if (gps.fix) updatePlace(true);
     } catch (error) {
@@ -609,11 +795,11 @@ async function loadLayer(layer) {
 function setLayerVisible(layer, visible) {
     layer.visible = visible;
     if (visible) {
-        if (layer.status === "ready") layer.mapLayer.addTo(map);
+        if (layer.status === "ready") showLayer(layer);
         else loadLayer(layer);
-    } else if (layer.mapLayer && map.hasLayer(layer.mapLayer)) {
-        map.removeLayer(layer.mapLayer);
+    } else if (layer.mapLayer) {
         if (selectedRecord?.layer === layer) clearSelection();
+        hideLayer(layer);
     }
 }
 
@@ -790,9 +976,9 @@ function updateMapModes() {
 
 function clearSelection() {
     if (!selectedRecord) return;
-    const { layer, feature, leafletLayer } = selectedRecord;
-    leafletLayer.setStyle(styleForFeature(layer, feature));
+    applyRecordStyle(selectedRecord);
     selectedRecord = null;
+    restack();
 }
 
 function chip(text, strong = "") {
@@ -832,8 +1018,9 @@ function openFeature(record, { fit = true } = {}) {
     }
     openSheet("feature");
     selectedRecord = record;
-    record.leafletLayer.setStyle(selectedStyle(record));
+    applyRecordStyle(record, true);
     record.leafletLayer.bringToFront?.();
+    restack();
 
     $("#feature-title").textContent = record.label;
     $("#feature-layer-name").textContent = record.layer.name.toLocaleUpperCase("pt-BR");

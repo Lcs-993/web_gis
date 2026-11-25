@@ -12,7 +12,7 @@
    - Mapa-base (Esri) não é guardado.
    ============================================================ */
 
-const VERSION = "v3";
+const VERSION = "v4";
 const CACHE = `webgis-mobile-${VERSION}`;
 const REMOTE_CACHE = `webgis-mobile-campo-${VERSION}`;
 const REMOTE_TIMEOUT_MS = 8000;
@@ -41,6 +41,7 @@ const SHELL = [
     "../js/map/marker-icons.js",
     "../assets/icons/ui/sprite.svg",
     "../assets/png/favcon_red_green.png",
+    "../assets/sgv/icone_usina_canavieira.png",
     "../assets/icons/icon-192.png",
     "../assets/icons/icon-512.png",
     "../assets/icons/icon-maskable-192.png",

@@ -1399,6 +1399,36 @@ main,
     font-size: 12px;
 }
 
+/* ---------- Camadas de dados (iguais ao desktop, css/style.css) ---------- */
+
+.feature-marker.is-selected {
+    filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 5px #ffffff) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+}
+
+.feature-label {
+    width: 0;
+    height: 0;
+    background: none;
+    border: 0;
+}
+
+.feature-label-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    white-space: pre;
+    text-shadow:
+        0 0 2px rgba(0, 0, 0, 0.95),
+        0 0 4px rgba(0, 0, 0, 0.8),
+        0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
 /* ---------- Elementos desenhados no mapa ---------- */
 
 .gps-accuracy {
