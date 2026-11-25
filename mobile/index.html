@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" id="meta-theme-color" content="#1c1c1e">
+    <meta name="description" content="Navegador de campo do WebGIS: mapa, busca, medição, GPS, pontos e trilhas no celular, mesmo offline.">
+    <!-- connect-src https: e localhost permitem ler as camadas do servidor do app de campo (js/data/campo-api.js). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://server.arcgisonline.com; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'none'">
+
+    <title>WebGIS Campo</title>
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="../assets/png/favcon_red_green.png" type="image/png">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
+    <link rel="stylesheet" href="./vendor/leaflet.css">
+    <link rel="stylesheet" href="./mobile.css">
+</head>
+<body>
+    <svg width="0" height="0" class="sr-only" aria-hidden="true" focusable="false">
+        <symbol id="m-navegar" viewBox="0 0 24 24"><path d="M12 2.8 19.2 20.4 12 16.3 4.8 20.4Z" stroke-linejoin="round"/></symbol>
+        <symbol id="m-ponto" viewBox="0 0 24 24"><path d="M12 21.2s6.6-6.1 6.6-11.2a6.6 6.6 0 0 0-13.2 0c0 5.1 6.6 11.2 6.6 11.2Z" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.4"/></symbol>
+        <symbol id="m-mira" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5" stroke-linecap="round"/></symbol>
+        <symbol id="m-gravar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4" fill="currentColor"/></symbol>
+        <symbol id="m-desfazer" viewBox="0 0 24 24"><path d="M9 7 4.5 11.5 9 16M5 11.5h9.5a5 5 0 0 1 0 10H12" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="m-rota" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="6" r="2.4"/><path d="M8.2 17.2c6-1.4-1.6-7 7.6-10.4" stroke-linecap="round" stroke-dasharray="2.2 2.4"/></symbol>
+    </svg>
+
+    <header class="topbar">
+        <div class="brand">
+            <img class="brand-logo" src="../assets/png/favcon_red_green.png" alt="" width="24" height="24">
+            <span class="brand-name">Web<span class="brand-accent">GIS</span></span>
+            <span class="brand-suffix">Campo</span>
+        </div>
+        <div class="topbar-actions">
+            <span id="network-status" class="network-status" role="status">Conectando</span>
+            <button id="install-app" class="install-button" type="button" hidden>Instalar</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="map" role="application" aria-label="Mapa de campo. Toque e segure para ver as coordenadas de um ponto."></div>
+        <div id="loading-state" class="loading-state" role="status">Carregando dados do mapa…</div>
+    </main>
+
+    <div id="crosshair" class="crosshair" aria-hidden="true" hidden></div>
+
+    <div class="map-overlay-top">
+        <button id="gps-hud" class="gps-hud" type="button" aria-label="Detalhes da posição atual" hidden>
+            <span class="hud-metrics">
+                <span id="hud-accuracy" class="hud-metric">±— m</span>
+                <span id="hud-speed" class="hud-metric">— km/h</span>
+                <span id="hud-heading" class="hud-metric">—</span>
+                <span id="hud-altitude" class="hud-metric">—</span>
+            </span>
+            <span id="hud-place" class="hud-place">Procurando sinal…</span>
+        </button>
+        <button id="nav-banner" class="nav-banner" type="button" aria-label="Abrir navegação" hidden>
+            <span class="nav-banner-arrow" id="nav-banner-arrow"><svg class="icon" aria-hidden="true"><use href="#m-navegar"></use></svg></span>
+            <span class="nav-banner-text">
+                <strong id="nav-banner-distance">—</strong>
+                <small id="nav-banner-name">Destino</small>
+            </span>
+        </button>
+        <div id="recording-chip" class="recording-chip" role="status" hidden>
+            <span class="recording-dot" aria-hidden="true"></span><span id="recording-chip-text">Gravando trilha</span>
+        </div>
+    </div>
+
+    <div class="map-controls" aria-label="Controles do mapa">
+        <button id="home-button" class="map-button" type="button" aria-label="Enquadrar as camadas">
+            <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-inicio"></use></svg>
+        </button>
+        <button id="locate-button" class="map-button locate-button" type="button" aria-pressed="false" aria-label="Seguir minha posição">
+            <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-localizacao"></use></svg>
+        </button>
+    </div>
+
+    <section id="search-panel" class="search-panel" aria-label="Pesquisar no mapa" hidden>
+        <form id="search-form" role="search">
+            <label class="sr-only" for="search-input">Pesquisar nos dados ou digitar coordenadas</label>
+            <input id="search-input" type="search" placeholder="Talhão, fazenda, coleta ou coordenada…" autocomplete="off" enterkeyhint="search">
+            <button id="clear-search" class="icon-button" type="button" aria-label="Limpar pesquisa">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-fechar"></use></svg>
+            </button>
+        </form>
+        <p id="search-caption" class="search-caption"></p>
+        <div id="search-results" class="search-results" aria-live="polite" hidden></div>
+    </section>
+
+    <section id="layers-sheet" class="bottom-sheet" aria-labelledby="layers-title" hidden>
+        <button class="sheet-handle" type="button" aria-label="Recolher ou expandir"></button>
+        <div class="sheet-heading">
+            <h1 id="layers-title">Camadas</h1>
+            <button class="icon-button close-sheet" type="button" aria-label="Fechar camadas">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-fechar"></use></svg>
+            </button>
+        </div>
+        <div class="sheet-body">
+            <p id="campo-status" class="sheet-hint">Ative os dados que deseja consultar no mapa.</p>
+            <div id="layer-list" class="layer-list"></div>
+            <h2 class="sheet-subtitle">Mapa-base</h2>
+            <div class="segmented-control three" role="radiogroup" aria-label="Mapa-base" id="basemap-options">
+                <button class="segment-button" type="button" role="radio" data-basemap="satelite" aria-checked="false">Satélite</button>
+                <button class="segment-button" type="button" role="radio" data-basemap="ruas" aria-checked="false">Ruas</button>
+                <button class="segment-button" type="button" role="radio" data-basemap="nenhum" aria-checked="false">Nenhum</button>
+            </div>
+            <h2 class="sheet-subtitle">Aparência</h2>
+            <div class="segmented-control" role="radiogroup" aria-label="Tema da interface" id="theme-options">
+                <button class="segment-button" type="button" role="radio" data-theme-option="dark" aria-checked="false">Escuro</button>
+                <button class="segment-button" type="button" role="radio" data-theme-option="light" aria-checked="false">Claro (sol forte)</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="feature-sheet" class="bottom-sheet" aria-labelledby="feature-title" hidden>
+        <button class="sheet-handle" type="button" aria-label="Recolher ou expandir"></button>
+        <div class="sheet-heading">
+            <div class="heading-text">
+                <p id="feature-layer-name" class="side-panel-kicker"></p>
+                <h1 id="feature-title">Detalhes</h1>
+            </div>
+            <button class="icon-button close-sheet" type="button" aria-label="Fechar detalhes">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-fechar"></use></svg>
+            </button>
+        </div>
+        <div id="feature-metrics" class="metric-chips"></div>
+        <div class="sheet-actions start">
+            <button id="feature-navigate" class="primary-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#m-navegar"></use></svg>Navegar até
+            </button>
+            <button id="feature-point" class="secondary-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#m-ponto"></use></svg>Coordenadas
+            </button>
+        </div>
+        <div class="sheet-body">
+            <dl id="feature-properties" class="feature-properties"></dl>
+        </div>
+    </section>
+
+    <section id="style-sheet" class="bottom-sheet" aria-labelledby="style-title" hidden>
+        <button class="sheet-handle" type="button" aria-label="Recolher ou expandir"></button>
+        <div class="sheet-heading">
+            <div class="heading-text">
+                <p class="side-panel-kicker">PROPRIEDADES DA CAMADA</p>
+                <h1 id="style-title">Simbologia</h1>
+            </div>
+            <button class="icon-button close-sheet" type="button" aria-label="Fechar simbologia">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-fechar"></use></svg>
+            </button>
+        </div>
+        <div class="sheet-body">
+            <div id="style-controls" class="style-controls"></div>
+        </div>
+    </section>
+
+    <section id="measure-sheet" class="bottom-sheet" aria-labelledby="measure-title" hidden>
+        <button class="sheet-handle" type="button" aria-label="Recolher ou expandir"></button>
+        <div class="sheet-heading">
+            <div class="segmented-control compact" role="radiogroup" aria-label="Tipo de medição">
+                <button id="measure-distance" class="segment-button" type="button" role="radio" aria-checked="true">Distância</button>
+                <button id="measure-area" class="segment-button" type="button" role="radio" aria-checked="false">Área</button>
+            </div>
+            <h1 id="measure-title" class="sr-only">Medir</h1>
+            <button class="icon-button close-sheet" type="button" aria-label="Fechar medição">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-fechar"></use></svg>
+            </button>
+        </div>
+        <output id="measure-result" class="measure-result" aria-live="polite">—</output>
+        <p id="measure-details" class="measure-details">0 pontos</p>
+        <div class="tool-row">
+            <button id="measure-add-center" class="tool-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#m-mira"></use></svg><span>Mira</span>
+            </button>
+            <button id="measure-add-gps" class="tool-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-localizacao"></use></svg><span>GPS</span>
+            </button>
+            <button id="measure-walk" class="tool-button" type="button" aria-pressed="false">
+                <svg class="icon" aria-hidden="true"><use href="#m-gravar"></use></svg><span>Caminhar</span>
+            </button>
+            <button id="undo-measure-point" class="tool-button" type="button" disabled>
+                <svg class="icon" aria-hidden="true"><use href="#m-desfazer"></use></svg><span>Desfazer</span>
+            </button>
+        </div>
+        <div class="sheet-body">
+            <p id="measure-instruction" class="sheet-hint">Toque no mapa, adicione o centro da mira ou sua posição GPS. Em “Caminhar”, os pontos entram sozinhos enquanto você anda.</p>
+            <div class="sheet-actions">
+                <button id="clear-measure" class="secondary-button" type="button" disabled>Limpar</button>
+                <button id="copy-measure" class="secondary-button" type="button" disabled>
+                    <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-copiar"></use></svg>Copiar
+                </button>
+                <button id="save-measure" class="primary-button" type="button" disabled>
+                    <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-salvar"></use></svg>Salvar como trilha
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="navigate-sheet" class="bottom-sheet" aria-labelledby="navigate-title" hidden>
+        <button class="sheet-handle" type="button" aria-label="Recolher ou expandir"></button>
+        <div class="sheet-heading">
+            <div class="heading-text">
+                <p class="side-panel-kicker" id="navigate-kicker">NAVEGAÇÃO</p>
+                <h1 id="navigate-title">Navegar</h1>
+            </div>
+            <button class="icon-button close-sheet" type="button" aria-label="Fechar navegação">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-fechar"></use></svg>
+            </button>
+        </div>
+
+        <div id="navigate-active" class="navigate-active" hidden>
+            <div class="compass" aria-hidden="true">
+                <div id="compass-rose" class="compass-rose"><span class="compass-north">N</span></div>
+                <div id="compass-arrow" class="compass-arrow"><svg viewBox="0 0 24 24"><use href="#m-navegar"></use></svg></div>
+            </div>
+            <div class="navigate-readout">
+                <output id="navigate-distance" class="measure-result" aria-live="polite">—</output>
+                <p id="navigate-bearing" class="measure-details">Azimute —</p>
+                <p id="navigate-eta" class="measure-details"></p>
+                <p id="navigate-heading-source" class="heading-source"></p>
+            </div>
+        </div>
+        <div id="navigate-active-actions" class="sheet-actions start" hidden>
+            <button id="navigate-stop" class="secondary-button" type="button">Encerrar</button>
+            <button id="navigate-external" class="secondary-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#m-rota"></use></svg>Rota por estradas
+            </button>
+            <button id="navigate-save" class="secondary-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#m-ponto"></use></svg>Salvar
+            </button>
+        </div>
+
+        <div class="sheet-body">
+            <form id="goto-form" class="goto-form">
+                <label for="goto-input" class="sheet-subtitle">Ir para coordenada</label>
+                <div class="goto-row">
+                    <input id="goto-input" type="text" inputmode="text" autocomplete="off" placeholder="-20.0868, -46.0424 · 23K 391015 7778573" enterkeyhint="go">
+                    <button class="primary-button" type="submit">Ir</button>
+                </div>
+                <p id="goto-hint" class="style-help">Aceita graus decimais, graus-minutos-segundos e UTM (zona e banda). Para outro destino, abra uma feição ou um ponto salvo e toque em Navegar.</p>
+            </form>
+
+            <h2 class="sheet-subtitle">Trilha GPS</h2>
+            <div class="track-panel">
+                <div>
+                    <output id="track-distance" class="track-value">0 m</output>
+                    <p id="track-details" class="measure-details">Grave o caminho percorrido para salvar ou exportar.</p>
+                </div>
+                <div class="track-buttons">
+                    <button id="track-toggle" class="primary-button" type="button"><svg class="icon" aria-hidden="true"><use href="#m-gravar"></use></svg><span>Gravar</span></button>
+                    <button id="track-finish" class="secondary-button" type="button" disabled>Finalizar</button>
+                </div>
+            </div>
+
+            <label class="style-check toggle-row">
+                <input id="keep-awake" type="checkbox" checked>
+                Manter a tela ligada com GPS, navegação ou gravação ativos
+            </label>
+            <p class="style-help">O navegador só lê o GPS com o app aberto e a tela ligada. Com a tela bloqueada, a trilha pausa.</p>
+        </div>
+    </section>
+
+    <section id="points-sheet" class="bottom-sheet" aria-labelledby="points-title" hidden>
+        <button class="sheet-handle" type="button" aria-label="Recolher ou expandir"></button>
+        <div class="sheet-heading">
+            <div class="heading-text">
+                <p class="side-panel-kicker">SALVOS NESTE APARELHO</p>
+                <h1 id="points-title">Pontos e trilhas</h1>
+            </div>
+            <button class="icon-button close-sheet" type="button" aria-label="Fechar pontos">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-fechar"></use></svg>
+            </button>
+        </div>
+        <div class="tool-row two">
+            <button id="mark-gps" class="tool-button wide" type="button">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-localizacao"></use></svg><span>Marcar minha posição</span>
+            </button>
+            <button id="mark-center" class="tool-button wide" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#m-mira"></use></svg><span>Marcar centro da mira</span>
+            </button>
+        </div>
+        <div class="sheet-body">
+            <div id="waypoint-list" class="item-list"></div>
+            <h2 class="sheet-subtitle">Trilhas</h2>
+            <div id="track-list" class="item-list"></div>
+            <div class="sheet-actions">
+                <button id="export-geojson" class="secondary-button" type="button">
+                    <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-exportar"></use></svg>GeoJSON
+                </button>
+                <button id="export-gpx" class="primary-button" type="button">
+                    <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-exportar"></use></svg>Exportar GPX
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="point-sheet" class="bottom-sheet" aria-labelledby="point-title" hidden>
+        <button class="sheet-handle" type="button" aria-label="Recolher ou expandir"></button>
+        <div class="sheet-heading">
+            <div class="heading-text">
+                <p class="side-panel-kicker">WGS84 · SIRGAS 2000</p>
+                <h1 id="point-title">Ponto</h1>
+            </div>
+            <button class="icon-button close-sheet" type="button" aria-label="Fechar ponto">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-fechar"></use></svg>
+            </button>
+        </div>
+        <output id="point-decimal" class="coordinate-value">—</output>
+        <dl class="coordinate-grid">
+            <div><dt>GMS</dt><dd id="point-dms">—</dd></div>
+            <div><dt>UTM</dt><dd id="point-utm">—</dd></div>
+            <div><dt>Local</dt><dd id="point-place">—</dd></div>
+            <div><dt>De você</dt><dd id="point-from-me">GPS desligado</dd></div>
+        </dl>
+        <div class="sheet-actions start wrap">
+            <button id="point-navigate" class="primary-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#m-navegar"></use></svg>Navegar
+            </button>
+            <button id="point-copy" class="secondary-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-copiar"></use></svg>Copiar
+            </button>
+            <button id="point-share" class="secondary-button" type="button" hidden>
+                <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-compartilhar"></use></svg>Enviar
+            </button>
+        </div>
+        <div class="sheet-body">
+            <form id="point-form" class="point-form">
+                <label class="field-label">Nome<input id="point-name" type="text" maxlength="80" autocomplete="off" enterkeyhint="done"></label>
+                <label class="field-label">Observação<textarea id="point-note" rows="2" maxlength="500"></textarea></label>
+                <div class="sheet-actions">
+                    <button id="point-delete" class="secondary-button danger" type="button" hidden>Excluir</button>
+                    <button id="point-save" class="primary-button" type="submit">
+                        <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-salvar"></use></svg><span>Salvar ponto</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <nav class="bottom-nav" aria-label="Ferramentas de campo">
+        <button id="layers-toggle" class="nav-action" type="button" aria-expanded="false" aria-controls="layers-sheet">
+            <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-camadas-ui"></use></svg><span>Camadas</span>
+        </button>
+        <button id="search-toggle" class="nav-action" type="button" aria-expanded="false" aria-controls="search-panel">
+            <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-busca"></use></svg><span>Buscar</span>
+        </button>
+        <button id="measure-toggle" class="nav-action" type="button" aria-expanded="false" aria-controls="measure-sheet">
+            <svg class="icon" aria-hidden="true"><use href="../assets/icons/ui/sprite.svg#ic-medir"></use></svg><span>Medir</span>
+        </button>
+        <button id="navigate-toggle" class="nav-action" type="button" aria-expanded="false" aria-controls="navigate-sheet">
+            <svg class="icon" aria-hidden="true"><use href="#m-navegar"></use></svg><span>Navegar</span>
+        </button>
+        <button id="points-toggle" class="nav-action" type="button" aria-expanded="false" aria-controls="points-sheet">
+            <svg class="icon" aria-hidden="true"><use href="#m-ponto"></use></svg><span>Pontos</span>
+        </button>
+    </nav>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="./vendor/leaflet.js"></script>
+    <script type="module" src="./mobile.js"></script>
+</body>
+</html>
